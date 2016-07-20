@@ -1,21 +1,15 @@
-// A bundle is an actual CouchDB database, which contains themes, decks, and notes.
-// A bundle is the smallest, sharable unit in Flashback. As such, ownership and
-// permissions are defind per bundle
-package bundle
+package fbmodel
 
 import (
 	"encoding/json"
-
-	"github.com/flimzy/flashback-model"
-	"github.com/flimzy/flashback-model/user"
 )
 
 type Bundle struct {
-	model.NamedDoc
-	Owner *user.User
+	NamedDoc
+	Owner *User
 }
 
-func New(id string, owner *user.User) *Bundle {
+func NewBundle(id string, owner *User) *Bundle {
 	b := &Bundle{}
 	b.Type = "bundle"
 	b.ID = "bundle-" + id
@@ -24,7 +18,7 @@ func New(id string, owner *user.User) *Bundle {
 }
 
 type jsonBundle struct {
-	model.NamedDoc
+	NamedDoc
 	Owner string `json:"owner"`
 }
 

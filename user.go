@@ -1,13 +1,11 @@
-package user
+package fbmodel
 
 import (
 	"github.com/pborman/uuid"
-
-	"github.com/flimzy/flashback-model"
 )
 
 type User struct {
-	model.BaseDoc
+	BaseDoc
 	Name     string  `json:"name"`
 	Password string  `json:"password"`
 	Salt     string  `json:"salt"`
@@ -17,7 +15,7 @@ type User struct {
 	uuid     uuid.UUID
 }
 
-func Random() *User {
+func RandomUser() *User {
 	return &User{
 		uuid: uuid.NewRandom(),
 	}

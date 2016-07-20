@@ -13,10 +13,7 @@ import (
 
 	"github.com/flimzy/anki"
 
-	// 	"github.com/flimzy/flashback-model"
-	"github.com/flimzy/flashback-model/bundle"
-	"github.com/flimzy/flashback-model/theme"
-	"github.com/flimzy/flashback-model/user"
+	fb "github.com/flimzy/flashback-model"
 )
 
 func generateID(in ...[]byte) string {
@@ -29,46 +26,68 @@ func generateID(in ...[]byte) string {
 }
 
 type Bundle struct {
-	b    *bundle.Bundle
-	now  *time.Time
-	docs []interface{}
+	apkg  *anki.Apkg
+	b     *fb.Bundle
+	now   *time.Time
+	docs  []interface{}
+	owner *fb.User
 }
 
-func (b *Bundle) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b.docs)
+func (bx *Bundle) id(in []byte) string {
+	return generateID(bx.owner.UUID(), []byte("-anki-"), in)
 }
 
-func Convert(name string, o *user.User, a *anki.Apkg) (*Bundle, error) {
-	c, err := a.Collection()
+func (bx *Bundle) ankiID(id anki.ID) string {
+	bid := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bid, uint64(id))
+	return bx.id(bid)
+}
+
+func (bx *Bundle) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bx.docs)
+}
+
+func Convert(name string, o *fb.User, a *anki.Apkg) (*Bundle, error) {
+	bx := &Bundle{}
+	bx.apkg = a
+	bx.owner = o
+	c, err := bx.apkg.Collection()
 	if err != nil {
 		return nil, err
 	}
 	created := time.Time(*c.Created)
 	modified := time.Time(*c.Modified)
 	now := time.Now()
-	id := generateID(o.UUID(), []byte("-anki-"), []byte(strconv.FormatInt(created.UnixNano(), 10)))
-	fmt.Printf("Bundle ID = %s\n", id)
-	b := bundle.New(id, o)
+	id := bx.id([]byte(strconv.FormatInt(created.UnixNano(), 10)))
+	b := fb.NewBundle(id, o)
 	b.Created = &created
 	b.Modified = &modified
 	b.Name = &name
 	b.Imported = &now
 	docs := make([]interface{}, 0, 100)
 	docs = append(docs, b)
-	bx := &Bundle{
-		b:    b,
-		now:  &now,
-		docs: docs,
+	bx.now = &now
+	bx.docs = docs
+	bx.b = b
+	if err := bx.addThemes(); err != nil {
+		return nil, fmt.Errorf("Error converting themes: %s", err)
 	}
-	if err := bx.addThemes(c); err != nil {
-		return nil, fmt.Errorf("Error processing themes: %s", err)
+	if err := bx.addDecks(); err != nil {
+		return nil, fmt.Errorf("Error converting decks: %s", err)
+	}
+	if err := bx.addCards(); err != nil {
+		return nil, fmt.Errorf("Error converting cards: %s", err)
 	}
 	return bx, nil
 }
 
-func (bx *Bundle) addThemes(c *anki.Collection) error {
-	for mid, m := range c.Models {
-		t, err := bx.convertTheme(mid, m)
+func (bx *Bundle) addThemes() error {
+	c, err := bx.apkg.Collection()
+	if err != nil {
+		return err
+	}
+	for _, model := range c.Models {
+		t, err := bx.convertTheme(model)
 		if err != nil {
 			return err
 		}
@@ -77,25 +96,28 @@ func (bx *Bundle) addThemes(c *anki.Collection) error {
 	return nil
 }
 
-func (bx *Bundle) convertTheme(mid anki.ID, model *anki.Model) (*theme.Theme, error) {
-	modified := time.Time(*model.Modified)
-	bmid := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bmid, uint64(mid))
-	id := generateID(bx.b.Owner.UUID(), []byte("-anki-"), bmid)
-	t := theme.NewTheme(id)
-	t.Name = &model.Name
+// TODO: convert the following fields
+// 	Tags           []string          `json:"tags"`  // Anki saves the tags of the last added note to the current model
+// 	Fields         []*Field          `json:"flds"`  // Array of Field objects
+// 	SortField      int               `json:"sortf"` // Integer specifying which field is used for sorting in the browser
+// 	Type           ModelType         `json:"type"`      // Model type: Standard or Cloze
+
+func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
+	modified := time.Time(*aModel.Modified)
+	t := fb.NewTheme(bx.ankiID(aModel.ID))
+	t.Name = &aModel.Name
 	t.Modified = &modified
 	t.Imported = bx.now
-	t.SetFile("$main.css", "text/css", []byte(model.CSS))
+	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
 	m := t.NewModel(t.ID)
 	m.Modified = &modified
 	m.Imported = bx.now
-	tNames := make([]string, len(model.Templates))
-	for i, tmpl := range model.Templates {
-		qName := "!" + model.Name + "." + tmpl.Name + " question.html"
-		aName := "!" + model.Name + "." + tmpl.Name + " answer.html"
-		m.AddFile(qName, theme.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
-		m.AddFile(aName, theme.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
+	tNames := make([]string, len(aModel.Templates))
+	for i, tmpl := range aModel.Templates {
+		qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
+		aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
+		m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
+		m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
 		tNames[i] = tmpl.Name
 	}
 
@@ -103,16 +125,10 @@ func (bx *Bundle) convertTheme(mid anki.ID, model *anki.Model) (*theme.Theme, er
 	if err := masterTmpl.Execute(buf, tNames); err != nil {
 		return nil, err
 	}
-	m.AddFile("$template.0.html", theme.HTMLTemplateContentType, buf.Bytes())
+	m.AddFile("$template.0.html", fb.HTMLTemplateContentType, buf.Bytes())
 
 	return t, nil
 }
-
-// TODO: convert the following fields
-// 	Tags           []string          `json:"tags"`  // Anki saves the tags of the last added note to the current model
-// 	Fields         []*Field          `json:"flds"`  // Array of Field objects
-// 	SortField      int               `json:"sortf"` // Integer specifying which field is used for sorting in the browser
-// 	Type           ModelType         `json:"type"`      // Model type: Standard or Cloze
 
 var masterTmpl = template.Must(template.New("template.html").Delims("[[", "]]").Parse(`
 {{ $g := . }}
@@ -125,3 +141,67 @@ var masterTmpl = template.Must(template.New("template.html").Delims("[[", "]]").
 	</div>
 [[ end -]]
 `))
+
+func (bx *Bundle) addDecks() error {
+	c, err := bx.apkg.Collection()
+	if err != nil {
+		return err
+	}
+	for _, aDeck := range c.Decks {
+		d, err := bx.convertDeck(aDeck)
+		if err != nil {
+			return err
+		}
+		bx.docs = append(bx.docs, d)
+	}
+	return nil
+}
+
+// TODO: Conert the following fields
+// type Deck struct {
+//     ExtendedNewCardLimit    int              `json:"extendedNew"`      // Extended new card limit for custom study
+//     ExtendedReviewCardLimit int              `json:"extendedRev"`      // Extended review card limit for custom study
+//     ConfigID                ID               `json:"conf"`             // ID of option group from dconf in `col` table
+//     NewToday                [2]int           `json:"newToday"`         // two number array used somehow for custom study
+//     ReviewsToday            [2]int           `json:"revToday"`         // two number array used somehow for custom study
+//     LearnToday              [2]int           `json:"lrnToday"`         // two number array used somehow for custom study
+//     TimeToday               [2]int           `json:"timeToday"`        // two number array used somehow for custom study (in ms)
+//     Config                  *DeckConfig      `json:"-"`
+// }
+
+func (bx *Bundle) convertDeck(aDeck *anki.Deck) (*fb.Deck, error) {
+	d := fb.NewDeck(bx.ankiID(aDeck.ID))
+	modified := time.Time(*aDeck.Modified)
+	d.ID = bx.ankiID(aDeck.ID)
+	d.Modified = &modified
+	if aDeck.Name != "" {
+		d.Name = &aDeck.Name
+	}
+	if aDeck.Description != "" {
+		d.Description = &aDeck.Description
+	}
+	return d, nil
+}
+
+func (bx *Bundle) addCards() error {
+	cards, err := bx.apkg.Cards()
+	if err != nil {
+		return err
+	}
+	for cards.Next() {
+		if aCard, err := cards.Card(); err != nil {
+			return err
+		} else {
+			c, err := bx.convertCard(aCard)
+			if err != nil {
+				return err
+			}
+			bx.docs = append(bx.docs, c)
+		}
+	}
+	return nil
+}
+
+func (bx *Bundle) convertCard(aCard *anki.Card) (*fb.Card, error) {
+	return nil, nil
+}
