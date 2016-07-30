@@ -3,15 +3,14 @@ package fbmodel
 import ()
 
 type Note struct {
-	BaseDoc
+	doc
 	ModelID string `json:"modelId"`
 }
 
 func NewNote(id, modelID string) *Note {
 	n := &Note{}
-	n.ID = id
+	n.doc = NewDoc("note", id)
 	n.ModelID = modelID
-	n.Type = "note"
 	return n
 }
 

@@ -1,18 +1,32 @@
 package fbmodel
 
-import ()
+import (
+	"encoding/json"
+)
 
 type Card struct {
-	BaseDoc
+	doc
 	DeckID string `json:"deckId"`
 }
 
-func NewCard(id string, deckID string) *Card {
+func NewCard(id string, deck *Deck) *Card {
 	c := &Card{}
-	c.ID = id
-	c.DeckID = deckID
-	c.Type = "card"
+	c.doc = NewDoc("card", id)
+	c.DeckID = deck.ID()
 	return c
+}
+
+type jsonCard struct {
+	*jsonDoc
+	*Card
+}
+
+func (c *Card) MarshalJSON() ([]byte, error) {
+	in := &jsonCard{
+		jsonDoc: c.jsonDoc(),
+		Card: c,
+	}
+	return json.Marshal(in)
 }
 
 // type Card struct {

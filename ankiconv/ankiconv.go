@@ -109,7 +109,7 @@ func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	t.Modified = &modified
 	t.Imported = bx.now
 	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
-	m := t.NewModel(t.ID)
+	m := t.NewModel(t.ID.String())
 	m.Modified = &modified
 	m.Imported = bx.now
 	tNames := make([]string, len(aModel.Templates))
@@ -172,7 +172,6 @@ func (bx *Bundle) addDecks() error {
 func (bx *Bundle) convertDeck(aDeck *anki.Deck) (*fb.Deck, error) {
 	d := fb.NewDeck(bx.ankiID(aDeck.ID))
 	modified := time.Time(*aDeck.Modified)
-	d.ID = bx.ankiID(aDeck.ID)
 	d.Modified = &modified
 	if aDeck.Name != "" {
 		d.Name = &aDeck.Name
@@ -203,5 +202,6 @@ func (bx *Bundle) addCards() error {
 }
 
 func (bx *Bundle) convertCard(aCard *anki.Card) (*fb.Card, error) {
+// 	c := fb.NewCard(
 	return nil, nil
 }

@@ -3,12 +3,16 @@ package fbmodel
 import ()
 
 type Deck struct {
-	NamedDoc
+	namedDoc
 }
 
 func NewDeck(id string) *Deck {
 	d := &Deck{}
-	d.ID = id
-	d.Type = "deck"
+	d.doc = NewDoc("deck", id)
 	return d
 }
+
+// func (d *Deck) NewNote(id string) *Note {
+// 	n := &Note{}
+// 	n.ID
+// }

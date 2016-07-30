@@ -1,7 +1,7 @@
 package fbmodel
 
 type Theme struct {
-	NamedDoc
+	namedDoc
 	Models      []*Model            `json:"models,omitempty"`
 	Attachments *FileCollection     `json:"_attachments,omitempty"`
 	Files       *FileCollectionView `json:"files,omitempty"`
@@ -9,8 +9,7 @@ type Theme struct {
 
 func NewTheme(id string) *Theme {
 	t := &Theme{}
-	t.Type = "theme"
-	t.ID = "theme-" + id
+	t.doc = NewDoc("theme", id)
 	t.Models = make([]*Model, 0, 1)
 	t.Attachments = NewFileCollection()
 	t.Files = t.Attachments.NewView()
@@ -27,8 +26,7 @@ func (t *Theme) SetFile(name, ctype string, content []byte) {
 
 func (t *Theme) NewModel(id string) *Model {
 	m := &Model{}
-	m.Type = "model"
-	m.ID = id
+	m.doc = NewDoc("model", id)
 	m.Files = t.Attachments.NewView()
 	t.Models = append(t.Models, m)
 	return m
