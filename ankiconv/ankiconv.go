@@ -7,7 +7,7 @@ import (
 	// 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	// 	"html/template"
+	"html/template"
 	"time"
 
 	"github.com/flimzy/anki"
@@ -93,9 +93,9 @@ func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	bx.docs = docs
 	bx.b = b
 	fmt.Printf("foo\n")
-	// 	if err := bx.addThemes(); err != nil {
-	// 		return fmt.Errorf("Error converting themes: %s", err)
-	// 	}
+	if err := bx.addThemes(); err != nil {
+		return fmt.Errorf("Error converting themes: %s", err)
+	}
 	// 	if err := bx.addDecks(); err != nil {
 	// 		return fmt.Errorf("Error converting decks: %s", err)
 	// 	}
@@ -104,8 +104,6 @@ func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	// 	}
 	return nil
 }
-
-/*
 
 func (bx *Bundle) addThemes() error {
 	c, err := bx.apkg.Collection()
@@ -130,29 +128,30 @@ func (bx *Bundle) addThemes() error {
 
 func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	modified := time.Time(*aModel.Modified)
-	t := fb.NewTheme(bx.ankiID(aModel.ID))
+	t := fb.CreateTheme(bx.id(int64ToByte(int64(aModel.ID))))
 	t.Name = &aModel.Name
 	t.Modified = &modified
 	t.Imported = bx.now
 	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
-	m := t.NewModel(t.ID.String())
-	m.Modified = &modified
-	m.Imported = bx.now
-	tNames := make([]string, len(aModel.Templates))
-	for i, tmpl := range aModel.Templates {
-		qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
-		aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
-		m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
-		m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
-		tNames[i] = tmpl.Name
-	}
+	/*
+		m := t.NewModel(t.ID.String())
+		m.Modified = &modified
+		m.Imported = bx.now
+		tNames := make([]string, len(aModel.Templates))
+		for i, tmpl := range aModel.Templates {
+			qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
+			aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
+			m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
+			m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
+			tNames[i] = tmpl.Name
+		}
 
-	buf := new(bytes.Buffer)
-	if err := masterTmpl.Execute(buf, tNames); err != nil {
-		return nil, err
-	}
-	m.AddFile("$template.0.html", fb.HTMLTemplateContentType, buf.Bytes())
-
+		buf := new(bytes.Buffer)
+		if err := masterTmpl.Execute(buf, tNames); err != nil {
+			return nil, err
+		}
+		m.AddFile("$template.0.html", fb.HTMLTemplateContentType, buf.Bytes())
+	*/
 	return t, nil
 }
 
@@ -167,6 +166,7 @@ var masterTmpl = template.Must(template.New("template.html").Delims("[[", "]]").
 	</div>
 [[ end -]]
 `))
+
 /*
 func (bx *Bundle) addDecks() error {
 	c, err := bx.apkg.Collection()
