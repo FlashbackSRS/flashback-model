@@ -7,6 +7,7 @@ import (
 	"github.com/pborman/uuid"
 
 	"github.com/flimzy/flashback-model"
+	. "github.com/flimzy/flashback-model/test/util"
 )
 
 var frozenUser []byte = []byte(`{"_id":"user-nRHQJKEAQEWlt58cz5bMnw==","type":"user","password":"","salt":"","userType":"","username":"mrsmith"}`)
@@ -16,15 +17,15 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error unfreezing test user: %s", err)
 	}
-	stringsEqual(t, "Username", u.Username, "mrsmith")
-	stringsEqual(t, "ID", u.ID.String(), "user-nRHQJKEAQEWlt58cz5bMnw==")
-	stringsEqual(t, "Type", u.Type(), "user")
-	stringsEqual(t, "Identity", u.Identity(), "nRHQJKEAQEWlt58cz5bMnw==")
+	StringsEqual(t, "Username", u.Username, "mrsmith")
+	StringsEqual(t, "ID", u.ID.String(), "user-nRHQJKEAQEWlt58cz5bMnw==")
+	StringsEqual(t, "Type", u.Type(), "user")
+	StringsEqual(t, "Identity", u.Identity(), "nRHQJKEAQEWlt58cz5bMnw==")
 	output, err := json.Marshal(u)
 	if err != nil {
 		t.Errorf("Error marshaling user: %s", err)
 	}
-	jsonDeepEqual(t, "Frozen user", frozenUser, output)
+	JSONDeepEqual(t, "Frozen user", frozenUser, output)
 }
 
 func TestNewUser(t *testing.T) {
@@ -32,13 +33,13 @@ func TestNewUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating user: %s\n", err)
 	}
-	stringsEqual(t, "ID", u.ID.String(), "user-nRHQJKEAQEWlt58cz5bMnw==")
-	stringsEqual(t, "Type", u.Type(), "user")
+	StringsEqual(t, "ID", u.ID.String(), "user-nRHQJKEAQEWlt58cz5bMnw==")
+	StringsEqual(t, "Type", u.Type(), "user")
 	output, err := json.Marshal(u)
 	if err != nil {
 		t.Errorf("Error marshaling new user: %s", err)
 	}
-	jsonDeepEqual(t, "New user", frozenUser, output)
+	JSONDeepEqual(t, "New user", frozenUser, output)
 }
 
 type UserTest struct {

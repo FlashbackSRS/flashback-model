@@ -1,14 +1,13 @@
 package ankiconv
 
 import (
-	"bytes"
-	"crypto/sha1"
+	// 	"bytes"
+	// 	"crypto/sha1"
 	"encoding/binary"
-	"encoding/hex"
+	// 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"html/template"
-	"strconv"
+	// 	"html/template"
 	"time"
 
 	"github.com/flimzy/anki"
@@ -16,14 +15,20 @@ import (
 	fb "github.com/flimzy/flashback-model"
 )
 
-func generateID(in ...[]byte) string {
-	h := sha1.New()
-	for _, part := range in {
-		h.Write(part)
-	}
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
+func int64ToByte(i int64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(i))
+	return b
 }
+
+// func generateID(in ...[]byte) []byte {
+// 	h := sha1.New()
+// 	for _, part := range in {
+// 		h.Write(part)
+// 	}
+// 	sum := h.Sum(nil)
+// 	return hex.EncodeToString(sum)
+// }
 
 type Bundle struct {
 	apkg  *anki.Apkg
@@ -33,53 +38,74 @@ type Bundle struct {
 	owner *fb.User
 }
 
-func (bx *Bundle) id(in []byte) string {
-	return generateID(bx.owner.UUID(), []byte("-anki-"), in)
+func (bx *Bundle) id(in []byte) []byte {
+	b := make([]byte, 0, len(in)+24)
+	b = append(b, bx.owner.UUID()...)
+	b = append(b, []byte("-anki-")...)
+	b = append(b, in...)
+	return b
+	/*
+		return generateID(bx.owner.UUID(), []byte("-anki-"), in)*/
 }
 
-func (bx *Bundle) ankiID(id anki.ID) string {
-	bid := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bid, uint64(id))
-	return bx.id(bid)
-}
+// func (bx *Bundle) ankiID(id anki.ID) string {
+// 	bid := make([]byte, 8)
+// 	binary.BigEndian.PutUint64(bid, uint64(id))
+// 	return bx.id(bid)
+// }
 
 func (bx *Bundle) MarshalJSON() ([]byte, error) {
 	return json.Marshal(bx.docs)
 }
 
+func NewBundle() *Bundle {
+	b := &Bundle{}
+	now := time.Now()
+	b.now = &now
+	return b
+}
+
+func (bx *Bundle) SetNow(now time.Time) {
+	bx.now = &now
+}
+
 func Convert(name string, o *fb.User, a *anki.Apkg) (*Bundle, error) {
-	bx := &Bundle{}
+	b := NewBundle()
+	return b, b.Convert(name, o, a)
+}
+
+func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	bx.apkg = a
 	bx.owner = o
 	c, err := bx.apkg.Collection()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	created := time.Time(*c.Created)
 	modified := time.Time(*c.Modified)
-	now := time.Now()
-	id := bx.id([]byte(strconv.FormatInt(created.UnixNano(), 10)))
-	b := fb.NewBundle(id, o)
+	b := fb.CreateBundle(bx.id(int64ToByte(created.UnixNano())), o)
 	b.Created = &created
 	b.Modified = &modified
 	b.Name = &name
-	b.Imported = &now
+	b.Imported = bx.now
 	docs := make([]interface{}, 0, 100)
 	docs = append(docs, b)
-	bx.now = &now
 	bx.docs = docs
 	bx.b = b
-	if err := bx.addThemes(); err != nil {
-		return nil, fmt.Errorf("Error converting themes: %s", err)
-	}
-	if err := bx.addDecks(); err != nil {
-		return nil, fmt.Errorf("Error converting decks: %s", err)
-	}
-	if err := bx.addCards(); err != nil {
-		return nil, fmt.Errorf("Error converting cards: %s", err)
-	}
-	return bx, nil
+	fmt.Printf("foo\n")
+	// 	if err := bx.addThemes(); err != nil {
+	// 		return fmt.Errorf("Error converting themes: %s", err)
+	// 	}
+	// 	if err := bx.addDecks(); err != nil {
+	// 		return fmt.Errorf("Error converting decks: %s", err)
+	// 	}
+	// 	if err := bx.addCards(); err != nil {
+	// 		return fmt.Errorf("Error converting cards: %s", err)
+	// 	}
+	return nil
 }
+
+/*
 
 func (bx *Bundle) addThemes() error {
 	c, err := bx.apkg.Collection()
@@ -141,7 +167,7 @@ var masterTmpl = template.Must(template.New("template.html").Delims("[[", "]]").
 	</div>
 [[ end -]]
 `))
-
+/*
 func (bx *Bundle) addDecks() error {
 	c, err := bx.apkg.Collection()
 	if err != nil {
@@ -204,4 +230,4 @@ func (bx *Bundle) addCards() error {
 func (bx *Bundle) convertCard(aCard *anki.Card) (*fb.Card, error) {
 // 	c := fb.NewCard(
 	return nil, nil
-}
+}*/

@@ -35,11 +35,11 @@ type userDoc struct {
 	Email    *string `json:"email,omitempty"`
 }
 
-func CreateUser(username string) (*User, error) {
-	u := &User{}
-	u.ID = NewID("user", uuid.NewRandom())
-	return u, nil
-}
+// func CreateUser(username string) (*User, error) {
+// 	u := &User{}
+// 	u.ID = NewID("user", uuid.NewRandom())
+// 	return u, nil
+// }
 
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	u := &User{}
