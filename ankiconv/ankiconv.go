@@ -2,6 +2,7 @@ package ankiconv
 
 import (
 	"bytes"
+	"sort"
 	// 	"crypto/sha1"
 	"encoding/binary"
 	// 	"encoding/hex"
@@ -15,28 +16,19 @@ import (
 	fb "github.com/flimzy/flashback-model"
 )
 
-func int64ToByte(i int64) []byte {
+func int64ToBytes(i int64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(i))
 	return b
 }
 
 type Bundle struct {
-	apkg  *anki.Apkg
-	b     *fb.Bundle
-	now   *time.Time
-	docs  []interface{}
-	owner *fb.User
-}
-
-func (bx *Bundle) id(in []byte) []byte {
-	b := make([]byte, 0, len(in)+24)
-	b = append(b, bx.owner.UUID()...)
-	b = append(b, []byte("-anki-")...)
-	b = append(b, in...)
-	return b
-	/*
-		return generateID(bx.owner.UUID(), []byte("-anki-"), in)*/
+	apkg     *anki.Apkg
+	b        *fb.Bundle
+	now      *time.Time
+	docs     []interface{}
+	owner    *fb.User
+	modelMap map[anki.ID]*fb.Model
 }
 
 func (bx *Bundle) MarshalJSON() ([]byte, error) {
@@ -47,6 +39,7 @@ func NewBundle() *Bundle {
 	b := &Bundle{}
 	now := time.Now()
 	b.now = &now
+	b.modelMap = make(map[anki.ID]*fb.Model)
 	return b
 }
 
@@ -68,7 +61,8 @@ func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	}
 	created := time.Time(*c.Created)
 	modified := time.Time(*c.Modified)
-	b := fb.CreateBundle(bx.id(int64ToByte(created.UnixNano())), o)
+	id := fb.KeyToIDString(bx.owner.UUID(), int64ToBytes(created.UnixNano()))
+	b, _ := fb.NewBundle(id, o)
 	b.Created = &created
 	b.Modified = &modified
 	b.Name = &name
@@ -80,22 +74,36 @@ func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	if err := bx.addThemes(); err != nil {
 		return fmt.Errorf("Error converting themes: %s", err)
 	}
-	// 	if err := bx.addDecks(); err != nil {
-	// 		return fmt.Errorf("Error converting decks: %s", err)
-	// 	}
+	if err := bx.addDecks(); err != nil {
+		return fmt.Errorf("Error converting decks: %s", err)
+	}
+	if err := bx.addNotes(); err != nil {
+		return fmt.Errorf("Error converting notes: %s", err)
+	}
 	// 	if err := bx.addCards(); err != nil {
 	// 		return fmt.Errorf("Error converting cards: %s", err)
 	// 	}
 	return nil
 }
 
+type modelArray []*anki.Model
+
+func (a modelArray) Len() int           { return len(a) }
+func (a modelArray) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a modelArray) Less(i, j int) bool { return a[i].ID < a[j].ID }
+
 func (bx *Bundle) addThemes() error {
 	c, err := bx.apkg.Collection()
 	if err != nil {
 		return err
 	}
-	for _, model := range c.Models {
-		t, err := bx.convertTheme(model)
+	models := modelArray(make([]*anki.Model, 0, len(c.Models)))
+	for _, m := range c.Models {
+		models = append(models, m)
+	}
+	sort.Sort(models)
+	for _, aModel := range models {
+		t, err := bx.convertTheme(aModel)
 		if err != nil {
 			return err
 		}
@@ -112,16 +120,14 @@ func (bx *Bundle) addThemes() error {
 
 func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	modified := time.Time(*aModel.Modified)
-	id := bx.id(int64ToByte(int64(aModel.ID)))
-	t := fb.CreateTheme(id)
+	id := fb.KeyToIDString(bx.owner.UUID(), int64ToBytes(int64(aModel.ID)))
+	t, _ := fb.NewTheme(id)
 	t.Name = &aModel.Name
 	t.Modified = &modified
 	t.Imported = bx.now
 	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
-	m, err := t.NewModel(t.ID.Identity())
-	if err != nil {
-		return nil, err
-	}
+	m, _ := t.NewModel(t.ID.Identity())
+	bx.modelMap[aModel.ID] = m
 	m.Modified = &modified
 	m.Imported = bx.now
 	tNames := make([]string, len(aModel.Templates))
@@ -153,13 +159,23 @@ var masterTmpl = template.Must(template.New("template.html").Delims("[[", "]]").
 [[ end -]]
 `))
 
-/*
+type deckArray []*anki.Deck
+
+func (a deckArray) Len() int           { return len(a) }
+func (a deckArray) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a deckArray) Less(i, j int) bool { return a[i].ID < a[j].ID }
+
 func (bx *Bundle) addDecks() error {
 	c, err := bx.apkg.Collection()
 	if err != nil {
 		return err
 	}
-	for _, aDeck := range c.Decks {
+	decks := deckArray(make([]*anki.Deck, 0, len(c.Decks)))
+	for _, d := range c.Decks {
+		decks = append(decks, d)
+	}
+	sort.Sort(decks)
+	for _, aDeck := range decks {
 		d, err := bx.convertDeck(aDeck)
 		if err != nil {
 			return err
@@ -182,7 +198,8 @@ func (bx *Bundle) addDecks() error {
 // }
 
 func (bx *Bundle) convertDeck(aDeck *anki.Deck) (*fb.Deck, error) {
-	d := fb.NewDeck(bx.ankiID(aDeck.ID))
+	id := fb.KeyToIDString(bx.owner.UUID(), int64ToBytes(int64(aDeck.ID)))
+	d, _ := fb.NewDeck(id)
 	modified := time.Time(*aDeck.Modified)
 	d.Modified = &modified
 	if aDeck.Name != "" {
@@ -194,6 +211,33 @@ func (bx *Bundle) convertDeck(aDeck *anki.Deck) (*fb.Deck, error) {
 	return d, nil
 }
 
+func (bx *Bundle) addNotes() error {
+	notes, err := bx.apkg.Notes()
+	if err != nil {
+		return err
+	}
+	for notes.Next() {
+		if aNote, err := notes.Note(); err != nil {
+			return err
+		} else {
+			n, err := bx.convertNote(aNote)
+			if err != nil {
+				return err
+			}
+			bx.docs = append(bx.docs, n)
+		}
+	}
+	return nil
+}
+
+func (bx *Bundle) convertNote(aNote *anki.Note) (*fb.Note, error) {
+	id := fb.KeyToIDString(bx.owner.UUID(), int64ToBytes(int64(aNote.ID)))
+	n, _ := fb.NewNote(id, bx.modelMap[aNote.ModelID])
+	n.ID, _ = fb.NewID("note", id)
+	return n, nil
+}
+
+/*
 func (bx *Bundle) addCards() error {
 	cards, err := bx.apkg.Cards()
 	if err != nil {
@@ -212,8 +256,10 @@ func (bx *Bundle) addCards() error {
 	}
 	return nil
 }
-
+/*
 func (bx *Bundle) convertCard(aCard *anki.Card) (*fb.Card, error) {
 // 	c := fb.NewCard(
 	return nil, nil
-}*/
+}
+
+*/

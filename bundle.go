@@ -29,11 +29,15 @@ type bundleDoc struct {
 	Description *string    `json:"description,omitempty"`
 }
 
-func CreateBundle(key []byte, owner *User) *Bundle {
+func NewBundle(id string, owner *User) (*Bundle, error) {
 	b := &Bundle{}
-	b.ID = CreateID("bundle", key)
+	bid, err := NewID("bundle", id)
+	if err != nil {
+		return nil, err
+	}
+	b.ID = bid
 	b.Owner = owner
-	return b
+	return b, nil
 }
 
 func (b *Bundle) MarshalJSON() ([]byte, error) {

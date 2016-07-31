@@ -8,6 +8,19 @@ import (
 	"strings"
 )
 
+func KeyToID(key ...[]byte) []byte {
+	h := sha1.New()
+	for _, k := range key {
+		h.Write(k)
+	}
+	hash := h.Sum(nil)
+	return hash[:]
+}
+
+func KeyToIDString(key ...[]byte) string {
+	return base64.URLEncoding.EncodeToString(KeyToID(key...))
+}
+
 var validTypes map[string]struct{}
 
 func init() {
@@ -29,8 +42,7 @@ type ID struct {
 
 // CreateID creates a new ID object, based on the type and a byte array, which is hashed to generate the human-readable ID.
 func CreateID(idType string, key []byte) ID {
-	hash := sha1.Sum(key)
-	return NewByteID(idType, hash[:])
+	return NewByteID(idType, KeyToID(key))
 }
 
 // NewID creates a new ID object, based on the type and human-readable id.

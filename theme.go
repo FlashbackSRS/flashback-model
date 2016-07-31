@@ -32,13 +32,17 @@ type themeDoc struct {
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
 
-func CreateTheme(key []byte) *Theme {
+func NewTheme(id string) (*Theme, error) {
 	t := &Theme{}
-	t.ID = CreateID("theme", key)
+	tid, err := NewID("theme", id)
+	if err != nil {
+		return nil, err
+	}
+	t.ID = tid
 	t.Attachments = NewFileCollection()
 	t.Files = t.Attachments.NewView()
 	t.Models = make([]*Model, 0, 1)
-	return t
+	return t, nil
 }
 
 func (t *Theme) SetFile(name, ctype string, content []byte) {

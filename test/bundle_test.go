@@ -16,7 +16,10 @@ func oink() {
 
 func TestNewBundle(t *testing.T) {
 	u, _ := testUser()
-	b := fbmodel.CreateBundle([]byte("test bundle"), u)
+	b, err := fbmodel.NewBundle("VjMOV9J35iuH1lXdM_lgQPOYx9I=", u)
+	if err != nil {
+		t.Fatalf("Error creating new bundle: %s", err)
+	}
 	name := "Test Bundle"
 	b.Name = &name
 	descr := "A bundle for testing"
