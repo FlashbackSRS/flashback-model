@@ -9,20 +9,20 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenBundle []byte = []byte(`{"type":"bundle","_id":"bundle-dGVzdCBidW5kbGU=","owner":"nRHQJKEAQEWlt58cz5bMnw==","name":"Test Bundle","description":"A bundle for testing"}`)
+var frozenBundle []byte = []byte(`{"type":"bundle","_id":"bundle-VjMOV9J35iuH1lXdM_lgQPOYx9I=","owner":"nRHQJKEAQEWlt58cz5bMnw==","name":"Test Bundle","description":"A bundle for testing"}`)
 
 func oink() {
 }
 
 func TestNewBundle(t *testing.T) {
 	u, _ := testUser()
-	b := fbmodel.NewBundle([]byte("test bundle"), u)
+	b := fbmodel.CreateBundle([]byte("test bundle"), u)
 	name := "Test Bundle"
 	b.Name = &name
 	descr := "A bundle for testing"
 	b.Description = &descr
 	fmt.Printf("%v\n", b)
-	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-dGVzdCBidW5kbGU=")
+	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-VjMOV9J35iuH1lXdM_lgQPOYx9I=")
 	JSONDeepEqual(t, "New Bundle", Marshal(t, "New bundle", b), frozenBundle)
 }
 

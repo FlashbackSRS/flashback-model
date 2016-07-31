@@ -12,7 +12,7 @@ var validTypes map[string]struct{}
 
 func init() {
 	validTypes = make(map[string]struct{})
-	for _, t := range []string{"theme", "note", "deck", "bundle", "card", "user"} {
+	for _, t := range []string{"theme", "model", "note", "deck", "bundle", "card", "user"} {
 		validTypes[t] = struct{}{}
 	}
 }
@@ -27,20 +27,30 @@ type ID struct {
 	id      []byte
 }
 
+// CreateID creates a new ID object, based on the type and a byte array, which is hashed to generate the human-readable ID.
 func CreateID(idType string, key []byte) ID {
 	hash := sha1.Sum(key)
-	return NewID(idType, hash[:])
+	return NewByteID(idType, hash[:])
 }
 
-func NewID(idType string, objectID []byte) ID {
+// NewID creates a new ID object, based on the type and human-readable id.
+func NewID(idType string, objectID string) (ID, error) {
+	dec, err := base64.URLEncoding.DecodeString(objectID)
+	if err != nil {
+		return ID{}, err
+	}
+	return NewByteID(idType, dec), nil
+}
+
+// NewByteID creates a new ID object, based on the type and id in []byte format
+func NewByteID(idType string, id []byte) ID {
 	if !isValidType(idType) {
 		panic("Invalid type: " + idType)
 	}
-	id := ID{
+	return ID{
 		docType: idType,
-		id:      objectID,
+		id:      id,
 	}
-	return id
 }
 
 func (id *ID) String() string {

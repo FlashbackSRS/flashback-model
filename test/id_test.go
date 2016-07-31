@@ -7,7 +7,7 @@ import (
 )
 
 func TestID(t *testing.T) {
-	id := fbmodel.NewID("user", []byte("User Bob"))
+	id := fbmodel.NewByteID("user", []byte("User Bob"))
 	id2, err := fbmodel.ParseID(id.String())
 	if err != nil {
 		t.Fatalf("We can't even parse the IDs we generate: %s", err.Error())

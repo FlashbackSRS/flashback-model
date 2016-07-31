@@ -27,21 +27,26 @@ func JSONDeepEqual(t *testing.T, descr string, data1, data2 []byte) {
 }
 
 func gotExpected(t *testing.T, descr, got, expected string) {
+	if got[len(got)-1:] != "\n" {
+		got = got + "\n"
+	}
+	if expected[len(expected)-1:] != "\n" {
+		expected = expected + "\n"
+	}
 	udiff := difflib.UnifiedDiff{
 		A:        strings.SplitAfter(expected, "\n"),
 		FromFile: "expected",
 		B:        strings.SplitAfter(got, "\n"),
 		ToFile:   "got",
+		Context:  2,
 	}
 	diff, err := difflib.GetUnifiedDiffString(udiff)
 	if err != nil {
 		t.Fatal("Error producing diff: %s\n", err)
 	}
-	fmt.Printf("%s\n")
+	fmt.Printf("%s\n", descr)
 	fmt.Print(diff)
 	t.Error()
-	// 	t.Errorf("%s\n%s", descr, diff)
-	// 	t.Errorf("%s\n     Got: %s\nExpected: %s\n", descr, got, expected)
 }
 
 func StringsEqual(t *testing.T, descr, got, expected string) {
