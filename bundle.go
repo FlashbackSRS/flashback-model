@@ -36,13 +36,6 @@ func CreateBundle(key []byte, owner *User) *Bundle {
 	return b
 }
 
-func NewBundle(id []byte, owner *User) *Bundle {
-	b := &Bundle{}
-	b.ID = NewID("bundle", id)
-	b.Owner = owner
-	return b
-}
-
 func (b *Bundle) MarshalJSON() ([]byte, error) {
 	return json.Marshal(bundleDoc{
 		Type:        "bundle",

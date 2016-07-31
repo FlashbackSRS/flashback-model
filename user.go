@@ -44,7 +44,7 @@ type userDoc struct {
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	u := &User{}
 	u.uuid = id
-	u.ID = NewID("user", id)
+	u.ID = NewByteID("user", id)
 	u.Username = username
 	return u, nil
 }

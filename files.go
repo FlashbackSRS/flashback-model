@@ -5,6 +5,8 @@ import (
 	"errors"
 )
 
+const HTMLTemplateContentType = "text/html+flashbacktmpl"
+
 type Attachment struct {
 	ContentType string `json:"content-type"`
 	Content     []byte `json:"data"`

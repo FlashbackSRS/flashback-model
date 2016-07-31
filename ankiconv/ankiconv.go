@@ -1,7 +1,7 @@
 package ankiconv
 
 import (
-	// 	"bytes"
+	"bytes"
 	// 	"crypto/sha1"
 	"encoding/binary"
 	// 	"encoding/hex"
@@ -21,15 +21,6 @@ func int64ToByte(i int64) []byte {
 	return b
 }
 
-// func generateID(in ...[]byte) []byte {
-// 	h := sha1.New()
-// 	for _, part := range in {
-// 		h.Write(part)
-// 	}
-// 	sum := h.Sum(nil)
-// 	return hex.EncodeToString(sum)
-// }
-
 type Bundle struct {
 	apkg  *anki.Apkg
 	b     *fb.Bundle
@@ -47,12 +38,6 @@ func (bx *Bundle) id(in []byte) []byte {
 	/*
 		return generateID(bx.owner.UUID(), []byte("-anki-"), in)*/
 }
-
-// func (bx *Bundle) ankiID(id anki.ID) string {
-// 	bid := make([]byte, 8)
-// 	binary.BigEndian.PutUint64(bid, uint64(id))
-// 	return bx.id(bid)
-// }
 
 func (bx *Bundle) MarshalJSON() ([]byte, error) {
 	return json.Marshal(bx.docs)
@@ -92,7 +77,6 @@ func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	docs = append(docs, b)
 	bx.docs = docs
 	bx.b = b
-	fmt.Printf("foo\n")
 	if err := bx.addThemes(); err != nil {
 		return fmt.Errorf("Error converting themes: %s", err)
 	}
@@ -128,30 +112,32 @@ func (bx *Bundle) addThemes() error {
 
 func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	modified := time.Time(*aModel.Modified)
-	t := fb.CreateTheme(bx.id(int64ToByte(int64(aModel.ID))))
+	id := bx.id(int64ToByte(int64(aModel.ID)))
+	t := fb.CreateTheme(id)
 	t.Name = &aModel.Name
 	t.Modified = &modified
 	t.Imported = bx.now
 	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
-	/*
-		m := t.NewModel(t.ID.String())
-		m.Modified = &modified
-		m.Imported = bx.now
-		tNames := make([]string, len(aModel.Templates))
-		for i, tmpl := range aModel.Templates {
-			qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
-			aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
-			m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
-			m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
-			tNames[i] = tmpl.Name
-		}
+	m, err := t.NewModel(t.ID.Identity())
+	if err != nil {
+		return nil, err
+	}
+	m.Modified = &modified
+	m.Imported = bx.now
+	tNames := make([]string, len(aModel.Templates))
+	for i, tmpl := range aModel.Templates {
+		qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
+		aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
+		m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
+		m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
+		tNames[i] = tmpl.Name
+	}
 
-		buf := new(bytes.Buffer)
-		if err := masterTmpl.Execute(buf, tNames); err != nil {
-			return nil, err
-		}
-		m.AddFile("$template.0.html", fb.HTMLTemplateContentType, buf.Bytes())
-	*/
+	buf := new(bytes.Buffer)
+	if err := masterTmpl.Execute(buf, tNames); err != nil {
+		return nil, err
+	}
+	m.AddFile("$template.0.html", fb.HTMLTemplateContentType, buf.Bytes())
 	return t, nil
 }
 
