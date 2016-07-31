@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flimzy/flashback-model"
+	. "github.com/flimzy/flashback-model/test/util"
 )
 
 var frozenBundle []byte = []byte(`{"type":"bundle","_id":"bundle-dGVzdCBidW5kbGU=","owner":"nRHQJKEAQEWlt58cz5bMnw==","name":"Test Bundle","description":"A bundle for testing"}`)
@@ -21,8 +22,8 @@ func TestNewBundle(t *testing.T) {
 	descr := "A bundle for testing"
 	b.Description = &descr
 	fmt.Printf("%v\n", b)
-	stringsEqual(t, "Bundle ID", b.ID.String(), "bundle-dGVzdCBidW5kbGU=")
-	jsonDeepEqual(t, "New Bundle", marshal(t, "New bundle", b), frozenBundle)
+	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-dGVzdCBidW5kbGU=")
+	JSONDeepEqual(t, "New Bundle", Marshal(t, "New bundle", b), frozenBundle)
 }
 
 func TestThawBundle(t *testing.T) {
@@ -30,5 +31,5 @@ func TestThawBundle(t *testing.T) {
 	if err := json.Unmarshal(frozenBundle, b); err != nil {
 		t.Fatalf("Error thawing bundle: %s", err)
 	}
-	jsonDeepEqual(t, "Thawed Bundle", marshal(t, "Thawed bundle", b), frozenBundle)
+	JSONDeepEqual(t, "Thawed Bundle", Marshal(t, "Thawed bundle", b), frozenBundle)
 }

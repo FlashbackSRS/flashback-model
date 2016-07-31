@@ -3,28 +3,36 @@ package fbmodel
 import (
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 type Bundle struct {
 	ID
 	Rev         *string
+	Created     *time.Time
+	Modified    *time.Time
+	Imported    *time.Time
 	Owner       *User
 	Name        *string
 	Description *string
 }
 
 type bundleDoc struct {
-	Type        string  `json:"type"`
-	ID          ID      `json:"_id"`
-	Rev         *string `json:"_rev,omitempty"`
-	Owner       string  `json:"owner"`
-	Name        *string `json:"name,omitempty"`
-	Description *string `json:"description,omitempty"`
+	Type        string     `json:"type"`
+	ID          ID         `json:"_id"`
+	Rev         *string    `json:"_rev,omitempty"`
+	Created     *time.Time `json:"created,omitempty"`
+	Modified    *time.Time `json:"modified,omitempty"`
+	Imported    *time.Time `json:"imported,omitempty"`
+	Owner       string     `json:"owner"`
+	Name        *string    `json:"name,omitempty"`
+	Description *string    `json:"description,omitempty"`
 }
 
-func CreateBundle(id string, owner *User) *Bundle {
+func CreateBundle(key []byte, owner *User) *Bundle {
 	b := &Bundle{}
-	b.ID = CreateID("bundle", []byte(id))
+	b.ID = CreateID("bundle", key)
+	b.Owner = owner
 	return b
 }
 
@@ -40,6 +48,9 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 		Type:        "bundle",
 		ID:          b.ID,
 		Rev:         b.Rev,
+		Created:     b.Created,
+		Modified:    b.Modified,
+		Imported:    b.Imported,
 		Owner:       b.Owner.Identity(),
 		Name:        b.Name,
 		Description: b.Description,
@@ -60,6 +71,9 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	b.ID = doc.ID
+	b.Created = doc.Created
+	b.Modified = doc.Modified
+	b.Imported = doc.Imported
 	b.Owner = user
 	b.Name = doc.Name
 	b.Description = doc.Description
