@@ -1,9 +1,9 @@
 package fbmodel
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/pborman/uuid"
 )
 
@@ -35,19 +35,31 @@ type userDoc struct {
 	Email    *string `json:"email,omitempty"`
 }
 
-func NewUser(id string) (*User, error) {
+func CreateUser(username string) (*User, error) {
 	u := &User{}
-	userUUID := uuid.Parse(id)
-	if userUUID == nil {
-		return nil, errors.New("Invalid user ID: " + id)
-	}
-	u.uuid = userUUID
-	u.ID = NewID("user", userUUID)
+	u.ID = NewID("user", uuid.NewRandom())
 	return u, nil
 }
 
+func NewUser(id uuid.UUID, username string) (*User, error) {
+	u := &User{}
+	u.uuid = id
+	u.ID = NewID("user", id)
+	u.Username = username
+	return u, nil
+}
+
+func NewUserStub(id string) (*User, error) {
+	data, err := base64.URLEncoding.DecodeString(id)
+	if err != nil {
+		return nil, err
+	}
+	userUUID := uuid.UUID(data)
+	return NewUser(userUUID, "")
+}
+
 func RandomUser() *User {
-	u, _ := NewUser(uuid.New())
+	u, _ := NewUser(uuid.NewRandom(), "randomuser")
 	return u
 }
 
@@ -72,12 +84,12 @@ func (u *User) MarshalJSON() ([]byte, error) {
 func (u *User) UnmarshalJSON(data []byte) error {
 	doc := userDoc{}
 	if err := json.Unmarshal(data, &doc); err != nil {
-		fmt.Printf("json error: %s\n", err)
 		return err
 	}
-	fmt.Printf("doc = %s\n", doc)
+	if doc.Type != "user" {
+		return errors.New("Invalid document type for user")
+	}
 	u.ID = doc.ID
-	fmt.Printf("doc.ID = %#v\n", doc.ID)
 	u.Rev = doc.Rev
 	u.Username = doc.Username
 	u.Salt = doc.Salt
@@ -85,4 +97,8 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	u.Email = doc.Email
 
 	return nil
+}
+
+func (u *User) Fleshened() bool {
+	return u.Username != ""
 }
