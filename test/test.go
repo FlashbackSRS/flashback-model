@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"testing"
 )
 
 func jsonDeepEqual(data1, data2 []byte) (bool, error) {
@@ -16,4 +17,14 @@ func jsonDeepEqual(data1, data2 []byte) (bool, error) {
 		return false, fmt.Errorf("Error unmarshaling string 2: %s", err.Error())
 	}
 	return reflect.DeepEqual(o1,o2), nil
+}
+
+func gotExpected(t *testing.T, descr, got, expected string) {
+	t.Errorf("%s\n     Got: %s\nExpected: %s\n", descr, got, expected)
+}
+
+func stringsEqual(t *testing.T, descr, got, expected string) {
+	if got != expected {
+		gotExpected(t, descr, got, expected)
+	}
 }

@@ -3,20 +3,16 @@ package fbmodel
 import (
 	"encoding/json"
 	"errors"
-
+	"fmt"
 	"github.com/pborman/uuid"
 )
-
-type userTypeID struct {
-	typeID
-}
 
 func isValidID(id string) bool {
 	return uuid.Parse(id) != nil
 }
 
 type User struct {
-	userTypeID
+	ID
 	uuid     uuid.UUID
 	Rev      *string
 	Username string
@@ -29,9 +25,9 @@ type User struct {
 
 type userDoc struct {
 	Type     string  `json:"type"`
-	ID       string  `json:"_id"`
+	ID       ID      `json:"_id"`
 	Rev      *string `json:"_rev,omitempty"`
-	Username string  `json:"name"`
+	Username string  `json:"username"`
 	Password string  `json:"password"`
 	Salt     string  `json:"salt"`
 	UserType string  `json:"userType"`
@@ -46,7 +42,7 @@ func NewUser(id string) (*User, error) {
 		return nil, errors.New("Invalid user ID: " + id)
 	}
 	u.uuid = userUUID
-	u.userTypeID.set("user", id)
+	u.ID = NewID("user", userUUID)
 	return u, nil
 }
 
@@ -62,7 +58,7 @@ func (u *User) UUID() uuid.UUID {
 func (u *User) MarshalJSON() ([]byte, error) {
 	return json.Marshal(userDoc{
 		Type:     "user",
-		ID:       u.DocID(),
+		ID:       u.ID,
 		Rev:      u.Rev,
 		Username: u.Username,
 		Password: u.Password,
@@ -76,14 +72,12 @@ func (u *User) MarshalJSON() ([]byte, error) {
 func (u *User) UnmarshalJSON(data []byte) error {
 	doc := userDoc{}
 	if err := json.Unmarshal(data, &doc); err != nil {
+		fmt.Printf("json error: %s\n", err)
 		return err
 	}
-	if err := u.userTypeID.parse(doc.ID); err != nil {
-		return err
-	}
-	if !isValidID(u.docID) {
-		return errors.New("Invalid user ID: " + u.docID)
-	}
+	fmt.Printf("doc = %s\n", doc)
+	u.ID = doc.ID
+	fmt.Printf("doc.ID = %#v\n", doc.ID)
 	u.Rev = doc.Rev
 	u.Username = doc.Username
 	u.Salt = doc.Salt
