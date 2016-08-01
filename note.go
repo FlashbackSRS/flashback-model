@@ -43,7 +43,7 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 		Created:  n.Created,
 		Modified: n.Modified,
 		Imported: n.Imported,
-		Model:    n.Model.ID.Identity(),
+		Model:    n.Model.Identity(),
 	})
 }
 

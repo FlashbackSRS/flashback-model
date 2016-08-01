@@ -1,0 +1,31 @@
+// +build !js
+
+package util
+
+import (
+	"regexp"
+
+	"github.com/davecgh/go-spew/spew"
+)
+
+var capRE *regexp.Regexp = regexp.MustCompile(" cap=[0-9]+\\)")
+var capRepl string = " cap=XX"
+var addRE *regexp.Regexp = regexp.MustCompile("\\(0x[0-9a-f]{6,10}\\)")
+var addRepl string = "(0xXXXXXXXXXX)"
+
+func PrintDiff(got, expected interface{}) {
+	scs := spew.ConfigState{
+		Indent:         "  ",
+		DisableMethods: true,
+		SortKeys:       true,
+	}
+	gotString := scs.Sdump(got)
+	expString := scs.Sdump(expected)
+
+	gotString = capRE.ReplaceAllString(gotString, capRepl)
+	expString = capRE.ReplaceAllString(expString, capRepl)
+	gotString = addRE.ReplaceAllString(gotString, addRepl)
+	expString = addRE.ReplaceAllString(expString, addRepl)
+
+	printDiff(gotString, expString)
+}

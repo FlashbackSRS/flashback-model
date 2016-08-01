@@ -26,15 +26,9 @@ func JSONDeepEqual(t *testing.T, descr string, data1, data2 []byte) {
 	}
 }
 
-func gotExpected(t *testing.T, descr, got, expected string) {
-	if got[len(got)-1:] != "\n" {
-		got = got + "\n"
-	}
-	if expected[len(expected)-1:] != "\n" {
-		expected = expected + "\n"
-	}
+func printDiff(got, exp string) {
 	udiff := difflib.UnifiedDiff{
-		A:        strings.SplitAfter(expected, "\n"),
+		A:        strings.SplitAfter(exp, "\n"),
 		FromFile: "expected",
 		B:        strings.SplitAfter(got, "\n"),
 		ToFile:   "got",
@@ -42,10 +36,20 @@ func gotExpected(t *testing.T, descr, got, expected string) {
 	}
 	diff, err := difflib.GetUnifiedDiffString(udiff)
 	if err != nil {
-		t.Fatal("Error producing diff: %s\n", err)
+		panic("Error producing diff: " + err.Error())
+	}
+	fmt.Print(diff)
+}
+
+func gotExpected(t *testing.T, descr, got, expected string) {
+	if got[len(got)-1:] != "\n" {
+		got = got + "\n"
+	}
+	if expected[len(expected)-1:] != "\n" {
+		expected = expected + "\n"
 	}
 	fmt.Printf("%s\n", descr)
-	fmt.Print(diff)
+	printDiff(got, expected)
 	t.Error()
 }
 
@@ -56,7 +60,7 @@ func StringsEqual(t *testing.T, descr, got, expected string) {
 }
 
 func Marshal(t *testing.T, descr string, i interface{}) []byte {
-	output, err := json.Marshal(i)
+	output, err := json.MarshalIndent(i, "", "    ")
 	if err != nil {
 		t.Errorf("%s: Error marshaling JSON: %s\n", descr, err)
 		return nil

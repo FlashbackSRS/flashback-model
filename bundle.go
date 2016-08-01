@@ -60,14 +60,14 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if doc.Type != "bundle" {
-		return errors.New("Invalid document type for bundle")
+		return errors.New("Invalid document type for bundle: " + doc.Type)
 	}
-	b.Rev = doc.Rev
 	user, err := NewUserStub(doc.Owner)
 	if err != nil {
 		return err
 	}
 	b.ID = doc.ID
+	b.Rev = doc.Rev
 	b.Created = doc.Created
 	b.Modified = doc.Modified
 	b.Imported = doc.Imported

@@ -126,12 +126,12 @@ func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	t.Modified = &modified
 	t.Imported = bx.now
 	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
-	m, _ := t.NewModel(t.ID.Identity())
+	m, _ := t.NewModel()
+	m.Name = &aModel.Name
 	bx.modelMap[aModel.ID] = m
-	m.Modified = &modified
-	m.Imported = bx.now
 	tNames := make([]string, len(aModel.Templates))
 	for i, tmpl := range aModel.Templates {
+		// TODO: store template names/order
 		qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
 		aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
 		m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))

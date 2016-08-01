@@ -3,6 +3,7 @@ package fbmodel
 import (
 	"encoding/json"
 	"errors"
+	"sort"
 )
 
 const HTMLTemplateContentType = "text/html+flashbacktmpl"
@@ -29,6 +30,19 @@ func NewFileCollection() *FileCollection {
 	}
 }
 
+func (fc *FileCollection) AddView(v *FileCollectionView) error {
+	for filename, _ := range v.members {
+		att, ok := fc.files[filename]
+		if !ok {
+			return errors.New(filename + " not found in collection")
+		}
+		v.members[filename] = att
+	}
+	v.col = fc
+	fc.views = append(fc.views, v)
+	return nil
+}
+
 func (fc *FileCollection) NewView() *FileCollectionView {
 	v := &FileCollectionView{
 		col:     fc,
@@ -47,6 +61,12 @@ func (fc *FileCollection) removeFile(name string) {
 
 func (fc *FileCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(fc.files)
+}
+
+func (fc *FileCollection) UnmarshalJSON(data []byte) error {
+	fc.files = make(map[string]*Attachment)
+	fc.views = make([]*FileCollectionView, 0)
+	return json.Unmarshal(data, &fc.files)
 }
 
 // Sets the requested attachment, replacing it if it already exists.
@@ -82,5 +102,18 @@ func (v *FileCollectionView) MarshalJSON() ([]byte, error) {
 	for name, _ := range v.members {
 		names = append(names, name)
 	}
+	sort.Strings(names) // For consistent output
 	return json.Marshal(names)
+}
+
+func (v *FileCollectionView) UnmarshalJSON(data []byte) error {
+	v.members = make(map[string]*Attachment)
+	names := make([]string, 0)
+	if err := json.Unmarshal(data, &names); err != nil {
+		return err
+	}
+	for _, filename := range names {
+		v.members[filename] = nil
+	}
+	return nil
 }

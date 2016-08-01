@@ -19,10 +19,15 @@ var frozenBundle []byte = []byte(`
         "name": "Basic-24b78",
         "models": [
             {
-                "type": "model",
-                "_id": "model-NVXGa7SD7zl4CpU_-R7o-qwAZs8=",
-                "modified": "2016-07-31T13:47:56Z",
-                "imported": "2016-07-31T15:08:24.730156517Z"
+                "id": 0,
+                "name": "Basic-24b78",
+                "files": [
+                    "!Basic-24b78.Card 1 answer.html",
+                    "!Basic-24b78.Card 1 question.html",
+                    "!Basic-24b78.Card 2 answer.html",
+                    "!Basic-24b78.Card 2 question.html",
+                    "$template.0.html"
+                ]
             }
         ],
         "_attachments": {
@@ -53,7 +58,8 @@ var frozenBundle []byte = []byte(`
         },
         "files": [
             "$main.css"
-        ]
+        ],
+        "modelSequence": 1
     },
     {
         "type": "deck",
@@ -70,32 +76,32 @@ var frozenBundle []byte = []byte(`
     {
         "type": "note",
         "_id": "note-mViuXQThMLoh1G1Nlc4d_E8kR8o=",
-        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8="
+        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.0"
     },
     {
         "type": "note",
         "_id": "note-LoEPLQIueoTlLImO1KOhUaLBiIc=",
-        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8="
+        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.0"
     },
     {
         "type": "note",
         "_id": "note-zljwjeKyr6EVQv-9z1-Y19_mMh4=",
-        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8="
+        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.0"
     },
     {
         "type": "note",
         "_id": "note-m7wes15PN7vIo_t63xMAEJVAjxI=",
-        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8="
+        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.0"
     },
     {
         "type": "note",
         "_id": "note-6Mv0q8dTn2afPP0e7cZshHpEoUg=",
-        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8="
+        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.0"
     },
     {
         "type": "note",
         "_id": "note-cm_qQn5G7HSfRQw4Qf_9KZ95MDA=",
-        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8="
+        "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.0"
     }
 ]
 `)

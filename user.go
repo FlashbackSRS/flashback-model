@@ -89,6 +89,11 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	if doc.Type != "user" {
 		return errors.New("Invalid document type for user")
 	}
+	id, err := base64.URLEncoding.DecodeString(doc.ID.Identity())
+	if err != nil {
+		return errors.New(doc.ID.Identity() + " is not a valid UUID")
+	}
+	u.uuid = id
 	u.ID = doc.ID
 	u.Rev = doc.Rev
 	u.Username = doc.Username
