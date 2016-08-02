@@ -228,6 +228,7 @@ func (bx *Bundle) convertDeck(aDeck *anki.Deck) (*fb.Deck, error) {
 	if aDeck.Description != "" {
 		d.Description = &aDeck.Description
 	}
+	// TODO: Handle DeckConfig
 	return d, nil
 }
 
