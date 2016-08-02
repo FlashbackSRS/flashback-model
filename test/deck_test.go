@@ -16,7 +16,8 @@ var frozenDeck []byte = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "name": "Test Deck",
-    "description": "Deck for testing"
+    "description": "Deck for testing",
+	"cards": []
 }
 `)
 
@@ -41,6 +42,6 @@ func TestDecks(t *testing.T) {
 
 	if !reflect.DeepEqual(d, d2) {
 		PrintDiff(d2, d)
-		t.Fatalf("Thawed and created Decks don't match")
+		t.Fatal("Thawed and created Decks don't match")
 	}
 }

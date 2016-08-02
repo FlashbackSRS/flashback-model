@@ -29,8 +29,11 @@ type Bundle struct {
 	b        *fb.Bundle
 	now      *time.Time
 	docs     []interface{}
+	cards    []*fb.Card
 	owner    *fb.User
 	modelMap map[anki.ID]*fb.Model
+	noteMap  map[anki.ID]*fb.Note
+	deckMap  map[anki.ID]*fb.Deck
 }
 
 func (bx *Bundle) MarshalJSON() ([]byte, error) {
@@ -42,6 +45,8 @@ func NewBundle() *Bundle {
 	now := time.Now()
 	b.now = &now
 	b.modelMap = make(map[anki.ID]*fb.Model)
+	b.noteMap = make(map[anki.ID]*fb.Note)
+	b.deckMap = make(map[anki.ID]*fb.Deck)
 	return b
 }
 
@@ -82,9 +87,9 @@ func (bx *Bundle) Convert(name string, o *fb.User, a *anki.Apkg) error {
 	if err := bx.addNotes(); err != nil {
 		return fmt.Errorf("Error converting notes: %s", err)
 	}
-	// 	if err := bx.addCards(); err != nil {
-	// 		return fmt.Errorf("Error converting cards: %s", err)
-	// 	}
+	if err := bx.addCards(); err != nil {
+		return fmt.Errorf("Error converting cards: %s", err)
+	}
 	return nil
 }
 
@@ -228,6 +233,7 @@ func (bx *Bundle) convertDeck(aDeck *anki.Deck) (*fb.Deck, error) {
 	if aDeck.Description != "" {
 		d.Description = &aDeck.Description
 	}
+	bx.deckMap[aDeck.ID] = d
 	// TODO: Handle DeckConfig
 	return d, nil
 }
@@ -325,10 +331,10 @@ func (bx *Bundle) convertNote(aNote *anki.Note) (*fb.Note, error) {
 	id := fb.KeyToIDString(bx.owner.UUID(), int64ToBytes(int64(aNote.ID)))
 	n, _ := fb.NewNote(id, bx.modelMap[aNote.ModelID])
 	n.ID, _ = fb.NewID("note", id)
+	bx.noteMap[aNote.ID] = n
 	return n, nil
 }
 
-/*
 func (bx *Bundle) addCards() error {
 	cards, err := bx.apkg.Cards()
 	if err != nil {
@@ -347,10 +353,43 @@ func (bx *Bundle) addCards() error {
 	}
 	return nil
 }
-/*
-func (bx *Bundle) convertCard(aCard *anki.Card) (*fb.Card, error) {
-// 	c := fb.NewCard(
-	return nil, nil
-}
 
-*/
+func (bx *Bundle) convertCard(aCard *anki.Card) (*fb.Card, error) {
+	id := bx.noteMap[aCard.NoteID].Identity()
+	d, ok := bx.deckMap[aCard.DeckID]
+	if !ok {
+		return nil, fmt.Errorf("Cannot find deck ID %d in map\n", aCard.DeckID)
+	}
+	c, err := fb.NewCard(id, aCard.TemplateID)
+	if err != nil {
+		return nil, err
+	}
+	d.AddCard(c.Identity())
+	modified := time.Time(*aCard.Modified)
+	c.Modified = &modified
+	c.State = fb.CardState(aCard.Type)
+	switch aCard.Queue {
+	case 0:
+		// Do nothing
+	case anki.CardQueueSuspended:
+		c.Suspended = true
+	case anki.CardQueueUserBuried:
+		c.Buried = true
+	case anki.CardQueueSchedBuried:
+		c.AutoBuried = true
+	default:
+		return nil, fmt.Errorf("Unknown queue `%d`", aCard.Queue)
+	}
+	if aCard.Due != nil {
+		due := time.Time(*aCard.Due)
+		c.Due = &due
+	}
+	if aCard.Interval != nil {
+		ivl := time.Duration(*aCard.Interval)
+		c.Interval = &ivl
+	}
+	c.SRSFactor = aCard.Factor
+	c.ReviewCount = aCard.ReviewCount
+	c.LapseCount = aCard.Lapses
+	return c, nil
+}

@@ -2,6 +2,8 @@ package fb
 
 import (
 	"encoding/json"
+	"errors"
+	"sort"
 	"time"
 )
 
@@ -14,7 +16,14 @@ func (cc *CardCollection) MarshalJSON() ([]byte, error) {
 	for id, _ := range cc.col {
 		ids = append(ids, id)
 	}
+	sort.Strings(ids)
 	return json.Marshal(ids)
+}
+
+func NewCardCollection() *CardCollection {
+	return &CardCollection{
+		col: make(map[string]struct{}),
+	}
 }
 
 func (cc *CardCollection) UnmarshalJSON(data []byte) error {
@@ -93,13 +102,14 @@ type DeckConfig struct {
 */
 
 func NewDeck(id string) (*Deck, error) {
-	d := &Deck{}
 	did, err := NewID("deck", id)
 	if err != nil {
 		return nil, err
 	}
-	d.ID = did
-	return d, nil
+	return &Deck{
+		ID:    did,
+		Cards: NewCardCollection(),
+	}, nil
 }
 
 func (d *Deck) MarshalJSON() ([]byte, error) {
@@ -125,6 +135,9 @@ func (d *Deck) UnmarshalJSON(data []byte) error {
 	doc := &deckDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return err
+	}
+	if doc.Type != "deck" {
+		return errors.New("Invalid document type for deck: " + doc.Type)
 	}
 	d.ID = doc.ID
 	d.Rev = doc.Rev

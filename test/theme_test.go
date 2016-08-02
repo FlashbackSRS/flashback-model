@@ -112,6 +112,6 @@ func TestCreateTheme(t *testing.T) {
 
 	if !reflect.DeepEqual(th, th2) {
 		PrintDiff(th2, th)
-		t.Fatalf("Thawed and created Themes don't match")
+		t.Fatal("Thawed and created Themes don't match")
 	}
 }
