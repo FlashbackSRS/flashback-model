@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/pborman/uuid"
@@ -10,46 +11,40 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenUser []byte = []byte(`{"_id":"user-nRHQJKEAQEWlt58cz5bMnw==","type":"user","password":"","salt":"","userType":"","username":"mrsmith"}`)
-
-func TestUser(t *testing.T) {
-	u, err := testUser()
-	if err != nil {
-		t.Fatalf("Error unfreezing test user: %s", err)
-	}
-	StringsEqual(t, "Username", u.Username, "mrsmith")
-	StringsEqual(t, "ID", u.ID.String(), "user-nRHQJKEAQEWlt58cz5bMnw==")
-	StringsEqual(t, "Type", u.Type(), "user")
-	StringsEqual(t, "Identity", u.Identity(), "nRHQJKEAQEWlt58cz5bMnw==")
-	output, err := json.Marshal(u)
-	if err != nil {
-		t.Errorf("Error marshaling user: %s", err)
-	}
-	JSONDeepEqual(t, "Frozen user", frozenUser, output)
+var frozenUser []byte = []byte(`
+{
+    "type": "user",
+    "_id": "user-nRHQJKEAQEWlt58cz5bMnw==",
+    "username": "mrsmith",
+    "password": "",
+    "salt": "",
+    "userType": ""
 }
+`)
 
 func TestNewUser(t *testing.T) {
-	u, err := fbmodel.NewUser(uuid.Parse("9d11d024-a100-4045-a5b7-9f1ccf96cc9f"), "mrsmith")
+	u, err := fb.NewUser(uuid.Parse("9d11d024-a100-4045-a5b7-9f1ccf96cc9f"), "mrsmith")
 	if err != nil {
 		t.Errorf("Error creating user: %s\n", err)
 	}
 	StringsEqual(t, "ID", u.ID.String(), "user-nRHQJKEAQEWlt58cz5bMnw==")
 	StringsEqual(t, "Type", u.Type(), "user")
-	output, err := json.Marshal(u)
+	JSONDeepEqual(t, "New user", Marshal(t, "New User", u), frozenUser)
+
+	u2, err := testUser()
 	if err != nil {
-		t.Errorf("Error marshaling new user: %s", err)
+		t.Fatalf("Error thawing user: %s", err)
 	}
-	JSONDeepEqual(t, "New user", frozenUser, output)
+	JSONDeepEqual(t, "New user", Marshal(t, "New User", u2), frozenUser)
+
+	if !reflect.DeepEqual(u, u2) {
+		PrintDiff(u2, u)
+		t.Fatalf("Thawed and created Users don't match")
+	}
 }
 
-type UserTest struct {
-	Name  string
-	JSON  string
-	Error string
-}
-
-func testUser() (*fbmodel.User, error) {
-	u := &fbmodel.User{}
+func testUser() (*fb.User, error) {
+	u := &fb.User{}
 	err := json.Unmarshal([]byte(frozenUser), u)
 	return u, err
 }

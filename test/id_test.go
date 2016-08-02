@@ -7,8 +7,8 @@ import (
 )
 
 func TestID(t *testing.T) {
-	id := fbmodel.NewByteID("user", []byte("User Bob"))
-	id2, err := fbmodel.ParseID(id.String())
+	id := fb.NewByteID("user", []byte("User Bob"))
+	id2, err := fb.ParseID(id.String())
 	if err != nil {
 		t.Fatalf("We can't even parse the IDs we generate: %s", err.Error())
 	}
@@ -21,8 +21,8 @@ func TestID(t *testing.T) {
 }
 
 func TestID2(t *testing.T) {
-	id := fbmodel.CreateID("user", []byte("User Bob"))
-	id2, err := fbmodel.ParseID(id.String())
+	id := fb.CreateID("user", []byte("User Bob"))
+	id2, err := fb.ParseID(id.String())
 	if err != nil {
 		t.Fatalf("We can't even parse the IDs we generate: %s", err.Error())
 	}
@@ -32,10 +32,4 @@ func TestID2(t *testing.T) {
 	if id.Identity() != id2.Identity() {
 		t.Errorf("ID: %x != %x\n", id.Identity(), id2.Identity())
 	}
-}
-
-type IDTest struct {
-	Name  string
-	ID    string
-	Error string
 }

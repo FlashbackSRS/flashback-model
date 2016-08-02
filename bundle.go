@@ -1,4 +1,4 @@
-package fbmodel
+package fb
 
 import (
 	"encoding/json"
@@ -29,11 +29,15 @@ type bundleDoc struct {
 	Description *string    `json:"description,omitempty"`
 }
 
-func CreateBundle(key []byte, owner *User) *Bundle {
+func NewBundle(id string, owner *User) (*Bundle, error) {
 	b := &Bundle{}
-	b.ID = CreateID("bundle", key)
+	bid, err := NewID("bundle", id)
+	if err != nil {
+		return nil, err
+	}
+	b.ID = bid
 	b.Owner = owner
-	return b
+	return b, nil
 }
 
 func (b *Bundle) MarshalJSON() ([]byte, error) {
@@ -56,14 +60,14 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if doc.Type != "bundle" {
-		return errors.New("Invalid document type for bundle")
+		return errors.New("Invalid document type for bundle: " + doc.Type)
 	}
-	b.Rev = doc.Rev
 	user, err := NewUserStub(doc.Owner)
 	if err != nil {
 		return err
 	}
 	b.ID = doc.ID
+	b.Rev = doc.Rev
 	b.Created = doc.Created
 	b.Modified = doc.Modified
 	b.Imported = doc.Imported

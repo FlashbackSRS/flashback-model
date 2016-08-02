@@ -23,7 +23,7 @@ func TestConvert(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error opening test file: %s", err)
 	}
-	u, err := fbmodel.NewUser(uuid.UUID(UUID), "testuser")
+	u, err := fb.NewUser(uuid.UUID(UUID), "testuser")
 	if err != nil {
 		t.Fatalf("Error creating test user: %s\n", err)
 	}

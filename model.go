@@ -1,57 +1,68 @@
-package fbmodel
+package fb
 
 import (
-	"encoding/json"
-	"time"
+	"strconv"
+	// 	"encoding/json"
 )
 
 type Model struct {
-	ID
-	Rev         *string
-	Created     *time.Time
-	Modified    *time.Time
-	Imported    *time.Time
-	Name        *string
-	Description *string
-	Files       *FileCollectionView
-}
-
-type modelDoc struct {
-	Type        string              `json:"type"`
-	ID          ID                  `json:"_id"`
-	Rev         *string             `json:"_rev,omitempty"`
-	Created     *time.Time          `json:"created,omitempty"`
-	Modified    *time.Time          `json:"modified,omitempty"`
-	Imported    *time.Time          `json:"imported,omitempty"`
+	Theme       *Theme              `json:"-"`
+	ID          uint32              `json:"id"`
+	Type        ModelType           `json:"modelType"`
 	Name        *string             `json:"name,omitempty"`
 	Description *string             `json:"description,omitempty"`
+	Templates   []string            `json:"templates"`
+	Fields      []*Field            `json:"fields"`
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
 
-func NewModel(id string, t *Theme) (*Model, error) {
-	m := &Model{}
-	if id, err := NewID("model", id); err != nil {
-		return nil, err
-	} else {
-		m.ID = id
-	}
-	m.Files = t.Attachments.NewView()
-	return m, nil
-}
+type ModelType int
 
-func (m *Model) MarshalJSON() ([]byte, error) {
-	return json.Marshal(modelDoc{
-		Type:        "model",
-		ID:          m.ID,
-		Rev:         m.Rev,
-		Created:     m.Created,
-		Modified:    m.Modified,
-		Imported:    m.Imported,
-		Name:        m.Name,
-		Description: m.Description,
-	})
+const (
+	AnkiStandard ModelType = iota
+	AnkiCloze
+)
+
+func NewModel(t *Theme, mType ModelType) (*Model, error) {
+	return &Model{
+		Theme:     t,
+		ID:        t.NextModelSequence(),
+		Type:      mType,
+		Templates: make([]string, 0, 1),
+		Fields:    make([]*Field, 0, 1),
+		Files:     t.Attachments.NewView(),
+	}, nil
 }
 
 func (m *Model) AddFile(name, ctype string, content []byte) error {
 	return m.Files.AddFile(name, ctype, content)
+}
+
+func (m *Model) Identity() string {
+	return m.Theme.ID.Identity() + "." + strconv.FormatUint(uint64(m.ID), 16)
+}
+
+func (m *Model) AddField(fType FieldType, name string) error {
+	m.Fields = append(m.Fields, &Field{
+		Type: fType,
+		Name: name,
+	})
+	return nil
+}
+
+type FieldType int
+
+const (
+	TextField FieldType = iota
+	ImageField
+	AudioField
+	AnkiField
+)
+
+// A field of a model
+//
+// Excluded from this definition is the `media` field, which appears to no longer be used.
+type Field struct {
+	Type FieldType `json:"fieldType"`
+	Name string    `json:"name"` // Field name
 }
