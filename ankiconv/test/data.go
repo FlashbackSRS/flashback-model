@@ -22,6 +22,10 @@ var frozenBundle []byte = []byte(`
                 "id": 0,
                 "modelType": 0,
                 "name": "Basic-24b78",
+                "templates": [
+                    "Card 1",
+                    "Card 2"
+                ],
                 "fields": [
                     {
                         "fieldType": 3,

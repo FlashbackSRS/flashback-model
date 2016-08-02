@@ -11,6 +11,7 @@ type Model struct {
 	Type        ModelType           `json:"modelType"`
 	Name        *string             `json:"name,omitempty"`
 	Description *string             `json:"description,omitempty"`
+	Templates   []string            `json:"templates"`
 	Fields      []*Field            `json:"fields"`
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
@@ -24,11 +25,12 @@ const (
 
 func NewModel(t *Theme, mType ModelType) (*Model, error) {
 	return &Model{
-		Theme:  t,
-		ID:     t.NextModelSequence(),
-		Type:   mType,
-		Fields: make([]*Field, 0, 1),
-		Files:  t.Attachments.NewView(),
+		Theme:     t,
+		ID:        t.NextModelSequence(),
+		Type:      mType,
+		Templates: make([]string, 0, 1),
+		Fields:    make([]*Field, 0, 1),
+		Files:     t.Attachments.NewView(),
 	}, nil
 }
 

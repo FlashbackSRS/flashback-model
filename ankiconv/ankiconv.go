@@ -132,10 +132,17 @@ func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	m.Name = &aModel.Name
 	bx.modelMap[aModel.ID] = m
 	tNames := make([]string, len(aModel.Templates))
-	for i, tmpl := range aModel.Templates {
-		// TODO: store template names/order
+	templates := make([]*anki.Template, len(aModel.Templates))
+	for _, tmpl := range aModel.Templates {
+		templates[tmpl.Ordinal] = tmpl
+	}
+	for i, tmpl := range templates {
+		if i != tmpl.Ordinal {
+			return nil, fmt.Errorf("Out-of-order template. %d != %d", i, tmpl.Ordinal)
+		}
 		qName := "!" + aModel.Name + "." + tmpl.Name + " question.html"
 		aName := "!" + aModel.Name + "." + tmpl.Name + " answer.html"
+		m.Templates = append(m.Templates, tmpl.Name)
 		m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
 		m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
 		tNames[i] = tmpl.Name

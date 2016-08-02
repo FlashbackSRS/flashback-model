@@ -22,6 +22,7 @@ var frozenTheme []byte = []byte(`
             "id": 0,
             "modelType": 0,
             "name": "Model A",
+            "templates": [],
             "fields": [
                 {
                     "fieldType": 0,
@@ -40,6 +41,7 @@ var frozenTheme []byte = []byte(`
             "id": 1,
             "modelType": 1,
             "name": "Model 2",
+            "templates": [],
             "fields": [
                 {
                     "fieldType": 0,
