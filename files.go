@@ -1,14 +1,16 @@
-package fbmodel
+package fb
 
 import (
 	"encoding/json"
 	"errors"
 	"sort"
+	"sync/atomic"
 )
 
 const HTMLTemplateContentType = "text/html+flashbacktmpl"
 
 type Attachment struct {
+	refcount    int32
 	ContentType string `json:"content-type"`
 	Content     []byte `json:"data"`
 }
@@ -37,10 +39,28 @@ func (fc *FileCollection) AddView(v *FileCollectionView) error {
 			return errors.New(filename + " not found in collection")
 		}
 		v.members[filename] = att
+		atomic.AddInt32(&att.refcount, 1)
 	}
 	v.col = fc
 	fc.views = append(fc.views, v)
 	return nil
+}
+
+func (fc *FileCollection) RemoveView(v *FileCollectionView) error {
+	for filename, _ := range v.members {
+		att, _ := fc.files[filename]
+		atomic.AddInt32(&att.refcount, 1)
+		if att.refcount == 0 {
+			delete(fc.files, filename)
+		}
+	}
+	for i, view := range fc.views {
+		if view == v {
+			fc.views = append(fc.views[:i], fc.views[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("Didn't find the view")
 }
 
 func (fc *FileCollection) NewView() *FileCollectionView {
@@ -52,7 +72,7 @@ func (fc *FileCollection) NewView() *FileCollectionView {
 	return v
 }
 
-func (fc *FileCollection) removeFile(name string) {
+func (fc *FileCollection) RemoveAll(name string) {
 	delete(fc.files, name)
 	for _, view := range fc.views {
 		delete(view.members, name)
@@ -72,6 +92,7 @@ func (fc *FileCollection) UnmarshalJSON(data []byte) error {
 // Sets the requested attachment, replacing it if it already exists.
 func (v *FileCollectionView) SetFile(name, ctype string, content []byte) {
 	att := &Attachment{
+		refcount:    1,
 		ContentType: ctype,
 		Content:     content,
 	}
@@ -88,8 +109,17 @@ func (v *FileCollectionView) AddFile(name, ctype string, content []byte) error {
 	return nil
 }
 
-func (v *FileCollectionView) RemoveFile(name string) {
-	v.col.removeFile(name)
+func (v *FileCollectionView) RemoveFile(name string) error {
+	att, ok := v.members[name]
+	if !ok {
+		return errors.New("File does not exist in view")
+	}
+	delete(v.members, name)
+	atomic.AddInt32(&att.refcount, -1)
+	if att.refcount == 0 {
+		v.col.RemoveAll(name)
+	}
+	return nil
 }
 
 func (v *FileCollectionView) GetFile(name string) (*Attachment, bool) {

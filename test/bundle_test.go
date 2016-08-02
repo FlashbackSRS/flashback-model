@@ -19,12 +19,9 @@ var frozenBundle []byte = []byte(`
 }
 `)
 
-func oink() {
-}
-
 func TestNewBundle(t *testing.T) {
 	u, _ := testUser()
-	b, err := fbmodel.NewBundle("VjMOV9J35iuH1lXdM_lgQPOYx9I=", u)
+	b, err := fb.NewBundle("VjMOV9J35iuH1lXdM_lgQPOYx9I=", u)
 	if err != nil {
 		t.Fatalf("Error creating new bundle: %s", err)
 	}
@@ -35,7 +32,7 @@ func TestNewBundle(t *testing.T) {
 	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-VjMOV9J35iuH1lXdM_lgQPOYx9I=")
 	JSONDeepEqual(t, "New Bundle", Marshal(t, "New bundle", b), frozenBundle)
 
-	b2 := &fbmodel.Bundle{}
+	b2 := &fb.Bundle{}
 	if err := json.Unmarshal(frozenBundle, b2); err != nil {
 		t.Fatalf("Error thawing bundle: %s", err)
 	}

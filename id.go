@@ -1,4 +1,4 @@
-package fbmodel
+package fb
 
 import (
 	"crypto/sha1"

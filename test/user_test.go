@@ -23,7 +23,7 @@ var frozenUser []byte = []byte(`
 `)
 
 func TestNewUser(t *testing.T) {
-	u, err := fbmodel.NewUser(uuid.Parse("9d11d024-a100-4045-a5b7-9f1ccf96cc9f"), "mrsmith")
+	u, err := fb.NewUser(uuid.Parse("9d11d024-a100-4045-a5b7-9f1ccf96cc9f"), "mrsmith")
 	if err != nil {
 		t.Errorf("Error creating user: %s\n", err)
 	}
@@ -43,8 +43,8 @@ func TestNewUser(t *testing.T) {
 	}
 }
 
-func testUser() (*fbmodel.User, error) {
-	u := &fbmodel.User{}
+func testUser() (*fb.User, error) {
+	u := &fb.User{}
 	err := json.Unmarshal([]byte(frozenUser), u)
 	return u, err
 }

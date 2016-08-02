@@ -1,4 +1,4 @@
-package fbmodel
+package fb
 
 import (
 	"encoding/json"
@@ -70,8 +70,8 @@ func (t *Theme) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (t *Theme) NewModel() (*Model, error) {
-	m, err := NewModel(t)
+func (t *Theme) NewModel(mType ModelType) (*Model, error) {
+	m, err := NewModel(t, mType)
 	if err != nil {
 		return nil, err
 	}

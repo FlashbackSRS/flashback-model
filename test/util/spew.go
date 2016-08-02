@@ -8,8 +8,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var capRE *regexp.Regexp = regexp.MustCompile(" cap=[0-9]+\\)")
-var capRepl string = " cap=XX"
+var capRE *regexp.Regexp = regexp.MustCompile("cap=[0-9]+\\)")
+var capRepl string = "cap=X"
 var addRE *regexp.Regexp = regexp.MustCompile("\\(0x[0-9a-f]{6,10}\\)")
 var addRepl string = "(0xXXXXXXXXXX)"
 

@@ -2,13 +2,15 @@ package ankiconv
 
 import (
 	"bytes"
-	"sort"
-	// 	"crypto/sha1"
 	"encoding/binary"
-	// 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/flimzy/anki"
@@ -126,7 +128,7 @@ func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 	t.Modified = &modified
 	t.Imported = bx.now
 	t.SetFile("$main.css", "text/css", []byte(aModel.CSS))
-	m, _ := t.NewModel()
+	m, _ := t.NewModel(fb.ModelType(aModel.Type))
 	m.Name = &aModel.Name
 	bx.modelMap[aModel.ID] = m
 	tNames := make([]string, len(aModel.Templates))
@@ -137,6 +139,17 @@ func (bx *Bundle) convertTheme(aModel *anki.Model) (*fb.Theme, error) {
 		m.AddFile(qName, fb.HTMLTemplateContentType, []byte(tmpl.QuestionFormat))
 		m.AddFile(aName, fb.HTMLTemplateContentType, []byte(tmpl.AnswerFormat))
 		tNames[i] = tmpl.Name
+	}
+	fields := make(map[int]*anki.Field)
+	for _, field := range aModel.Fields {
+		fields[field.Ordinal] = field
+	}
+	for i := 0; i < len(fields); i++ {
+		field, ok := fields[i]
+		if !ok {
+			return nil, errors.New("Anki field missing")
+		}
+		m.AddField(fb.AnkiField, field.Name)
 	}
 
 	buf := new(bytes.Buffer)
@@ -224,10 +237,80 @@ func (bx *Bundle) addNotes() error {
 			if err != nil {
 				return err
 			}
+			for i, value := range aNote.FieldValues {
+				fv := n.GetFieldValue(i)
+				fv.SetText(value)
+				if files, err := bx.extractFiles(value); err != nil {
+					return err
+				} else {
+					for _, file := range files {
+						fv.AddFile(file.Filename, file.ContentType, file.Content)
+					}
+				}
+			}
 			bx.docs = append(bx.docs, n)
 		}
 	}
 	return nil
+}
+
+type fileType struct {
+	RE      *regexp.Regexp
+	TypeMap map[string]string
+}
+
+var FileTypes []fileType = []fileType{
+	fileType{
+		RE: regexp.MustCompile(`src="(.*)"`),
+		TypeMap: map[string]string{
+			".jpg": "image/jpeg",
+			".png": "image/png",
+			".gif": "image/gif",
+		},
+	},
+	fileType{
+		RE: regexp.MustCompile(`\[sound:(.*)\]`),
+		TypeMap: map[string]string{
+			".mp3": "audo/mpeg",
+			".ogg": "audio/ogg",
+			".oga": "audio/ogg",
+			".spx": "audio/ogg",
+			".wav": "audio/wav",
+			".3gp": "audio/3gpp",
+		},
+	},
+}
+
+type Att struct {
+	Filename    string
+	ContentType string
+	Content     []byte
+}
+
+func (bx *Bundle) extractFiles(value string) ([]*Att, error) {
+	files := make([]*Att, 0, 1)
+	for _, ft := range FileTypes {
+		extracted := ft.RE.FindAllStringSubmatch(value, -1)
+		for _, matches := range extracted {
+			for _, filename := range matches[1:] {
+				ext := strings.ToLower(filepath.Ext(filename))
+				cType, ok := ft.TypeMap[ext]
+				if !ok {
+					return []*Att{}, fmt.Errorf("Unable to determine content type for `%s`", filename)
+				}
+				content, err := bx.apkg.ReadMediaFile(filename)
+				if err != nil {
+					return []*Att{}, err
+				}
+				files = append(files, &Att{
+					Filename:    filename,
+					ContentType: cType,
+					Content:     content,
+				})
+			}
+		}
+	}
+	return files, nil
 }
 
 func (bx *Bundle) convertNote(aNote *anki.Note) (*fb.Note, error) {
