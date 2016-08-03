@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-type CardState int
+type CardQueue int
 
 const (
-	NewState CardState = iota
-	LearnedState
-	DueState
+	QueueNew CardQueue = iota
+	QueueLearning
+	QueueReview
 )
 
 type Card struct {
@@ -22,7 +22,7 @@ type Card struct {
 	Created     *time.Time
 	Modified    *time.Time
 	Imported    *time.Time
-	State       CardState
+	Queue       CardQueue
 	Suspended   bool
 	Buried      bool
 	AutoBuried  bool
@@ -40,7 +40,7 @@ type cardDoc struct {
 	Created     *time.Time     `json:"created,omitempty"`
 	Modified    *time.Time     `json:"modified,omitempty"`
 	Imported    *time.Time     `json:"imported,omitempty"`
-	State       CardState      `json:"state"`
+	Queue       CardQueue      `json:"state"`
 	Suspended   *bool          `json:"suspended,omitempty"`
 	Buried      *bool          `json:"buried,omitempty"`
 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
@@ -65,7 +65,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		Created:  c.Created,
 		Modified: c.Modified,
 		Imported: c.Imported,
-		State:    c.State,
+		Queue:    c.Queue,
 		Due:      c.Due,
 		Interval: c.Interval,
 	}
@@ -103,7 +103,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	c.Created = doc.Created
 	c.Modified = doc.Modified
 	c.Imported = doc.Imported
-	c.State = doc.State
+	c.Queue = doc.Queue
 	if doc.Suspended != nil {
 		c.Suspended = *doc.Suspended
 	}
