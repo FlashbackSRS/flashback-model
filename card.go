@@ -17,38 +17,38 @@ const (
 )
 
 type Card struct {
-	id          string
-	Rev         *string
-	Created     *time.Time
-	Modified    *time.Time
-	Imported    *time.Time
-	Queue       CardQueue
-	Suspended   bool
-	Buried      bool
-	AutoBuried  bool
-	Due         *time.Time
-	Interval    *time.Duration
-	SRSFactor   float32
-	ReviewCount int
-	LapseCount  int
+	id       string
+	Rev      *string
+	Created  *time.Time
+	Modified *time.Time
+	Imported *time.Time
+	// 	Queue       CardQueue
+	// 	Suspended   bool
+	// 	Buried      bool
+	// 	AutoBuried  bool
+	// 	Due         *time.Time
+	// 	Interval    *time.Duration
+	// 	SRSFactor   float32
+	// 	ReviewCount int
+	// 	LapseCount  int
 }
 
 type cardDoc struct {
-	Type        string         `json:"type"`
-	ID          string         `json:"_id"`
-	Rev         *string        `json:"_rev,omitempty"`
-	Created     *time.Time     `json:"created,omitempty"`
-	Modified    *time.Time     `json:"modified,omitempty"`
-	Imported    *time.Time     `json:"imported,omitempty"`
-	Queue       CardQueue      `json:"state"`
-	Suspended   *bool          `json:"suspended,omitempty"`
-	Buried      *bool          `json:"buried,omitempty"`
-	AutoBuried  *bool          `json:"autoBuried,omitempty"`
-	Due         *time.Time     `json:"due,omitempty"`
-	Interval    *time.Duration `json:"interval,omitempty"`
-	SRSFactor   *float32       `json:"srsFactor,omitempty"`
-	ReviewCount *int           `json:"reviewCount,omitempty"`
-	LapseCount  *int           `json:"lapseCount,omitempty"`
+	Type     string     `json:"type"`
+	ID       string     `json:"_id"`
+	Rev      *string    `json:"_rev,omitempty"`
+	Created  *time.Time `json:"created,omitempty"`
+	Modified *time.Time `json:"modified,omitempty"`
+	Imported *time.Time `json:"imported,omitempty"`
+	// 	Queue       CardQueue      `json:"state"`
+	// 	Suspended   *bool          `json:"suspended,omitempty"`
+	// 	Buried      *bool          `json:"buried,omitempty"`
+	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
+	// 	Due         *time.Time     `json:"due,omitempty"`
+	// 	Interval    *time.Duration `json:"interval,omitempty"`
+	// 	SRSFactor   *float32       `json:"srsFactor,omitempty"`
+	// 	ReviewCount *int           `json:"reviewCount,omitempty"`
+	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
 func NewCard(noteID string, template int) (*Card, error) {
@@ -65,27 +65,9 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		Created:  c.Created,
 		Modified: c.Modified,
 		Imported: c.Imported,
-		Queue:    c.Queue,
-		Due:      c.Due,
-		Interval: c.Interval,
-	}
-	if c.Suspended {
-		doc.Suspended = &c.Suspended
-	}
-	if c.Buried {
-		doc.Buried = &c.Buried
-	}
-	if c.AutoBuried {
-		doc.AutoBuried = &c.AutoBuried
-	}
-	if c.SRSFactor > 0 {
-		doc.SRSFactor = &c.SRSFactor
-	}
-	if c.ReviewCount > 0 {
-		doc.ReviewCount = &c.ReviewCount
-	}
-	if c.LapseCount > 0 {
-		doc.LapseCount = &c.LapseCount
+		// 		Queue:    c.Queue,
+		// 		Due:      c.Due,
+		// 		Interval: c.Interval,
 	}
 	return json.Marshal(doc)
 }
@@ -103,27 +85,27 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	c.Created = doc.Created
 	c.Modified = doc.Modified
 	c.Imported = doc.Imported
-	c.Queue = doc.Queue
-	if doc.Suspended != nil {
-		c.Suspended = *doc.Suspended
-	}
-	if doc.Buried != nil {
-		c.Buried = *doc.Buried
-	}
-	if doc.AutoBuried != nil {
-		c.AutoBuried = *doc.AutoBuried
-	}
-	c.Due = doc.Due
-	c.Interval = doc.Interval
-	if doc.SRSFactor != nil {
-		c.SRSFactor = *doc.SRSFactor
-	}
-	if doc.ReviewCount != nil {
-		c.ReviewCount = *doc.ReviewCount
-	}
-	if doc.LapseCount != nil {
-		c.LapseCount = *doc.LapseCount
-	}
+	// 	c.Queue = doc.Queue
+	// 	if doc.Suspended != nil {
+	// 		c.Suspended = *doc.Suspended
+	// 	}
+	// 	if doc.Buried != nil {
+	// 		c.Buried = *doc.Buried
+	// 	}
+	// 	if doc.AutoBuried != nil {
+	// 		c.AutoBuried = *doc.AutoBuried
+	// 	}
+	// 	c.Due = doc.Due
+	// 	c.Interval = doc.Interval
+	// 	if doc.SRSFactor != nil {
+	// 		c.SRSFactor = *doc.SRSFactor
+	// 	}
+	// 	if doc.ReviewCount != nil {
+	// 		c.ReviewCount = *doc.ReviewCount
+	// 	}
+	// 	if doc.LapseCount != nil {
+	// 		c.LapseCount = *doc.LapseCount
+	// 	}
 	return nil
 }
 
