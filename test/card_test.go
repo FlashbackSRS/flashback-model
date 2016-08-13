@@ -12,8 +12,7 @@ import (
 var frozenCard []byte = []byte(`
 {
     "type": "card",
-    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o=.0",
-    "state": 0
+    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o=.0"
 }
 `)
 
