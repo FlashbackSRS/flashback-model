@@ -2,7 +2,6 @@ package fb
 
 import (
 	"strconv"
-	// 	"encoding/json"
 )
 
 type Model struct {
@@ -39,7 +38,10 @@ func (m *Model) AddFile(name, ctype string, content []byte) error {
 }
 
 func (m *Model) Identity() string {
-	return m.Theme.ID.Identity() + "." + strconv.FormatUint(uint64(m.ID), 16)
+	if m.Theme != nil {
+		return m.Theme.ID.Identity() + "." + strconv.FormatUint(uint64(m.ID), 16)
+	}
+	return ""
 }
 
 func (m *Model) AddField(fType FieldType, name string) error {

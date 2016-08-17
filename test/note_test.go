@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/flimzy/flashback-model"
@@ -32,7 +33,7 @@ var frozenNote []byte = []byte(`
 }
 `)
 
-func TestCreateNote(t *testing.T) {
+func TestNote(t *testing.T) {
 	th := &fb.Theme{}
 	json.Unmarshal(frozenTheme, th)
 	m := th.Models[1]
@@ -53,4 +54,18 @@ func TestCreateNote(t *testing.T) {
 		t.Fatal("Error attaching audio file")
 	}
 	JSONDeepEqual(t, "Create Note", Marshal(t, "Create Theme", n), frozenNote)
+
+	n2 := &fb.Note{}
+	if err := json.Unmarshal(frozenNote, n2); err != nil {
+		t.Fatalf("Error thawing note: %s", err)
+	}
+	// We have to set the model explicitly for the next test to pass
+	n2.SetModel(m)
+	JSONDeepEqual(t, "Thawed Note", Marshal(t, "Thaw Note", n2), frozenNote)
+
+	if !reflect.DeepEqual(n, n2) {
+		PrintDiff(n2, n)
+		t.Fatal("Thawed and created Notes don't match")
+	}
+
 }

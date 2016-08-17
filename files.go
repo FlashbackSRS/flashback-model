@@ -7,8 +7,6 @@ import (
 	"sync/atomic"
 )
 
-const HTMLTemplateContentType = "text/html+flashbacktmpl"
-
 type Attachment struct {
 	refcount    int32
 	ContentType string `json:"content-type"`

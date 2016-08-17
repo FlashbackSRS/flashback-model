@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	TemplateContentType = "text/html"
+	BundleContentType   = "application/json"
+)
+
 type Bundle struct {
 	ID
 	Rev         *string

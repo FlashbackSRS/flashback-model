@@ -12,9 +12,10 @@ type Note struct {
 	Created     *time.Time
 	Modified    *time.Time
 	Imported    *time.Time
-	Model       *Model
+	ModelID     string
 	FieldValues []*FieldValue
 	Attachments *FileCollection
+	model       *Model
 }
 
 /*
@@ -32,7 +33,7 @@ type noteDoc struct {
 	Created     *time.Time      `json:"created,omitempty"`
 	Modified    *time.Time      `json:"modified,omitempty"`
 	Imported    *time.Time      `json:"imported,omitempty"`
-	Model       string          `json:"model"`
+	ModelID     string          `json:"model"`
 	FieldValues []*FieldValue   `json:"fieldValues"`
 	Attachments *FileCollection `json:"_attachments,omitempty"`
 }
@@ -44,10 +45,22 @@ func NewNote(id string, model *Model) (*Note, error) {
 		return nil, err
 	}
 	n.ID = nid
-	n.Model = model
+	n.ModelID = model.Identity()
 	n.FieldValues = make([]*FieldValue, len(model.Fields))
 	n.Attachments = NewFileCollection()
+	n.model = model
 	return n, nil
+}
+
+func (n *Note) SetModel(m *Model) {
+	n.model = m
+	for i := 0; i < len(n.FieldValues); i++ {
+		n.FieldValues[i].field = m.Fields[i]
+	}
+}
+
+func (n *Note) Model() *Model {
+	return n.model
 }
 
 func (n *Note) MarshalJSON() ([]byte, error) {
@@ -58,17 +71,41 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 		Created:     n.Created,
 		Modified:    n.Modified,
 		Imported:    n.Imported,
-		Model:       n.Model.Identity(),
+		ModelID:     n.ModelID,
 		FieldValues: n.FieldValues,
 		Attachments: n.Attachments,
 	})
+}
+
+func (n *Note) UnmarshalJSON(data []byte) error {
+	doc := &noteDoc{}
+	if err := json.Unmarshal(data, doc); err != nil {
+		return err
+	}
+	if doc.Type != "note" {
+		return errors.New("Invalid document type for note: " + doc.Type)
+	}
+	n.ID = doc.ID
+	n.Rev = doc.Rev
+	n.Created = doc.Created
+	n.Modified = doc.Modified
+	n.Imported = doc.Imported
+	n.ModelID = doc.ModelID
+	n.FieldValues = doc.FieldValues
+	n.Attachments = doc.Attachments
+	for _, fv := range n.FieldValues {
+		if fv.files != nil {
+			n.Attachments.AddView(fv.files)
+		}
+	}
+	return nil
 }
 
 func (n *Note) GetFieldValue(ord int) *FieldValue {
 	fv := n.FieldValues[ord]
 	if fv == nil {
 		fv = &FieldValue{
-			field: n.Model.Fields[ord],
+			field: n.model.Fields[ord],
 		}
 		n.FieldValues[ord] = fv
 	}
@@ -98,6 +135,16 @@ func (fv *FieldValue) MarshalJSON() ([]byte, error) {
 		Text:  fv.text,
 		Files: fv.files,
 	})
+}
+
+func (fv *FieldValue) UnmarshalJSON(data []byte) error {
+	doc := &fieldValueDoc{}
+	if err := json.Unmarshal(data, doc); err != nil {
+		return err
+	}
+	fv.text = doc.Text
+	fv.files = doc.Files
+	return nil
 }
 
 func (fv *FieldValue) SetText(text string) error {
