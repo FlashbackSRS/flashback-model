@@ -31,6 +31,6 @@ func TestCard(t *testing.T) {
 
 	if !reflect.DeepEqual(c, c2) {
 		PrintDiff(c2, c)
-		t.Fatal("Thawed and created Cards son't match")
+		t.Fatal("Thawed and created Cards don't match")
 	}
 }

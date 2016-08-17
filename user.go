@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+
 	"github.com/pborman/uuid"
 )
 
@@ -106,4 +107,8 @@ func (u *User) UnmarshalJSON(data []byte) error {
 
 func (u *User) Fleshened() bool {
 	return u.Username != ""
+}
+
+func (u *User) Equal(id uuid.UUID) bool {
+	return uuid.Equal(u.uuid, id)
 }
