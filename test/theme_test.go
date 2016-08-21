@@ -12,7 +12,7 @@ import (
 var frozenTheme []byte = []byte(`
 {
     "type": "theme",
-    "_id": "theme-NVXGa7SD7zl4CpU_-R7o-qwAZs8=",
+    "_id": "theme-0NVXGa7SD7zl4CpU_-R7o-qwAZs8",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "name": "Test Theme",
@@ -79,7 +79,7 @@ var frozenTheme []byte = []byte(`
 `)
 
 func TestCreateTheme(t *testing.T) {
-	th, err := fb.NewTheme("NVXGa7SD7zl4CpU_-R7o-qwAZs8=")
+	th, err := fb.NewTheme("0NVXGa7SD7zl4CpU_-R7o-qwAZs8")
 	if err != nil {
 		t.Fatalf("Error creating theme: %s\n", err)
 	}

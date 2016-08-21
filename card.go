@@ -112,3 +112,21 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 func (c *Card) Identity() string {
 	return c.id
 }
+
+func (c *Card) SetRev(rev string)        { c.Rev = &rev }
+func (c *Card) DocID() string            { return c.id }
+func (c *Card) ImportedTime() *time.Time { return c.Imported }
+func (c *Card) ModifiedTime() *time.Time { return c.Modified }
+
+func (c *Card) Update(i interface{}) error {
+	c2 := i.(*Card)
+	if c.id != c2.id {
+		return errors.New("IDs don't match")
+	}
+	if !TimesEqual(c.Created, c2.Created) {
+		return errors.New("Created timestamps don't match")
+	}
+	c.Modified = c2.Modified
+	c.Imported = c2.Imported
+	return nil
+}

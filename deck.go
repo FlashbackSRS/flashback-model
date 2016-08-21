@@ -150,3 +150,24 @@ func (d *Deck) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+func (d *Deck) SetRev(rev string)        { d.Rev = &rev }
+func (d *Deck) DocID() string            { return d.ID.String() }
+func (d *Deck) ImportedTime() *time.Time { return d.Imported }
+func (d *Deck) ModifiedTime() *time.Time { return d.Modified }
+
+func (d *Deck) Update(i interface{}) error {
+	d2 := i.(*Deck)
+	if !d.ID.Equal(&d2.ID) {
+		return errors.New("IDs don't match")
+	}
+	if !TimesEqual(d.Created, d2.Created) {
+		return errors.New("Created timestamps don't match")
+	}
+	d.Modified = d2.Modified
+	d.Imported = d2.Imported
+	d.Name = d2.Name
+	d.Description = d2.Description
+	d.Cards = d2.Cards
+	return nil
+}

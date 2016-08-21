@@ -12,8 +12,8 @@ import (
 var frozenNote []byte = []byte(`
 {
     "type": "note",
-    "_id": "note-VGVzdCBOb3RlCg==",
-    "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.1",
+    "_id": "note-0VGVzdCBOb3RlCg",
+    "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
     "fieldValues": [
         {
             "text": "cat"
@@ -37,7 +37,7 @@ func TestNote(t *testing.T) {
 	th := &fb.Theme{}
 	json.Unmarshal(frozenTheme, th)
 	m := th.Models[1]
-	n, err := fb.NewNote("VGVzdCBOb3RlCg==", m)
+	n, err := fb.NewNote("0VGVzdCBOb3RlCg", m)
 	if err != nil {
 		t.Fatalf("Unable to create Note: %s\n", err)
 	}

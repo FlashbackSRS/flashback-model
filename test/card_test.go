@@ -12,12 +12,12 @@ import (
 var frozenCard []byte = []byte(`
 {
     "type": "card",
-    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o=.0"
+    "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.0"
 }
 `)
 
 func TestCard(t *testing.T) {
-	c, err := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o=", 0)
+	c, err := fb.NewCard("0mViuXQThMLoh1G1Nlc4d_E8kR8o", 0)
 	if err != nil {
 		t.Fatalf("Error creating card: %s", err)
 	}

@@ -1,7 +1,6 @@
 package fb
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 
@@ -45,13 +44,20 @@ type userDoc struct {
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	u := &User{}
 	u.uuid = id
-	u.ID = NewByteID("user", id)
+	if uid, err := NewByteID("user", id, HexID); err != nil {
+		return nil, err
+	} else {
+		u.ID = uid
+	}
 	u.Username = username
 	return u, nil
 }
 
 func NewUserStub(id string) (*User, error) {
-	data, err := base64.URLEncoding.DecodeString(id)
+	idType, data, err := DecodeID(id)
+	if idType != HexID {
+		return nil, errors.New("User IDs must be of type HexID")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +96,12 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	if doc.Type != "user" {
 		return errors.New("Invalid document type for user")
 	}
-	id, err := base64.URLEncoding.DecodeString(doc.ID.Identity())
-	if err != nil {
-		return errors.New(doc.ID.Identity() + " is not a valid UUID")
-	}
-	u.uuid = id
+	// 	id, err := b64encoder.DecodeString(doc.ID.Identity())
+	// 	if err != nil {
+	// 		return errors.New(doc.ID.Identity() + " is not a valid UUID")
+	// 	}
 	u.ID = doc.ID
+	u.uuid = u.ID.RawID()
 	u.Rev = doc.Rev
 	u.Username = doc.Username
 	u.Salt = doc.Salt

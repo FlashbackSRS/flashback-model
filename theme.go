@@ -49,6 +49,28 @@ func NewTheme(id string) (*Theme, error) {
 	return t, nil
 }
 
+func (t *Theme) SetRev(rev string)        { t.Rev = &rev }
+func (t *Theme) DocID() string            { return t.ID.String() }
+func (t *Theme) ImportedTime() *time.Time { return t.Imported }
+func (t *Theme) ModifiedTime() *time.Time { return t.Modified }
+
+func (t *Theme) Update(i interface{}) error {
+	t2 := i.(*Theme)
+	if !t.ID.Equal(&t2.ID) {
+		return errors.New("IDs don't match")
+	}
+	if !TimesEqual(t.Created, t2.Created) {
+		return errors.New("Created timestamps don't match")
+	}
+	t.Name = t2.Name
+	t.Description = t2.Description
+	t.Models = t2.Models
+	t.Attachments = t2.Attachments
+	t.Files = t2.Files
+	t.modelSequence = t2.modelSequence
+	return nil
+}
+
 func (t *Theme) SetFile(name, ctype string, content []byte) {
 	t.Files.SetFile(name, ctype, content)
 }

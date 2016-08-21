@@ -82,3 +82,26 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// FlashbackDoc interface
+func (b *Bundle) SetRev(rev string)        { b.Rev = &rev }
+func (b *Bundle) DocID() string            { return b.ID.String() }
+func (b *Bundle) ImportedTime() *time.Time { return b.Imported }
+func (b *Bundle) ModifiedTime() *time.Time { return b.Modified }
+
+func (b *Bundle) Update(i interface{}) error {
+	b2 := i.(*Bundle)
+	if !b.ID.Equal(&b2.ID) {
+		return errors.New("IDs don't match")
+	}
+	if !TimesEqual(b.Created, b2.Created) {
+		return errors.New("Created timestamps don't match")
+	}
+	if !b.Owner.Equal(b2.Owner.uuid) {
+		return errors.New("Cannot change bundle ownership")
+	}
+	b.Rev = b2.Rev
+	b.Name = b2.Name
+	b.Description = b2.Description
+	return nil
+}

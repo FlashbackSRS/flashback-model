@@ -12,17 +12,17 @@ import (
 var frozenDeck []byte = []byte(`
 {
     "type": "deck",
-    "_id": "deck-AO1yee9FPLVtU3h0M5pcYy3AOTQ=",
+    "_id": "deck-0AO1yee9FPLVtU3h0M5pcYy3AOTQ",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "name": "Test Deck",
     "description": "Deck for testing",
-	"cards": []
+    "cards": []
 }
 `)
 
 func TestDecks(t *testing.T) {
-	d, err := fb.NewDeck("AO1yee9FPLVtU3h0M5pcYy3AOTQ=")
+	d, err := fb.NewDeck("0AO1yee9FPLVtU3h0M5pcYy3AOTQ")
 	if err != nil {
 		t.Fatalf("Error creating deck: %s", err)
 	}

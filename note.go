@@ -161,3 +161,24 @@ func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
 	}
 	return fv.files.AddFile(name, ctype, content)
 }
+
+// FlashbackDoc interface
+func (n *Note) SetRev(rev string)        { n.Rev = &rev }
+func (n *Note) DocID() string            { return n.ID.String() }
+func (n *Note) ImportedTime() *time.Time { return n.Imported }
+func (n *Note) ModifiedTime() *time.Time { return n.Modified }
+func (n *Note) Update(i interface{}) error {
+	n2 := i.(*Note)
+	if !n.ID.Equal(&n2.ID) {
+		return errors.New("IDs don't match")
+	}
+	if !TimesEqual(n.Created, n2.Created) {
+		return errors.New("Created timestamps don't match")
+	}
+	n.Imported = n2.Imported
+	n.Modified = n2.Modified
+	n.ModelID = n2.ModelID
+	n.FieldValues = n2.FieldValues
+	n.Attachments = n2.Attachments
+	return nil
+}

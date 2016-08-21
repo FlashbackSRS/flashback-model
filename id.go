@@ -1,10 +1,12 @@
 package fb
 
 import (
+	"bytes"
 	"crypto/sha1"
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -17,8 +19,21 @@ func KeyToID(key ...[]byte) []byte {
 	return hash[:]
 }
 
-func KeyToIDString(key ...[]byte) string {
-	return base64.URLEncoding.EncodeToString(KeyToID(key...))
+func KeyToIDString(idType IDType, key ...[]byte) string {
+	id := KeyToID(key...)
+	return encodeID(id, idType)
+}
+
+func encodeID(id []byte, idType IDType) string {
+	switch idType {
+	case Base64ID:
+		return "0" + b64encoder.EncodeToString(id)
+	case HexID:
+		return "1" + hex.EncodeToString(id)
+	default:
+		panic(fmt.Sprintf("Invalid ID type: %d\n", idType))
+	}
+	return ""
 }
 
 var validTypes map[string]struct{}
@@ -38,49 +53,79 @@ func isValidType(t string) bool {
 type ID struct {
 	docType string
 	id      []byte
+	idType  IDType
+}
+
+type IDType int
+
+const (
+	Base64ID IDType = iota
+	HexID
+)
+
+func isValidIDType(idType IDType) bool {
+	return idType >= Base64ID && idType <= HexID
 }
 
 // CreateID creates a new ID object, based on the type and a byte array, which is hashed to generate the human-readable ID.
-func CreateID(idType string, key []byte) ID {
-	return NewByteID(idType, KeyToID(key))
+func CreateID(docType string, key []byte) (ID, error) {
+	return NewByteID(docType, KeyToID(key), Base64ID)
 }
 
 // NewID creates a new ID object, based on the type and human-readable id.
-func NewID(idType string, objectID string) (ID, error) {
-	dec, err := base64.URLEncoding.DecodeString(objectID)
+func NewID(docType string, objectID string) (ID, error) {
+	idType, id, err := DecodeID(objectID)
 	if err != nil {
 		return ID{}, err
 	}
-	return NewByteID(idType, dec), nil
+	return NewByteID(docType, id, idType)
 }
 
 // NewByteID creates a new ID object, based on the type and id in []byte format
-func NewByteID(idType string, id []byte) ID {
-	if !isValidType(idType) {
-		panic("Invalid type: " + idType)
+func NewByteID(docType string, id []byte, idType IDType) (ID, error) {
+	if !isValidType(docType) {
+		return ID{}, fmt.Errorf("Invalid document type `%s`", docType)
+	}
+	if !isValidIDType(idType) {
+		return ID{}, fmt.Errorf("Invalid ID type: %d", idType)
 	}
 	return ID{
-		docType: idType,
+		docType: docType,
 		id:      id,
-	}
+		idType:  idType,
+	}, nil
 }
 
 func (id *ID) String() string {
 	return id.docType + "-" + id.Identity()
 }
 
+func DecodeID(identity string) (IDType, []byte, error) {
+	idType := IDType(identity[0] - 48)
+	var data []byte
+	var err error
+	switch idType {
+	case Base64ID:
+		data, err = b64encoder.DecodeString(identity[1:])
+		if err != nil {
+			fmt.Printf("\tDecoded: %s, %s\n", identity[1:], err)
+		}
+	case HexID:
+		data, err = hex.DecodeString(identity[1:])
+	}
+	return idType, data, err
+}
+
 func ParseID(identity string) (*ID, error) {
 	parts := strings.SplitN(identity, "-", 2)
-	if !isValidType(parts[0]) {
-		return nil, errors.New("Invalid type: " + parts[0])
-	}
-	data, err := base64.URLEncoding.DecodeString(parts[1])
+	idType, data, err := DecodeID(parts[1])
 	if err != nil {
 		return nil, errors.New("Cannot decode ID: " + err.Error())
 	}
 	return &ID{
 		docType: parts[0],
 		id:      data,
+		idType:  idType,
 	}, nil
 }
 
@@ -88,11 +133,16 @@ func (id *ID) UnmarshalJSON(data []byte) error {
 	newID, err := ParseID(strings.Trim(string(data), "\""))
 	id.docType = newID.docType
 	id.id = newID.id
+	id.idType = newID.idType
 	return err
 }
 
 func (id *ID) Identity() string {
-	return base64.URLEncoding.EncodeToString(id.id)
+	return encodeID(id.id, id.idType)
+}
+
+func (id *ID) RawID() []byte {
+	return id.id
 }
 
 func (id *ID) Type() string {
@@ -101,4 +151,8 @@ func (id *ID) Type() string {
 
 func (id ID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(id.String())
+}
+
+func (id *ID) Equal(id2 *ID) bool {
+	return id.docType == id2.docType && bytes.Equal(id.id, id2.id)
 }

@@ -14,28 +14,28 @@ var frozenPackage []byte = []byte(`
 {
     "bundle": {
         "type": "bundle",
-        "_id": "bundle-VjMOV9J35iuH1lXdM_lgQPOYx9I=",
-        "owner": "nRHQJKEAQEWlt58cz5bMnw=="
+        "_id": "bundle-0VjMOV9J35iuH1lXdM_lgQPOYx9I",
+        "owner": "19d11d024a1004045a5b79f1ccf96cc9f"
     },
     "cards": [
         {
             "type": "card",
-            "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o=.0"
+            "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.0"
         },
         {
             "type": "card",
-            "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o=.1"
+            "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.1"
         },
         {
             "type": "card",
-            "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o=.2"
+            "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.2"
         }
     ],
     "notes": [
         {
             "type": "note",
-            "_id": "note-VGVzdCBOb3RlCg==",
-            "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8=.1",
+            "_id": "note-0VGVzdCBOb3RlCg",
+            "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
             "fieldValues": [
                 {
                     "text": "cat"
@@ -57,7 +57,7 @@ var frozenPackage []byte = []byte(`
     "decks": [
         {
             "type": "deck",
-            "_id": "deck-AO1yee9FPLVtU3h0M5pcYy3AOTQ=",
+            "_id": "deck-0AO1yee9FPLVtU3h0M5pcYy3AOTQ",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z",
             "name": "Test Deck",
@@ -68,7 +68,7 @@ var frozenPackage []byte = []byte(`
     "themes": [
         {
             "type": "theme",
-            "_id": "theme-NVXGa7SD7zl4CpU_-R7o-qwAZs8=",
+            "_id": "theme-0NVXGa7SD7zl4CpU_-R7o-qwAZs8",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z",
             "name": "Test Theme",
@@ -135,7 +135,7 @@ var frozenPackage []byte = []byte(`
     ],
     "reviews": [
         {
-            "cardID": "mViuXQThMLoh1G1Nlc4d_E8kR8o=.0",
+            "cardID": "0mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
             "timestamp": null,
             "ease": 0,
             "interval": null,
@@ -150,7 +150,7 @@ var frozenPackage []byte = []byte(`
 
 func TestPackage(t *testing.T) {
 	u, _ := testUser()
-	b, _ := fb.NewBundle("VjMOV9J35iuH1lXdM_lgQPOYx9I=", u)
+	b, _ := fb.NewBundle("0VjMOV9J35iuH1lXdM_lgQPOYx9I", u)
 	th := &fb.Theme{}
 	json.Unmarshal(frozenTheme, th)
 	d := &fb.Deck{}
@@ -170,7 +170,7 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, _ := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o=", i)
+		c, _ := fb.NewCard("0mViuXQThMLoh1G1Nlc4d_E8kR8o", i)
 		p.Cards = append(p.Cards, c)
 	}
 	JSONDeepEqual(t, "Create Package", Marshal(t, "Create Package", p), frozenPackage)
