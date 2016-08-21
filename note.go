@@ -9,8 +9,8 @@ import (
 type Note struct {
 	ID
 	Rev         *string
-	Created     *time.Time
-	Modified    *time.Time
+	Created     time.Time
+	Modified    time.Time
 	Imported    *time.Time
 	ModelID     string
 	FieldValues []*FieldValue
@@ -30,8 +30,8 @@ type noteDoc struct {
 	Type        string          `json:"type"`
 	ID          ID              `json:"_id"`
 	Rev         *string         `json:"_rev,omitempty"`
-	Created     *time.Time      `json:"created,omitempty"`
-	Modified    *time.Time      `json:"modified,omitempty"`
+	Created     time.Time       `json:"created"`
+	Modified    time.Time       `json:"modified"`
 	Imported    *time.Time      `json:"imported,omitempty"`
 	ModelID     string          `json:"model"`
 	FieldValues []*FieldValue   `json:"fieldValues"`
@@ -166,19 +166,27 @@ func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
 func (n *Note) SetRev(rev string)        { n.Rev = &rev }
 func (n *Note) DocID() string            { return n.ID.String() }
 func (n *Note) ImportedTime() *time.Time { return n.Imported }
-func (n *Note) ModifiedTime() *time.Time { return n.Modified }
-func (n *Note) Update(i interface{}) error {
-	n2 := i.(*Note)
-	if !n.ID.Equal(&n2.ID) {
-		return errors.New("IDs don't match")
+func (n *Note) ModifiedTime() *time.Time { return &n.Modified }
+
+func (n *Note) MergeImport(i interface{}) (bool, error) {
+	existing := i.(*Note)
+	if !n.ID.Equal(&existing.ID) {
+		return false, errors.New("IDs don't match")
 	}
-	if !TimesEqual(n.Created, n2.Created) {
-		return errors.New("Created timestamps don't match")
+	if !n.Created.Equal(existing.Created) {
+		return false, errors.New("Created timestamps don't match")
 	}
-	n.Imported = n2.Imported
-	n.Modified = n2.Modified
-	n.ModelID = n2.ModelID
-	n.FieldValues = n2.FieldValues
-	n.Attachments = n2.Attachments
-	return nil
+	n.Rev = existing.Rev
+	if n.Modified.After(existing.Modified) {
+		// The new version is newer than the existing one, so update
+		return true, nil
+	}
+	// The new version is older, so we need to use the version we just read
+	n.Modified = existing.Modified
+	n.Imported = existing.Imported
+	n.ModelID = existing.ModelID
+	n.FieldValues = existing.FieldValues
+	n.Attachments = existing.Attachments
+	n.model = existing.model
+	return false, nil
 }

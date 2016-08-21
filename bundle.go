@@ -14,8 +14,8 @@ const (
 type Bundle struct {
 	ID
 	Rev         *string
-	Created     *time.Time
-	Modified    *time.Time
+	Created     time.Time
+	Modified    time.Time
 	Imported    *time.Time
 	Owner       *User
 	Name        *string
@@ -26,8 +26,8 @@ type bundleDoc struct {
 	Type        string     `json:"type"`
 	ID          ID         `json:"_id"`
 	Rev         *string    `json:"_rev,omitempty"`
-	Created     *time.Time `json:"created,omitempty"`
-	Modified    *time.Time `json:"modified,omitempty"`
+	Created     time.Time  `json:"created"`
+	Modified    time.Time  `json:"modified"`
 	Imported    *time.Time `json:"imported,omitempty"`
 	Owner       string     `json:"owner"`
 	Name        *string    `json:"name,omitempty"`
@@ -87,21 +87,26 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 func (b *Bundle) SetRev(rev string)        { b.Rev = &rev }
 func (b *Bundle) DocID() string            { return b.ID.String() }
 func (b *Bundle) ImportedTime() *time.Time { return b.Imported }
-func (b *Bundle) ModifiedTime() *time.Time { return b.Modified }
+func (b *Bundle) ModifiedTime() *time.Time { return &b.Modified }
 
-func (b *Bundle) Update(i interface{}) error {
-	b2 := i.(*Bundle)
-	if !b.ID.Equal(&b2.ID) {
-		return errors.New("IDs don't match")
+func (b *Bundle) MergeImport(i interface{}) (bool, error) {
+	existing := i.(*Bundle)
+	if !b.ID.Equal(&existing.ID) {
+		return false, errors.New("IDs don't match")
 	}
-	if !TimesEqual(b.Created, b2.Created) {
-		return errors.New("Created timestamps don't match")
+	if !b.Created.Equal(existing.Created) {
+		return false, errors.New("Created timestamps don't match")
 	}
-	if !b.Owner.Equal(b2.Owner.uuid) {
-		return errors.New("Cannot change bundle ownership")
+	if !b.Owner.Equal(existing.Owner.uuid) {
+		return false, errors.New("Cannot change bundle ownership")
 	}
-	b.Rev = b2.Rev
-	b.Name = b2.Name
-	b.Description = b2.Description
-	return nil
+	b.Rev = existing.Rev
+	if b.Modified.After(existing.Modified) {
+		// The new version is newer than the existing one, so update
+		return true, nil
+	}
+	// The new version is older, so we need to use the version we just read
+	b.Name = existing.Name
+	b.Description = existing.Description
+	return false, nil
 }

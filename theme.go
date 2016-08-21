@@ -10,8 +10,8 @@ import (
 type Theme struct {
 	ID
 	Rev           *string
-	Created       *time.Time
-	Modified      *time.Time
+	Created       time.Time
+	Modified      time.Time
 	Imported      *time.Time
 	Name          *string
 	Description   *string
@@ -25,8 +25,8 @@ type themeDoc struct {
 	Type          string              `json:"type"`
 	ID            ID                  `json:"_id"`
 	Rev           *string             `json:"_rev,omitempty"`
-	Created       *time.Time          `json:"created,omitempty"`
-	Modified      *time.Time          `json:"modified,omitempty"`
+	Created       time.Time           `json:"created"`
+	Modified      time.Time           `json:"modified"`
 	Imported      *time.Time          `json:"imported,omitempty"`
 	Name          *string             `json:"name,omitempty"`
 	Description   *string             `json:"description,omitempty"`
@@ -47,28 +47,6 @@ func NewTheme(id string) (*Theme, error) {
 	t.Files = t.Attachments.NewView()
 	t.Models = make([]*Model, 0, 1)
 	return t, nil
-}
-
-func (t *Theme) SetRev(rev string)        { t.Rev = &rev }
-func (t *Theme) DocID() string            { return t.ID.String() }
-func (t *Theme) ImportedTime() *time.Time { return t.Imported }
-func (t *Theme) ModifiedTime() *time.Time { return t.Modified }
-
-func (t *Theme) Update(i interface{}) error {
-	t2 := i.(*Theme)
-	if !t.ID.Equal(&t2.ID) {
-		return errors.New("IDs don't match")
-	}
-	if !TimesEqual(t.Created, t2.Created) {
-		return errors.New("Created timestamps don't match")
-	}
-	t.Name = t2.Name
-	t.Description = t2.Description
-	t.Models = t2.Models
-	t.Attachments = t2.Attachments
-	t.Files = t2.Files
-	t.modelSequence = t2.modelSequence
-	return nil
 }
 
 func (t *Theme) SetFile(name, ctype string, content []byte) {
@@ -134,4 +112,32 @@ func (t *Theme) NextModelSequence() uint32 {
 	id := t.modelSequence
 	atomic.AddUint32(&t.modelSequence, 1)
 	return id
+}
+
+func (t *Theme) SetRev(rev string)        { t.Rev = &rev }
+func (t *Theme) DocID() string            { return t.ID.String() }
+func (t *Theme) ImportedTime() *time.Time { return t.Imported }
+func (t *Theme) ModifiedTime() *time.Time { return &t.Modified }
+
+func (t *Theme) MergeImport(i interface{}) (bool, error) {
+	existing := i.(*Theme)
+	if !t.ID.Equal(&existing.ID) {
+		return false, errors.New("IDs don't match")
+	}
+	if !t.Created.Equal(existing.Created) {
+		return false, errors.New("Created timestamps don't match")
+	}
+	t.Rev = existing.Rev
+	if t.Modified.After(existing.Modified) {
+		// The new version is newer than the existing one, so update
+		return true, nil
+	}
+	// The new version is older, so we need to use the version we just read
+	t.Name = existing.Name
+	t.Description = existing.Description
+	t.Models = existing.Models
+	t.Attachments = existing.Attachments
+	t.Files = existing.Files
+	t.modelSequence = existing.modelSequence
+	return false, nil
 }

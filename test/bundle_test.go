@@ -13,6 +13,9 @@ var frozenBundle []byte = []byte(`
 {
     "type": "bundle",
     "_id": "bundle-1546573742042756e646c65",
+    "created": "2016-07-31T15:08:24.730156517Z",
+    "modified": "2016-07-31T15:08:24.730156517Z",
+    "imported": "2016-08-02T15:08:24.730156517Z",
     "owner": "19d11d024a1004045a5b79f1ccf96cc9f",
     "name": "Test Bundle",
     "description": "A bundle for testing"
@@ -27,6 +30,10 @@ func TestNewBundle(t *testing.T) {
 	}
 	name := "Test Bundle"
 	b.Name = &name
+	b.Created = now
+	b.Modified = now
+	imp := now.AddDate(0, 0, 2)
+	b.Imported = &imp
 	descr := "A bundle for testing"
 	b.Description = &descr
 	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-1546573742042756e646c65")
