@@ -113,12 +113,14 @@ func (c *Card) Identity() string {
 	return c.id
 }
 
+/*
 func (c *Card) SetRev(rev string)        { c.Rev = &rev }
-func (c *Card) DocID() string            { return c.id }
+func (c *Card) DocID() string            { return "card-" + c.id }
 func (c *Card) ImportedTime() *time.Time { return c.Imported }
 func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
 
 func (c *Card) MergeImport(i interface{}) (bool, error) {
+fmt.Printf("0\n")
 	existing := i.(*Card)
 	if c.id != existing.id {
 		return false, errors.New("IDs don't match")
@@ -136,3 +138,4 @@ func (c *Card) MergeImport(i interface{}) (bool, error) {
 	c.Imported = existing.Imported
 	return false, nil
 }
+*/

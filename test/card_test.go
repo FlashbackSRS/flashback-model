@@ -42,6 +42,7 @@ func TestCard(t *testing.T) {
 	}
 }
 
+/*
 var frozenExistingCard []byte = []byte(`
 {
     "type": "card",
@@ -82,3 +83,4 @@ func TestCardMergeImport(t *testing.T) {
 	}
 	JSONDeepEqual(t, "Merged Card", Marshal(t, "Merge Card", c), frozenMergedCard)
 }
+*/
