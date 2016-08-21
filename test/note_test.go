@@ -13,6 +13,8 @@ var frozenNote []byte = []byte(`
 {
     "type": "note",
     "_id": "note-0VGVzdCBOb3RlCg",
+    "created": "2016-07-31T15:08:24.730156517Z",
+    "modified": "2016-07-31T15:08:24.730156517Z",
     "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
     "fieldValues": [
         {
@@ -41,6 +43,8 @@ func TestNote(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create Note: %s\n", err)
 	}
+	n.Created = &now
+	n.Modified = &now
 	fv1 := n.GetFieldValue(0)
 	fv1.SetText("cat")
 	fv2 := n.GetFieldValue(1)

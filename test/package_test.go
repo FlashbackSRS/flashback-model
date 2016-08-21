@@ -2,7 +2,6 @@ package test
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -35,6 +34,8 @@ var frozenPackage []byte = []byte(`
         {
             "type": "note",
             "_id": "note-0VGVzdCBOb3RlCg",
+            "created": "2016-07-31T15:08:24.730156517Z",
+            "modified": "2016-07-31T15:08:24.730156517Z",
             "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
             "fieldValues": [
                 {
@@ -156,7 +157,6 @@ func TestPackage(t *testing.T) {
 	d := &fb.Deck{}
 	json.Unmarshal(frozenDeck, d)
 	n := &fb.Note{}
-	fmt.Printf("model = %v\n", th.Models[1])
 	json.Unmarshal(frozenNote, n)
 	r := &fb.Review{}
 	json.Unmarshal(frozenReview, r)
