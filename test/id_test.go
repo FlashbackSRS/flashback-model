@@ -61,9 +61,10 @@ func TestHexID(t *testing.T) {
 		t.Fatalf("Thawed and created Hex IDs don't match")
 	}
 }
-/*
+
+
 func TestID(t *testing.T) {
-	id, err := fb.NewByteID("user", []byte("User Bob"), fb.HexID)
+	id, err := fb.NewID("user", []byte("User Bob"))
 	if err != nil {
 		t.Fatalf("Error creating user: %s\n", err)
 	}
@@ -80,7 +81,7 @@ func TestID(t *testing.T) {
 }
 
 func TestID2(t *testing.T) {
-	id, err := fb.CreateID("user", []byte("User Bob"))
+	id, err := fb.NewID("user", []byte("User Bob"))
 	if err != nil {
 		t.Fatalf("Error creating user: %s\n", err)
 	}
@@ -95,5 +96,3 @@ func TestID2(t *testing.T) {
 		t.Errorf("ID: %x != %x\n", id.Identity(), id2.Identity())
 	}
 }
-
-*/

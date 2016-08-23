@@ -36,9 +36,9 @@ type themeDoc struct {
 	ModelSequence uint32              `json:"modelSequence"`
 }
 
-func NewTheme(id string) (*Theme, error) {
+func NewTheme(id []byte) (*Theme, error) {
 	t := &Theme{}
-	tid, err := ParseID("theme", id)
+	tid, err := NewID("theme", id)
 	if err != nil {
 		return nil, err
 	}

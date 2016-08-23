@@ -34,9 +34,9 @@ type bundleDoc struct {
 	Description *string    `json:"description,omitempty"`
 }
 
-func NewBundle(id string, owner *User) (*Bundle, error) {
+func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	b := &Bundle{}
-	bid, err := ParseHexID("bundle", id)
+	bid, err := NewHexID("bundle", id)
 	if err != nil {
 		return nil, err
 	}

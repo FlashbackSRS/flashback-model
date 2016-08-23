@@ -13,7 +13,7 @@ var frozenPackage []byte = []byte(`
 {
     "bundle": {
         "type": "bundle",
-        "_id": "bundle-56330e57d277e62b87d655dd3258103ce631f4",
+        "_id": "bundle-546573742042756e646c65",
         "created": "2016-07-31T15:08:24.730156517Z",
         "modified": "2016-07-31T15:08:24.730156517Z",
         "owner": "9d11d024a1004045a5b79f1ccf96cc9f"
@@ -41,11 +41,11 @@ var frozenPackage []byte = []byte(`
     "notes": [
         {
             "type": "note",
-            "_id": "note-VGVzdCBOb3RlCg",
+            "_id": "note-VGVzdCBOb3Rl",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z",
             "imported": "2016-08-02T15:08:24.730156517Z",
-            "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
+            "model": "VGVzdCBUaGVtZQ.1",
             "fieldValues": [
                 {
                     "text": "cat"
@@ -67,7 +67,7 @@ var frozenPackage []byte = []byte(`
     "decks": [
         {
             "type": "deck",
-            "_id": "deck-AO1yee9FPLVtU3h0M5pcYy3AOTQ",
+            "_id": "deck-VGVzdCBEZWNr",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z",
             "imported": "2016-08-02T15:08:24.730156517Z",
@@ -79,7 +79,7 @@ var frozenPackage []byte = []byte(`
     "themes": [
         {
             "type": "theme",
-            "_id": "theme-NVXGa7SD7zl4CpU_-R7o-qwAZs8",
+            "_id": "theme-VGVzdCBUaGVtZQ",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z",
             "imported": "2016-08-02T15:08:24.730156517Z",
@@ -162,7 +162,7 @@ var frozenPackage []byte = []byte(`
 
 func TestPackage(t *testing.T) {
 	u, _ := testUser()
-	b, err := fb.NewBundle("56330e57d277e62b87d655dd3258103ce631f4", u)
+	b, err := fb.NewBundle([]byte("Test Bundle"), u)
 	if err != nil {
 		t.Fatalf("Error creating bundle: %s", err)
 	}

@@ -2,10 +2,8 @@ package fb
 
 import (
 	"bytes"
-// 	"crypto/sha1"
-	"errors"
 	"encoding/hex"
-// 	"encoding/json"
+	"errors"
 	"strings"
 )
 
@@ -34,7 +32,7 @@ type ID struct {
 }
 
 func newBaseID(docType string, id []byte) (baseID, error) {
-	if ! isValidType(docType) {
+	if !isValidType(docType) {
 		return baseID{}, errors.New("Invalid document type:" + docType)
 	}
 	return baseID{
@@ -49,15 +47,15 @@ func (id *baseID) Type() string {
 
 func parseParts(input ...string) (string, string) {
 	switch len(input) {
-		case 1:
-			parts := strings.SplitN(input[0], "-", 2)
-			return parts[0], parts[1]
-		case 2:
-			return input[0], input[1]
-		default:
-			panic("IDs must have exactly 1 or 2 parts")
+	case 1:
+		parts := strings.SplitN(input[0], "-", 2)
+		return parts[0], parts[1]
+	case 2:
+		return input[0], input[1]
+	default:
+		panic("IDs must have exactly 1 or 2 parts")
 	}
-	return "",""
+	return "", ""
 }
 
 func ParseID(parts ...string) (ID, error) {
@@ -86,12 +84,12 @@ func NewID(docType string, id []byte) (ID, error) {
 }
 
 func (id ID) MarshalJSON() ([]byte, error) {
-	return []byte("\""+id.String()+"\""), nil
+	return []byte("\"" + id.String() + "\""), nil
 }
 
 func (id *ID) UnmarshalJSON(data []byte) error {
 	raw := string(data)
-	return id.parse(raw[1:len(raw)-1])
+	return id.parse(raw[1 : len(raw)-1])
 }
 
 func (id *ID) String() string {
@@ -105,7 +103,6 @@ func (id *ID) Identity() string {
 func (id *ID) Equal(id2 *ID) bool {
 	return id.docType == id2.docType && bytes.Equal(id.id, id2.id)
 }
-
 
 // A Hex-encoded ID, for documents which need their own databases (which don't support Base64 alphabets)
 type HexID struct {
@@ -142,12 +139,12 @@ func NewHexID(docType string, id []byte) (HexID, error) {
 }
 
 func (id HexID) MarshalJSON() ([]byte, error) {
-	return []byte("\""+id.String()+"\""), nil
+	return []byte("\"" + id.String() + "\""), nil
 }
 
 func (id *HexID) UnmarshalJSON(data []byte) error {
 	raw := string(data)
-	return id.parse(raw[1:len(raw)-1])
+	return id.parse(raw[1 : len(raw)-1])
 }
 
 func (id *HexID) String() string {

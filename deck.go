@@ -101,8 +101,8 @@ type DeckConfig struct {
 }
 */
 
-func NewDeck(id string) (*Deck, error) {
-	did, err := ParseID("deck", id)
+func NewDeck(id []byte) (*Deck, error) {
+	did, err := NewID("deck", id)
 	if err != nil {
 		return nil, err
 	}

@@ -38,9 +38,9 @@ type noteDoc struct {
 	Attachments *FileCollection `json:"_attachments,omitempty"`
 }
 
-func NewNote(id string, model *Model) (*Note, error) {
+func NewNote(id []byte, model *Model) (*Note, error) {
 	n := &Note{}
-	nid, err := ParseID("note", id)
+	nid, err := NewID("note", id)
 	if err != nil {
 		return nil, err
 	}

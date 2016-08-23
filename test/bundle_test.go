@@ -24,7 +24,7 @@ var frozenBundle []byte = []byte(`
 
 func TestNewBundle(t *testing.T) {
 	u, _ := testUser()
-	b, err := fb.NewBundle("546573742042756e646c65", u)
+	b, err := fb.NewBundle([]byte("Test Bundle"), u)
 	if err != nil {
 		t.Fatalf("Error creating new bundle: %s", err)
 	}
