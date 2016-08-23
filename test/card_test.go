@@ -20,7 +20,7 @@ var frozenCard []byte = []byte(`
 `)
 
 func TestCard(t *testing.T) {
-	c, err := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o", 0)
+	c, err := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 	if err != nil {
 		t.Fatalf("Error creating card: %s", err)
 	}

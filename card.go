@@ -3,7 +3,6 @@ package fb
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -51,9 +50,9 @@ type cardDoc struct {
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
-func NewCard(noteID string, template int) (*Card, error) {
+func NewCard(id string) (*Card, error) {
 	return &Card{
-		id: fmt.Sprintf("%s.%d", noteID, template),
+		id: id,
 	}, nil
 }
 

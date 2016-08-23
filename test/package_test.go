@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -186,7 +187,7 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, _ := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o", i)
+		c, _ := fb.NewCard(fmt.Sprintf("mViuXQThMLoh1G1Nlc4d_E8kR8o.%d", i))
 		c.Created = now
 		c.Modified = now
 		p.Cards = append(p.Cards, c)

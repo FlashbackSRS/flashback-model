@@ -38,6 +38,15 @@ func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// All returns an array containing the list of all card IDs in the deck
+func (cc *CardCollection) All() []string {
+	ids := make([]string, 0, len(cc.col))
+	for id, _ := range cc.col {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
 type Deck struct {
 	ID          ID
 	Rev         *string
