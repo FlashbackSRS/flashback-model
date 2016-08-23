@@ -19,8 +19,8 @@ const (
 type Card struct {
 	id       string
 	Rev      *string
-	Created  *time.Time
-	Modified *time.Time
+	Created  time.Time
+	Modified time.Time
 	Imported *time.Time
 	// 	Queue       CardQueue
 	// 	Suspended   bool
@@ -37,8 +37,8 @@ type cardDoc struct {
 	Type     string     `json:"type"`
 	ID       string     `json:"_id"`
 	Rev      *string    `json:"_rev,omitempty"`
-	Created  *time.Time `json:"created,omitempty"`
-	Modified *time.Time `json:"modified,omitempty"`
+	Created  time.Time  `json:"created"`
+	Modified time.Time  `json:"modified"`
 	Imported *time.Time `json:"imported,omitempty"`
 	// 	Queue       CardQueue      `json:"state"`
 	// 	Suspended   *bool          `json:"suspended,omitempty"`
@@ -112,3 +112,30 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 func (c *Card) Identity() string {
 	return c.id
 }
+
+/*
+func (c *Card) SetRev(rev string)        { c.Rev = &rev }
+func (c *Card) DocID() string            { return "card-" + c.id }
+func (c *Card) ImportedTime() *time.Time { return c.Imported }
+func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
+
+func (c *Card) MergeImport(i interface{}) (bool, error) {
+fmt.Printf("0\n")
+	existing := i.(*Card)
+	if c.id != existing.id {
+		return false, errors.New("IDs don't match")
+	}
+	if !c.Created.Equal(existing.Created) {
+		return false, errors.New("Created timestamps don't match")
+	}
+	c.Rev = existing.Rev
+	if c.Modified.After(existing.Modified) {
+		// The new version is newer than the existing one, so update
+		return true, nil
+	}
+	// The new version is older, so we need to use the version we just read
+	c.Modified = existing.Modified
+	c.Imported = existing.Imported
+	return false, nil
+}
+*/

@@ -11,7 +11,7 @@ import (
 
 var frozenReview []byte = []byte(`
 {
-    "cardID": "mViuXQThMLoh1G1Nlc4d_E8kR8o=.0",
+    "cardID": "mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
     "timestamp": null,
     "ease": 0,
     "interval": null,
@@ -23,7 +23,7 @@ var frozenReview []byte = []byte(`
 `)
 
 func TestReview(t *testing.T) {
-	r, err := fb.NewReview("mViuXQThMLoh1G1Nlc4d_E8kR8o=.0")
+	r, err := fb.NewReview("mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 	if err != nil {
 		t.Fatalf("Error creating review: %s\n", err)
 	}

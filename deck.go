@@ -39,10 +39,10 @@ func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 }
 
 type Deck struct {
-	ID
+	ID          ID
 	Rev         *string
-	Created     *time.Time
-	Modified    *time.Time
+	Created     time.Time
+	Modified    time.Time
 	Imported    *time.Time
 	Name        *string
 	Description *string
@@ -53,8 +53,8 @@ type deckDoc struct {
 	Type        string          `json:"type"`
 	ID          ID              `json:"_id"`
 	Rev         *string         `json:"_rev,omitempty"`
-	Created     *time.Time      `json:"created,omitempty"`
-	Modified    *time.Time      `json:"modified,omitempty"`
+	Created     time.Time       `json:"created"`
+	Modified    time.Time       `json:"modified"`
 	Imported    *time.Time      `json:"imported,omitempty"`
 	Name        *string         `json:"name,omitempty"`
 	Description *string         `json:"description,omitempty"`
@@ -101,7 +101,7 @@ type DeckConfig struct {
 }
 */
 
-func NewDeck(id string) (*Deck, error) {
+func NewDeck(id []byte) (*Deck, error) {
 	did, err := NewID("deck", id)
 	if err != nil {
 		return nil, err
@@ -149,4 +149,31 @@ func (d *Deck) UnmarshalJSON(data []byte) error {
 	d.Cards = doc.Cards
 
 	return nil
+}
+
+func (d *Deck) SetRev(rev string)        { d.Rev = &rev }
+func (d *Deck) DocID() string            { return d.ID.String() }
+func (d *Deck) ImportedTime() *time.Time { return d.Imported }
+func (d *Deck) ModifiedTime() *time.Time { return &d.Modified }
+
+func (d *Deck) MergeImport(i interface{}) (bool, error) {
+	existing := i.(*Deck)
+	if !d.ID.Equal(&existing.ID) {
+		return false, errors.New("IDs don't match")
+	}
+	if !d.Created.Equal(existing.Created) {
+		return false, errors.New("Created timestamps don't match")
+	}
+	d.Rev = existing.Rev
+	if d.Modified.After(existing.Modified) {
+		// The new version is newer than the existing one, so update
+		return true, nil
+	}
+	// The new version is older, so we need to use the version we just read
+	d.Modified = existing.Modified
+	d.Imported = existing.Imported
+	d.Name = existing.Name
+	d.Description = existing.Description
+	d.Cards = existing.Cards
+	return false, nil
 }

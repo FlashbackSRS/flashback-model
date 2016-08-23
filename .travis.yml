@@ -1,7 +1,7 @@
 language: go
 
 go:
-    - 1.6
+    - 1.7
 
 before_install:
     - sudo apt-get update -qq
@@ -15,5 +15,5 @@ install:
 
 script:
     - diff -u <(echo -n) <(gofmt -d ./)
-    - go test github.com/flimzy/flashback-model/test
-    - gopherjs test github.com/flimzy/flashback-model/test
+    - go test github.com/flimzy/flashback-model github.com/flimzy/flashback-model/test
+    - gopherjs test github.com/flimzy/flashback-model github.com/flimzy/flashback-model/test

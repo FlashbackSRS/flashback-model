@@ -1,7 +1,6 @@
 package fb
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 
@@ -13,7 +12,7 @@ func isValidID(id string) bool {
 }
 
 type User struct {
-	ID
+	ID       HexID
 	uuid     uuid.UUID
 	Rev      *string
 	Username string
@@ -26,7 +25,7 @@ type User struct {
 
 type userDoc struct {
 	Type     string  `json:"type"`
-	ID       ID      `json:"_id"`
+	ID       HexID   `json:"_id"`
 	Rev      *string `json:"_rev,omitempty"`
 	Username string  `json:"username"`
 	Password string  `json:"password"`
@@ -45,17 +44,21 @@ type userDoc struct {
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	u := &User{}
 	u.uuid = id
-	u.ID = NewByteID("user", id)
+	if uid, err := NewHexID("user", id); err != nil {
+		return nil, err
+	} else {
+		u.ID = uid
+	}
 	u.Username = username
 	return u, nil
 }
 
 func NewUserStub(id string) (*User, error) {
-	data, err := base64.URLEncoding.DecodeString(id)
+	userID, err := ParseHexID("user", id)
 	if err != nil {
 		return nil, err
 	}
-	userUUID := uuid.UUID(data)
+	userUUID := uuid.UUID(userID.RawID())
 	return NewUser(userUUID, "")
 }
 
@@ -90,12 +93,12 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	if doc.Type != "user" {
 		return errors.New("Invalid document type for user")
 	}
-	id, err := base64.URLEncoding.DecodeString(doc.ID.Identity())
-	if err != nil {
-		return errors.New(doc.ID.Identity() + " is not a valid UUID")
-	}
-	u.uuid = id
+	// 	id, err := b64encoder.DecodeString(doc.ID.Identity())
+	// 	if err != nil {
+	// 		return errors.New(doc.ID.Identity() + " is not a valid UUID")
+	// 	}
 	u.ID = doc.ID
+	u.uuid = u.ID.RawID()
 	u.Rev = doc.Rev
 	u.Username = doc.Username
 	u.Salt = doc.Salt
