@@ -12,7 +12,7 @@ const (
 )
 
 type Bundle struct {
-	ID
+	ID          HexID
 	Rev         *string
 	Created     time.Time
 	Modified    time.Time
@@ -24,7 +24,7 @@ type Bundle struct {
 
 type bundleDoc struct {
 	Type        string     `json:"type"`
-	ID          ID         `json:"_id"`
+	ID          HexID      `json:"_id"`
 	Rev         *string    `json:"_rev,omitempty"`
 	Created     time.Time  `json:"created"`
 	Modified    time.Time  `json:"modified"`
@@ -36,7 +36,7 @@ type bundleDoc struct {
 
 func NewBundle(id string, owner *User) (*Bundle, error) {
 	b := &Bundle{}
-	bid, err := NewID("bundle", id)
+	bid, err := ParseHexID("bundle", id)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 		Created:     b.Created,
 		Modified:    b.Modified,
 		Imported:    b.Imported,
-		Owner:       b.Owner.Identity(),
+		Owner:       b.Owner.ID.Identity(),
 		Name:        b.Name,
 		Description: b.Description,
 	})

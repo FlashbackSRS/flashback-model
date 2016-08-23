@@ -12,11 +12,11 @@ import (
 var frozenNote []byte = []byte(`
 {
     "type": "note",
-    "_id": "note-0VGVzdCBOb3RlCg",
+    "_id": "note-VGVzdCBOb3RlCg",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
+    "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
     "fieldValues": [
         {
             "text": "cat"
@@ -40,7 +40,7 @@ func TestNote(t *testing.T) {
 	th := &fb.Theme{}
 	json.Unmarshal(frozenTheme, th)
 	m := th.Models[1]
-	n, err := fb.NewNote("0VGVzdCBOb3RlCg", m)
+	n, err := fb.NewNote("VGVzdCBOb3RlCg", m)
 	if err != nil {
 		t.Fatalf("Unable to create Note: %s\n", err)
 	}
@@ -80,12 +80,12 @@ func TestNote(t *testing.T) {
 var frozenExistingNote []byte = []byte(`
 {
     "type": "note",
-    "_id": "note-0VGVzdCBOb3RlCg",
+    "_id": "note-VGVzdCBOb3RlCg",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-15T15:07:24.730156517Z",
     "imported": "2016-08-01T15:08:24.730156517Z",
-    "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
+    "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
     "fieldValues": [
         {
             "text": "Cat"
@@ -108,12 +108,12 @@ var frozenExistingNote []byte = []byte(`
 var frozenMergedNote []byte = []byte(`
 {
     "type": "note",
-    "_id": "note-0VGVzdCBOb3RlCg",
+    "_id": "note-VGVzdCBOb3RlCg",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "model": "0NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
+    "model": "NVXGa7SD7zl4CpU_-R7o-qwAZs8.1",
     "fieldValues": [
         {
             "text": "cat"

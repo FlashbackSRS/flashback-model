@@ -7,7 +7,7 @@ import (
 )
 
 type Note struct {
-	ID
+	ID          ID
 	Rev         *string
 	Created     time.Time
 	Modified    time.Time
@@ -40,7 +40,7 @@ type noteDoc struct {
 
 func NewNote(id string, model *Model) (*Note, error) {
 	n := &Note{}
-	nid, err := NewID("note", id)
+	nid, err := ParseID("note", id)
 	if err != nil {
 		return nil, err
 	}

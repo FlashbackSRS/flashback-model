@@ -39,7 +39,7 @@ func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 }
 
 type Deck struct {
-	ID
+	ID          ID
 	Rev         *string
 	Created     time.Time
 	Modified    time.Time
@@ -102,7 +102,7 @@ type DeckConfig struct {
 */
 
 func NewDeck(id string) (*Deck, error) {
-	did, err := NewID("deck", id)
+	did, err := ParseID("deck", id)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ import (
 var frozenUser []byte = []byte(`
 {
     "type": "user",
-    "_id": "user-19d11d024a1004045a5b79f1ccf96cc9f",
+    "_id": "user-9d11d024a1004045a5b79f1ccf96cc9f",
     "username": "mrsmith",
     "password": "",
     "salt": "",
@@ -27,8 +27,8 @@ func TestNewUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating user: %s\n", err)
 	}
-	StringsEqual(t, "ID", u.ID.String(), "user-19d11d024a1004045a5b79f1ccf96cc9f")
-	StringsEqual(t, "Type", u.Type(), "user")
+	StringsEqual(t, "ID", u.ID.String(), "user-9d11d024a1004045a5b79f1ccf96cc9f")
+	StringsEqual(t, "Type", u.ID.Type(), "user")
 	JSONDeepEqual(t, "New user", Marshal(t, "New User", u), frozenUser)
 
 	u2, err := testUser()

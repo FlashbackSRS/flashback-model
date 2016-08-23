@@ -9,13 +9,19 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenB64ID []byte = []byte(`"note-0VGVzdCBOb3Rl"`)
-var frozenHexID []byte = []byte(`"user-1546573742055736572"`)
+var frozenB64ID []byte = []byte(`"note-VGVzdCBOb3Rl"`)
+var frozenHexID []byte = []byte(`"user-546573742055736572"`)
 
 func TestB64ID(t *testing.T) {
-	id, err := fb.NewByteID("note", []byte("Test Note"), fb.Base64ID)
+	id, err := fb.NewID("note", []byte("Test Note"))
 	if err != nil {
 		t.Fatalf("Error creating B64 ID: %s\n", err)
+	}
+	if id.String() != "note-VGVzdCBOb3Rl" {
+		t.Fatalf("Error stringifying note id. Got %s\n", id.String())
+	}
+	if id.Identity() != "VGVzdCBOb3Rl" {
+		t.Fatalf("Unexpected identity for note id. Got %s\n", id.Identity())
 	}
 	JSONDeepEqual(t, "Create B64 ID", Marshal(t, "Create ID1", id), frozenB64ID)
 
@@ -32,13 +38,19 @@ func TestB64ID(t *testing.T) {
 }
 
 func TestHexID(t *testing.T) {
-	id, err := fb.NewByteID("user", []byte("Test User"), fb.HexID)
+	id, err := fb.NewHexID("user", []byte("Test User"))
 	if err != nil {
 		t.Fatalf("Error creating Hex ID: %s\n", err)
 	}
+	if id.String() != "user-546573742055736572" {
+		t.Fatalf("Error stringifying note id. Got %s\n", id.String())
+	}
+	if id.Identity() != "546573742055736572" {
+		t.Fatalf("Unexpected identity for note id. Got %s\n", id.Identity())
+	}
 	JSONDeepEqual(t, "Create Hex ID", Marshal(t, "Create ID1", id), frozenHexID)
 
-	id2 := fb.ID{}
+	id2 := fb.HexID{}
 	if err := json.Unmarshal(frozenHexID, &id2); err != nil {
 		t.Fatalf("Error thawing Hex ID: %s", err)
 	}
@@ -49,7 +61,7 @@ func TestHexID(t *testing.T) {
 		t.Fatalf("Thawed and created Hex IDs don't match")
 	}
 }
-
+/*
 func TestID(t *testing.T) {
 	id, err := fb.NewByteID("user", []byte("User Bob"), fb.HexID)
 	if err != nil {
@@ -83,3 +95,5 @@ func TestID2(t *testing.T) {
 		t.Errorf("ID: %x != %x\n", id.Identity(), id2.Identity())
 	}
 }
+
+*/

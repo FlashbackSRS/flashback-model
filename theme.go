@@ -8,7 +8,7 @@ import (
 )
 
 type Theme struct {
-	ID
+	ID            ID
 	Rev           *string
 	Created       time.Time
 	Modified      time.Time
@@ -38,7 +38,7 @@ type themeDoc struct {
 
 func NewTheme(id string) (*Theme, error) {
 	t := &Theme{}
-	tid, err := NewID("theme", id)
+	tid, err := ParseID("theme", id)
 	if err != nil {
 		return nil, err
 	}

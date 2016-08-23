@@ -12,7 +12,7 @@ func isValidID(id string) bool {
 }
 
 type User struct {
-	ID
+	ID       HexID
 	uuid     uuid.UUID
 	Rev      *string
 	Username string
@@ -25,7 +25,7 @@ type User struct {
 
 type userDoc struct {
 	Type     string  `json:"type"`
-	ID       ID      `json:"_id"`
+	ID       HexID   `json:"_id"`
 	Rev      *string `json:"_rev,omitempty"`
 	Username string  `json:"username"`
 	Password string  `json:"password"`
@@ -44,7 +44,7 @@ type userDoc struct {
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	u := &User{}
 	u.uuid = id
-	if uid, err := NewByteID("user", id, HexID); err != nil {
+	if uid, err := NewHexID("user", id); err != nil {
 		return nil, err
 	} else {
 		u.ID = uid
@@ -54,14 +54,11 @@ func NewUser(id uuid.UUID, username string) (*User, error) {
 }
 
 func NewUserStub(id string) (*User, error) {
-	idType, data, err := DecodeID(id)
-	if idType != HexID {
-		return nil, errors.New("User IDs must be of type HexID")
-	}
+	userID, err := ParseHexID("user", id)
 	if err != nil {
 		return nil, err
 	}
-	userUUID := uuid.UUID(data)
+	userUUID := uuid.UUID(userID.RawID())
 	return NewUser(userUUID, "")
 }
 

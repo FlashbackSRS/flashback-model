@@ -12,7 +12,7 @@ import (
 var frozenCard []byte = []byte(`
 {
     "type": "card",
-    "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z"
@@ -20,7 +20,7 @@ var frozenCard []byte = []byte(`
 `)
 
 func TestCard(t *testing.T) {
-	c, err := fb.NewCard("0mViuXQThMLoh1G1Nlc4d_E8kR8o", 0)
+	c, err := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o", 0)
 	if err != nil {
 		t.Fatalf("Error creating card: %s", err)
 	}
@@ -46,7 +46,7 @@ func TestCard(t *testing.T) {
 var frozenExistingCard []byte = []byte(`
 {
     "type": "card",
-    "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-15T15:07:24.730156517Z",
@@ -57,7 +57,7 @@ var frozenExistingCard []byte = []byte(`
 var frozenMergedCard []byte = []byte(`
 {
     "type": "card",
-    "_id": "card-0mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
