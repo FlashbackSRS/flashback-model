@@ -62,7 +62,6 @@ func TestHexID(t *testing.T) {
 	}
 }
 
-
 func TestID(t *testing.T) {
 	id, err := fb.NewID("user", []byte("User Bob"))
 	if err != nil {
