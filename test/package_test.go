@@ -22,19 +22,19 @@ var frozenPackage []byte = []byte(`
     "cards": [
         {
             "type": "card",
-            "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+            "_id": "card-VGVzdCBOb3Rl.0",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z"
         },
         {
             "type": "card",
-            "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.1",
+            "_id": "card-VGVzdCBOb3Rl.1",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z"
         },
         {
             "type": "card",
-            "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.2",
+            "_id": "card-VGVzdCBOb3Rl.2",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z"
         }
@@ -148,7 +148,7 @@ var frozenPackage []byte = []byte(`
     ],
     "reviews": [
         {
-            "cardID": "mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+            "cardID": "VGVzdCBOb3Rl.0",
             "timestamp": null,
             "ease": 0,
             "interval": null,
@@ -187,7 +187,7 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, _ := fb.NewCard(fmt.Sprintf("mViuXQThMLoh1G1Nlc4d_E8kR8o.%d", i))
+		c, _ := fb.NewCard(fmt.Sprintf("%s.%d", n.ID.Identity(), i))
 		c.Created = now
 		c.Modified = now
 		p.Cards = append(p.Cards, c)
