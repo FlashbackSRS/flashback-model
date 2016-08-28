@@ -22,19 +22,19 @@ var frozenPackage = []byte(`
     "cards": [
         {
             "type": "card",
-            "_id": "card-VGVzdCBOb3Rl.0",
+            "_id": "card-krsxg5baij2w4zdmmu.VGVzdCBOb3Rl.0",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z"
         },
         {
             "type": "card",
-            "_id": "card-VGVzdCBOb3Rl.1",
+            "_id": "card-krsxg5baij2w4zdmmu.VGVzdCBOb3Rl.1",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z"
         },
         {
             "type": "card",
-            "_id": "card-VGVzdCBOb3Rl.2",
+            "_id": "card-krsxg5baij2w4zdmmu.VGVzdCBOb3Rl.2",
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z"
         }
@@ -181,7 +181,10 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, _ := fb.NewCard(fmt.Sprintf("%s.%d", n.ID.Identity(), i))
+		c, err := fb.NewCard(fmt.Sprintf("%s.%s.%d", b.ID.Identity(), n.ID.Identity(), i))
+		if err != nil {
+			t.Fatalf("Error creating new card: %s", err)
+		}
 		c.Created = now
 		c.Modified = now
 		p.Cards = append(p.Cards, c)
