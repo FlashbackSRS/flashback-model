@@ -4,6 +4,7 @@ import (
 	"strconv"
 )
 
+// Model represents a Flashback card Model
 type Model struct {
 	Theme       *Theme              `json:"-"`
 	ID          uint32              `json:"id"`
@@ -15,13 +16,18 @@ type Model struct {
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
 
+// ModelType describes the model type
 type ModelType int
 
 const (
+	// AnkiStandard describes a model imported from Anki of the "standard" type
 	AnkiStandard ModelType = iota
+	// AnkiCloze describes a model imported from Anki of the Cloze type
 	AnkiCloze
 )
 
+// NewModel creates a new model as a member of the provided theme, and of the
+// provided type.
 func NewModel(t *Theme, mType ModelType) (*Model, error) {
 	return &Model{
 		Theme:     t,
@@ -33,10 +39,13 @@ func NewModel(t *Theme, mType ModelType) (*Model, error) {
 	}, nil
 }
 
+// AddFile adds a file of the provided name, type, and content as an attachment
+// or returns an error.
 func (m *Model) AddFile(name, ctype string, content []byte) error {
 	return m.Files.AddFile(name, ctype, content)
 }
 
+// Identity returns the string representation of the model's identity.
 func (m *Model) Identity() string {
 	if m.Theme != nil {
 		return m.Theme.ID.Identity() + "." + strconv.FormatUint(uint64(m.ID), 16)
@@ -44,6 +53,7 @@ func (m *Model) Identity() string {
 	return ""
 }
 
+// AddField adds a field of the specified type and name to the Model.
 func (m *Model) AddField(fType FieldType, name string) error {
 	m.Fields = append(m.Fields, &Field{
 		Type: fType,
@@ -52,18 +62,22 @@ func (m *Model) AddField(fType FieldType, name string) error {
 	return nil
 }
 
+// FieldType represents the valid field types
 type FieldType int
 
 const (
+	// TextField is for a field which accepts only text
 	TextField FieldType = iota
+	// ImageField is for a field which accepts only an image
 	ImageField
+	// AudioField is for a field which accepts only audio
 	AudioField
+	// AnkiField is for a field improrted from Anki, which accepts Anki-specific
+	// markup which may contain text, HTML, and other files.
 	AnkiField
 )
 
-// A field of a model
-//
-// Excluded from this definition is the `media` field, which appears to no longer be used.
+// Field represents a field of a model
 type Field struct {
 	Type FieldType `json:"fieldType"`
 	Name string    `json:"name"` // Field name

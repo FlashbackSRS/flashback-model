@@ -7,10 +7,13 @@ import (
 )
 
 const (
+	// TemplateContentType sets the content type of Flashback Template segments
 	TemplateContentType = "text/html"
-	BundleContentType   = "application/json"
+	// BundleContentType ses the content type of Flashback Bundles
+	BundleContentType = "application/json"
 )
 
+// Bundle represents a Bundle database.
 type Bundle struct {
 	ID          HexID
 	Rev         *string
@@ -34,6 +37,7 @@ type bundleDoc struct {
 	Description *string    `json:"description,omitempty"`
 }
 
+// NewBundle creates a new Bundle with the provided id and owner.
 func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	b := &Bundle{}
 	bid, err := NewHexID("bundle", id)
@@ -45,6 +49,7 @@ func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	return b, nil
 }
 
+// MarshalJSON implements the json.Marshaler interface for the Bundle type.
 func (b *Bundle) MarshalJSON() ([]byte, error) {
 	return json.Marshal(bundleDoc{
 		Type:        "bundle",
@@ -59,6 +64,7 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON fulfills the json.Unmarshaler interface for the Bundle type.
 func (b *Bundle) UnmarshalJSON(data []byte) error {
 	doc := &bundleDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
@@ -83,12 +89,20 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// FlashbackDoc interface
-func (b *Bundle) SetRev(rev string)        { b.Rev = &rev }
-func (b *Bundle) DocID() string            { return b.ID.String() }
+// SetRev sets the internal _rev attribute of the Bundle
+func (b *Bundle) SetRev(rev string) { b.Rev = &rev }
+
+// DocID returns the document's ID as a string.
+func (b *Bundle) DocID() string { return b.ID.String() }
+
+// ImportedTime returns the time the Bundle was imported, or nil
 func (b *Bundle) ImportedTime() *time.Time { return b.Imported }
+
+// ModifiedTime returns the time the Bundle was last modified
 func (b *Bundle) ModifiedTime() *time.Time { return &b.Modified }
 
+// MergeImport attempts to merge i into b, returning true if a merge took place,
+// or false if no merge was necessary.
 func (b *Bundle) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Bundle)
 	if !b.ID.Equal(&existing.ID) {

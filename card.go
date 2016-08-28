@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+/*
 type CardQueue int
 
 const (
@@ -14,7 +15,9 @@ const (
 	QueueLearning
 	QueueReview
 )
+*/
 
+// Card represents a struct of card-related statistics and configuration.
 type Card struct {
 	id       string
 	Rev      *string
@@ -50,12 +53,14 @@ type cardDoc struct {
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
+// NewCard returns a new Card instance, with the requested id
 func NewCard(id string) (*Card, error) {
 	return &Card{
 		id: id,
 	}, nil
 }
 
+// MarshalJSON implements the json.Marshaler interface for the Card type.
 func (c *Card) MarshalJSON() ([]byte, error) {
 	doc := cardDoc{
 		Type:     "card",
@@ -71,6 +76,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 	return json.Marshal(doc)
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the Card type.
 func (c *Card) UnmarshalJSON(data []byte) error {
 	doc := &cardDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
@@ -108,6 +114,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Identity returns the identity of the card as a string.
 func (c *Card) Identity() string {
 	return c.id
 }

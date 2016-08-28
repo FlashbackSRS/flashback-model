@@ -149,13 +149,7 @@ var frozenPackage = []byte(`
     "reviews": [
         {
             "cardID": "VGVzdCBOb3Rl.0",
-            "timestamp": null,
-            "ease": 0,
-            "interval": null,
-            "previousInterval": null,
-            "srsFactor": 0,
-            "reviewTime": null,
-            "reviewType": 0
+            "timestamp": null
         }
     ]
 }

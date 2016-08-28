@@ -11,6 +11,7 @@ func isValidID(id string) bool {
 	return uuid.Parse(id) != nil
 }
 
+// User repressents a user of Flashback
 type User struct {
 	ID       HexID
 	uuid     uuid.UUID
@@ -41,18 +42,20 @@ type userDoc struct {
 // 	return u, nil
 // }
 
+// NewUser returns a new User object, based on the provided UUID and username.
 func NewUser(id uuid.UUID, username string) (*User, error) {
-	u := &User{}
-	u.uuid = id
-	if uid, err := NewHexID("user", id); err != nil {
+	uid, err := NewHexID("user", id)
+	if err != nil {
 		return nil, err
-	} else {
-		u.ID = uid
 	}
-	u.Username = username
-	return u, nil
+	return &User{
+		ID:       uid,
+		uuid:     id,
+		Username: username,
+	}, nil
 }
 
+// NewUserStub returns a new stub (bare bones) User object.
 func NewUserStub(id string) (*User, error) {
 	userID, err := ParseHexID("user", id)
 	if err != nil {
@@ -62,15 +65,19 @@ func NewUserStub(id string) (*User, error) {
 	return NewUser(userUUID, "")
 }
 
+// RandomUser creates a new random user. For testing. Please don't use this!
+// FIXME: Remove this after testing.
 func RandomUser() *User {
 	u, _ := NewUser(uuid.NewRandom(), "randomuser")
 	return u
 }
 
+// UUID returns the UUID underlying the User object.
 func (u *User) UUID() uuid.UUID {
 	return u.uuid
 }
 
+// MarshalJSON implements the json.Marshaler interface for the User type.
 func (u *User) MarshalJSON() ([]byte, error) {
 	return json.Marshal(userDoc{
 		Type:     "user",
@@ -85,6 +92,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the User type.
 func (u *User) UnmarshalJSON(data []byte) error {
 	doc := userDoc{}
 	if err := json.Unmarshal(data, &doc); err != nil {
@@ -108,10 +116,12 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Fleshened returns true if the user object has been fleshened
 func (u *User) Fleshened() bool {
 	return u.Username != ""
 }
 
+// Equal returns true if the two users are equal.
 func (u *User) Equal(id uuid.UUID) bool {
 	return uuid.Equal(u.uuid, id)
 }

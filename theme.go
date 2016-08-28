@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Theme represents a flackback Theme definition
 type Theme struct {
 	ID            ID
 	Rev           *string
@@ -36,6 +37,7 @@ type themeDoc struct {
 	ModelSequence uint32              `json:"modelSequence"`
 }
 
+// NewTheme returns a new, bare-bones theme, with the specified ID.
 func NewTheme(id []byte) (*Theme, error) {
 	t := &Theme{}
 	tid, err := NewID("theme", id)
@@ -49,10 +51,13 @@ func NewTheme(id []byte) (*Theme, error) {
 	return t, nil
 }
 
+// SetFile sets an attachment with the requested name, type, and content, as
+// part of the Theme, overwriting any attachment with the same name, if it exists.
 func (t *Theme) SetFile(name, ctype string, content []byte) {
 	t.Files.SetFile(name, ctype, content)
 }
 
+// MarshalJSON implements the json.Marshaler interface for the Theme type.
 func (t *Theme) MarshalJSON() ([]byte, error) {
 	return json.Marshal(themeDoc{
 		Type:          "theme",
@@ -70,6 +75,7 @@ func (t *Theme) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// NewModel returns a new model of the requested type.
 func (t *Theme) NewModel(mType ModelType) (*Model, error) {
 	m, err := NewModel(t, mType)
 	if err != nil {
@@ -79,6 +85,7 @@ func (t *Theme) NewModel(mType ModelType) (*Model, error) {
 	return m, nil
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the Theme type.
 func (t *Theme) UnmarshalJSON(data []byte) error {
 	doc := &themeDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
@@ -108,17 +115,28 @@ func (t *Theme) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// NextModelSequence returns the next available model sequence, while also
+// updating the internal counter.
 func (t *Theme) NextModelSequence() uint32 {
 	id := t.modelSequence
 	atomic.AddUint32(&t.modelSequence, 1)
 	return id
 }
 
-func (t *Theme) SetRev(rev string)        { t.Rev = &rev }
-func (t *Theme) DocID() string            { return t.ID.String() }
+// SetRev sets the _rev attribute of the Theme.
+func (t *Theme) SetRev(rev string) { t.Rev = &rev }
+
+// DocID returns the theme's _id
+func (t *Theme) DocID() string { return t.ID.String() }
+
+// ImportedTime returns the time the Theme was imported, or nil
 func (t *Theme) ImportedTime() *time.Time { return t.Imported }
+
+// ModifiedTime returns the time the Theme was last modified
 func (t *Theme) ModifiedTime() *time.Time { return &t.Modified }
 
+// MergeImport attempts to merge i into t and returns true if a merge occurred,
+// or false if no merge was necessary.
 func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Theme)
 	if !t.ID.Equal(&existing.ID) {
