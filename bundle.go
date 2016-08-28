@@ -15,7 +15,7 @@ const (
 
 // Bundle represents a Bundle database.
 type Bundle struct {
-	ID          HexID
+	ID          DbID
 	Rev         *string
 	Created     time.Time
 	Modified    time.Time
@@ -27,7 +27,7 @@ type Bundle struct {
 
 type bundleDoc struct {
 	Type        string     `json:"type"`
-	ID          HexID      `json:"_id"`
+	ID          DbID       `json:"_id"`
 	Rev         *string    `json:"_rev,omitempty"`
 	Created     time.Time  `json:"created"`
 	Modified    time.Time  `json:"modified"`
@@ -40,7 +40,7 @@ type bundleDoc struct {
 // NewBundle creates a new Bundle with the provided id and owner.
 func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	b := &Bundle{}
-	bid, err := NewHexID("bundle", id)
+	bid, err := NewDbID("bundle", id)
 	if err != nil {
 		return nil, err
 	}

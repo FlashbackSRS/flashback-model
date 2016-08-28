@@ -14,10 +14,10 @@ var frozenPackage = []byte(`
 {
     "bundle": {
         "type": "bundle",
-        "_id": "bundle-546573742042756e646c65",
+        "_id": "bundle-krsxg5baij2w4zdmmu",
         "created": "2016-07-31T15:08:24.730156517Z",
         "modified": "2016-07-31T15:08:24.730156517Z",
-        "owner": "9d11d024a1004045a5b79f1ccf96cc9f"
+        "owner": "tui5ajfbabaeljnxt4om7fwmt4"
     },
     "cards": [
         {

@@ -12,11 +12,11 @@ import (
 var frozenBundle = []byte(`
 {
     "type": "bundle",
-    "_id": "bundle-546573742042756e646c65",
+    "_id": "bundle-krsxg5baij2w4zdmmu",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "owner": "9d11d024a1004045a5b79f1ccf96cc9f",
+    "owner": "tui5ajfbabaeljnxt4om7fwmt4",
     "name": "Test Bundle",
     "description": "A bundle for testing"
 }
@@ -36,7 +36,7 @@ func TestNewBundle(t *testing.T) {
 	b.Imported = &imp
 	descr := "A bundle for testing"
 	b.Description = &descr
-	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-546573742042756e646c65")
+	StringsEqual(t, "Bundle ID", b.ID.String(), "bundle-krsxg5baij2w4zdmmu")
 	JSONDeepEqual(t, "New Bundle", Marshal(t, "New bundle", b), frozenBundle)
 
 	b2 := &fb.Bundle{}

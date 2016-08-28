@@ -13,7 +13,7 @@ func isValidID(id string) bool {
 
 // User repressents a user of Flashback
 type User struct {
-	ID       HexID
+	ID       DbID
 	uuid     uuid.UUID
 	Rev      *string
 	Username string
@@ -26,7 +26,7 @@ type User struct {
 
 type userDoc struct {
 	Type     string  `json:"type"`
-	ID       HexID   `json:"_id"`
+	ID       DbID    `json:"_id"`
 	Rev      *string `json:"_rev,omitempty"`
 	Username string  `json:"username"`
 	Password string  `json:"password"`
@@ -44,7 +44,7 @@ type userDoc struct {
 
 // NewUser returns a new User object, based on the provided UUID and username.
 func NewUser(id uuid.UUID, username string) (*User, error) {
-	uid, err := NewHexID("user", id)
+	uid, err := NewDbID("user", id)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func NewUser(id uuid.UUID, username string) (*User, error) {
 
 // NewUserStub returns a new stub (bare bones) User object.
 func NewUserStub(id string) (*User, error) {
-	userID, err := ParseHexID("user", id)
+	userID, err := ParseDbID("user", id)
 	if err != nil {
 		return nil, err
 	}
