@@ -9,7 +9,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenReview []byte = []byte(`
+var frozenReview = []byte(`
 {
     "cardID": "VGVzdCBOb3Rl.0",
     "timestamp": null,

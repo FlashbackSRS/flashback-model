@@ -9,7 +9,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenTheme []byte = []byte(`
+var frozenTheme = []byte(`
 {
     "type": "theme",
     "_id": "theme-VGVzdCBUaGVtZQ",
@@ -119,7 +119,7 @@ func TestCreateTheme(t *testing.T) {
 	}
 }
 
-var frozenExistingTheme []byte = []byte(`
+var frozenExistingTheme = []byte(`
 {
     "type": "theme",
     "_id": "theme-VGVzdCBUaGVtZQ",
@@ -190,7 +190,7 @@ var frozenExistingTheme []byte = []byte(`
 }
 `)
 
-var frozenMergedTheme []byte = []byte(`
+var frozenMergedTheme = []byte(`
 {
     "type": "theme",
     "_id": "theme-VGVzdCBUaGVtZQ",

@@ -11,7 +11,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenUser []byte = []byte(`
+var frozenUser = []byte(`
 {
     "type": "user",
     "_id": "user-9d11d024a1004045a5b79f1ccf96cc9f",
