@@ -2,11 +2,34 @@ package fb
 
 import (
 	"bytes"
-	"encoding/hex"
+	"encoding/base32"
 	"errors"
+	"fmt"
+	"strings"
 )
 
 var validDbIDTypes map[string]struct{}
+
+// Same as standard Base32 encoding, only lowercase to work with CouchDB database
+// naming restrictions.
+var b32encoding = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
+
+func b32enc(data []byte) string {
+	return strings.TrimRight(b32encoding.EncodeToString(data), "=")
+}
+
+func b32dec(s string) ([]byte, error) {
+	// fmt.Printf("Before: '%s'\n", s)
+	if padLen := len(s) % 8; padLen > 0 {
+		s = s + strings.Repeat("=", 8-padLen)
+	}
+	// fmt.Printf(" After: '%s'\n", s)
+	data, err := b32encoding.DecodeString(s)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
+	return data, err
+}
 
 func init() {
 	validDbIDTypes = make(map[string]struct{})
@@ -36,7 +59,7 @@ func (id *DbID) Type() string {
 // ParseDbID parses a string representation of a DbID, returning the DbID.
 func ParseDbID(parts ...string) (DbID, error) {
 	docType, identity := parseParts(parts...)
-	data, err := hex.DecodeString(identity)
+	data, err := b32dec(identity)
 	if err != nil {
 		return DbID{}, err
 	}
@@ -45,7 +68,7 @@ func ParseDbID(parts ...string) (DbID, error) {
 
 func (id *DbID) parse(parts ...string) error {
 	docType, identity := parseParts(parts...)
-	data, err := hex.DecodeString(identity)
+	data, err := b32dec(identity)
 	if err != nil {
 		return err
 	}
@@ -86,7 +109,7 @@ func (id *DbID) String() string {
 
 // Identity returns the DbID's identity as a string.
 func (id *DbID) Identity() string {
-	return hex.EncodeToString(id.id)
+	return b32enc(id.id)
 }
 
 // Equal returns true if both DbIDs are equal.

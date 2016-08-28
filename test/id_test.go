@@ -10,7 +10,7 @@ import (
 )
 
 var frozenDocID = []byte(`"note-VGVzdCBOb3Rl"`)
-var frozenHexID = []byte(`"user-546573742055736572"`)
+var frozenDbID = []byte(`"user-krsxg5bakvzwk4q"`)
 
 func TestDocID(t *testing.T) {
 	id, err := fb.NewDocID("note", []byte("Test Note"))
@@ -42,19 +42,19 @@ func TestDbID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error creating Hex ID: %s\n", err)
 	}
-	if id.String() != "user-546573742055736572" {
+	if id.String() != "user-krsxg5bakvzwk4q" {
 		t.Fatalf("Error stringifying note id. Got %s\n", id.String())
 	}
-	if id.Identity() != "546573742055736572" {
+	if id.Identity() != "krsxg5bakvzwk4q" {
 		t.Fatalf("Unexpected identity for note id. Got %s\n", id.Identity())
 	}
-	JSONDeepEqual(t, "Create Hex ID", Marshal(t, "Create ID1", id), frozenHexID)
+	JSONDeepEqual(t, "Create Hex ID", Marshal(t, "Create ID1", id), frozenDbID)
 
 	id2 := fb.DbID{}
-	if err := json.Unmarshal(frozenHexID, &id2); err != nil {
+	if err := json.Unmarshal(frozenDbID, &id2); err != nil {
 		t.Fatalf("Error thawing Hex ID: %s", err)
 	}
-	JSONDeepEqual(t, "Thawed Hex ID", Marshal(t, "Thaw Hex ID", id2), frozenHexID)
+	JSONDeepEqual(t, "Thawed Hex ID", Marshal(t, "Thaw Hex ID", id2), frozenDbID)
 
 	if !reflect.DeepEqual(id, id2) {
 		PrintDiff(id2, id)
