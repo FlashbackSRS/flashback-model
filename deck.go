@@ -7,27 +7,32 @@ import (
 	"time"
 )
 
+// CardCollection represents a collection of cards, which make up a deck.
 type CardCollection struct {
 	col map[string]struct{}
 }
 
+// MarshalJSON fulfills the json.Marshaler interface for the CardCollection type.
 func (cc *CardCollection) MarshalJSON() ([]byte, error) {
 	ids := make([]string, 0, len(cc.col))
-	for id, _ := range cc.col {
+	for id := range cc.col {
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
 	return json.Marshal(ids)
 }
 
+// NewCardCollection returns a new, empty CardCollection.
 func NewCardCollection() *CardCollection {
 	return &CardCollection{
 		col: make(map[string]struct{}),
 	}
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the CardCollection
+// type.
 func (cc *CardCollection) UnmarshalJSON(data []byte) error {
-	ids := make([]string, 0)
+	var ids []string
 	if err := json.Unmarshal(data, &ids); err != nil {
 		return err
 	}
@@ -41,12 +46,13 @@ func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 // All returns an array containing the list of all card IDs in the deck
 func (cc *CardCollection) All() []string {
 	ids := make([]string, 0, len(cc.col))
-	for id, _ := range cc.col {
+	for id := range cc.col {
 		ids = append(ids, id)
 	}
 	return ids
 }
 
+// Deck represents a Flashback Deck
 type Deck struct {
 	ID          ID
 	Rev         *string
@@ -110,6 +116,7 @@ type DeckConfig struct {
 }
 */
 
+// NewDeck creates a new Deck with the provided id.
 func NewDeck(id []byte) (*Deck, error) {
 	did, err := NewID("deck", id)
 	if err != nil {
@@ -121,6 +128,7 @@ func NewDeck(id []byte) (*Deck, error) {
 	}, nil
 }
 
+// MarshalJSON implements the json.Marshaler interface for the Deck type.
 func (d *Deck) MarshalJSON() ([]byte, error) {
 	return json.Marshal(deckDoc{
 		Type:        "deck",
@@ -135,11 +143,13 @@ func (d *Deck) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// AddCard adds the provided card to the deck.
 func (d *Deck) AddCard(cardID string) error {
 	d.Cards.col[cardID] = struct{}{}
 	return nil
 }
 
+// UnmarshalJSON fulfills the json.Unmarshaler interface for the Deck type.
 func (d *Deck) UnmarshalJSON(data []byte) error {
 	doc := &deckDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
@@ -160,11 +170,20 @@ func (d *Deck) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (d *Deck) SetRev(rev string)        { d.Rev = &rev }
-func (d *Deck) DocID() string            { return d.ID.String() }
+// SetRev sets the Deck's _rev attribute.
+func (d *Deck) SetRev(rev string) { d.Rev = &rev }
+
+// DocID returns the Deck's _id attribute.
+func (d *Deck) DocID() string { return d.ID.String() }
+
+// ImportedTime returns the time the Deck was imported, or nil.
 func (d *Deck) ImportedTime() *time.Time { return d.Imported }
+
+// ModifiedTime returns the time the Deck was last modified.
 func (d *Deck) ModifiedTime() *time.Time { return &d.Modified }
 
+// MergeImport attempts to merge i into d, returning true on success, or false
+// if no merge was necessary.
 func (d *Deck) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Deck)
 	if !d.ID.Equal(&existing.ID) {

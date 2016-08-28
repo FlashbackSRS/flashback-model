@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Note represents a Flashback note.
 type Note struct {
 	ID          ID
 	Rev         *string
@@ -38,6 +39,7 @@ type noteDoc struct {
 	Attachments *FileCollection `json:"_attachments,omitempty"`
 }
 
+// NewNote creates a new, empty note with the provided ID and Model.
 func NewNote(id []byte, model *Model) (*Note, error) {
 	n := &Note{}
 	nid, err := NewID("note", id)
@@ -52,6 +54,8 @@ func NewNote(id []byte, model *Model) (*Note, error) {
 	return n, nil
 }
 
+// SetModel assigns the provided model to the Note. This is useful after retrieving
+// a note.
 func (n *Note) SetModel(m *Model) {
 	n.model = m
 	for i := 0; i < len(n.FieldValues); i++ {
@@ -59,10 +63,12 @@ func (n *Note) SetModel(m *Model) {
 	}
 }
 
+// Model returns the Note's associated Model.
 func (n *Note) Model() *Model {
 	return n.model
 }
 
+// MarshalJSON implements the json.Marshaler interface for the Note type.
 func (n *Note) MarshalJSON() ([]byte, error) {
 	return json.Marshal(noteDoc{
 		Type:        "note",
@@ -77,6 +83,7 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the Note type.
 func (n *Note) UnmarshalJSON(data []byte) error {
 	doc := &noteDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
@@ -101,6 +108,7 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// GetFieldValue returns the requested FieldValue by index.
 func (n *Note) GetFieldValue(ord int) *FieldValue {
 	fv := n.FieldValues[ord]
 	if fv == nil {
@@ -115,10 +123,12 @@ func (n *Note) GetFieldValue(ord int) *FieldValue {
 	return fv
 }
 
+// Type returns the FieldType of the FieldValue.
 func (fv *FieldValue) Type() FieldType {
 	return fv.field.Type
 }
 
+// FieldValue stores the value of a given field.
 type FieldValue struct {
 	field *Field
 	text  *string
@@ -130,6 +140,7 @@ type fieldValueDoc struct {
 	Files *FileCollectionView `json:"files,omitempty"`
 }
 
+// MarshalJSON implements the json.Marshaler interface for the FieldValue type.
 func (fv *FieldValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(fieldValueDoc{
 		Text:  fv.text,
@@ -137,6 +148,7 @@ func (fv *FieldValue) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the FieldValue type.
 func (fv *FieldValue) UnmarshalJSON(data []byte) error {
 	doc := &fieldValueDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
@@ -147,6 +159,8 @@ func (fv *FieldValue) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// SetText sets the text attribute of the FieldValue, or returns an error if the
+// FieldValue's type does not permit text attributes.
 func (fv *FieldValue) SetText(text string) error {
 	if fv.field.Type != TextField && fv.field.Type != AnkiField {
 		return errors.New("Text field not permitted")
@@ -155,6 +169,8 @@ func (fv *FieldValue) SetText(text string) error {
 	return nil
 }
 
+// AddFile adds a file of the specified name, type, and content, as an attachment
+// to be used by the FieldValue.
 func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
 	if fv.field.Type == TextField {
 		return errors.New("Text fields do not support attachments")
@@ -162,12 +178,20 @@ func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
 	return fv.files.AddFile(name, ctype, content)
 }
 
-// FlashbackDoc interface
-func (n *Note) SetRev(rev string)        { n.Rev = &rev }
-func (n *Note) DocID() string            { return n.ID.String() }
+// SetRev sets the Note's _rev attribute.
+func (n *Note) SetRev(rev string) { n.Rev = &rev }
+
+// DocID returns the Note's _id attribute.
+func (n *Note) DocID() string { return n.ID.String() }
+
+// ImportedTime returns the time the Note was imported, or nil.
 func (n *Note) ImportedTime() *time.Time { return n.Imported }
+
+// ModifiedTime returns the time the Note was last modified.
 func (n *Note) ModifiedTime() *time.Time { return &n.Modified }
 
+// MergeImport attempts to merge i into n, returning true if successful, or
+// false if no merge was necessary.
 func (n *Note) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Note)
 	if !n.ID.Equal(&existing.ID) {

@@ -4,4 +4,4 @@ import (
 	"encoding/base64"
 )
 
-var b64encoder *base64.Encoding = base64.URLEncoding.WithPadding(base64.NoPadding)
+var b64encoder = base64.URLEncoding.WithPadding(base64.NoPadding)

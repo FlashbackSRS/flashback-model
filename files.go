@@ -7,22 +7,28 @@ import (
 	"sync/atomic"
 )
 
+// Attachment represents a Couch/PouchDB attachment.
 type Attachment struct {
 	refcount    int32
 	ContentType string `json:"content-type"`
 	Content     []byte `json:"data"`
 }
 
+// FileCollection represents a collection of Attachments which may be used by
+// multiple related sub-document elements.
 type FileCollection struct {
 	files map[string]*Attachment
 	views []*FileCollectionView
 }
 
+// FileCollectionView represents a view into a larger FileCollection, which can
+// be used by sub-elements.
 type FileCollectionView struct {
 	col     *FileCollection
 	members map[string]*Attachment
 }
 
+// NewFileCollection returns a new, empty FileCollection.
 func NewFileCollection() *FileCollection {
 	return &FileCollection{
 		files: make(map[string]*Attachment),
@@ -30,8 +36,9 @@ func NewFileCollection() *FileCollection {
 	}
 }
 
+// AddView creates a new View on a FileCollection, which can be used by sub-elements.
 func (fc *FileCollection) AddView(v *FileCollectionView) error {
-	for filename, _ := range v.members {
+	for filename := range v.members {
 		att, ok := fc.files[filename]
 		if !ok {
 			return errors.New(filename + " not found in collection")
@@ -44,8 +51,9 @@ func (fc *FileCollection) AddView(v *FileCollectionView) error {
 	return nil
 }
 
+// RemoveView removes a FileCollectionView from a FileCollection
 func (fc *FileCollection) RemoveView(v *FileCollectionView) error {
-	for filename, _ := range v.members {
+	for filename := range v.members {
 		att, _ := fc.files[filename]
 		atomic.AddInt32(&att.refcount, 1)
 		if att.refcount == 0 {
@@ -61,6 +69,7 @@ func (fc *FileCollection) RemoveView(v *FileCollectionView) error {
 	return errors.New("Didn't find the view")
 }
 
+// NewView returns a new FileCollectionView from the existing FileCollection.
 func (fc *FileCollection) NewView() *FileCollectionView {
 	v := &FileCollectionView{
 		col:     fc,
@@ -70,6 +79,7 @@ func (fc *FileCollection) NewView() *FileCollectionView {
 	return v
 }
 
+// RemoveAll removes all references to the named Attachment.
 func (fc *FileCollection) RemoveAll(name string) {
 	delete(fc.files, name)
 	for _, view := range fc.views {
@@ -77,17 +87,19 @@ func (fc *FileCollection) RemoveAll(name string) {
 	}
 }
 
+// MarshalJSON implements the json.Marshaler interface for the FileCollection type.
 func (fc *FileCollection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(fc.files)
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the FileCollection type.
 func (fc *FileCollection) UnmarshalJSON(data []byte) error {
 	fc.files = make(map[string]*Attachment)
 	fc.views = make([]*FileCollectionView, 0)
 	return json.Unmarshal(data, &fc.files)
 }
 
-// Sets the requested attachment, replacing it if it already exists.
+// SetFile sets the requested attachment, replacing it if it already exists.
 func (v *FileCollectionView) SetFile(name, ctype string, content []byte) {
 	att := &Attachment{
 		refcount:    1,
@@ -98,7 +110,7 @@ func (v *FileCollectionView) SetFile(name, ctype string, content []byte) {
 	v.members[name] = att
 }
 
-// Adds the requested attachment. Returns an error if it already exists.
+// AddFile adds the requested attachment. Returns an error if it already exists.
 func (v *FileCollectionView) AddFile(name, ctype string, content []byte) error {
 	if _, ok := v.col.files[name]; ok {
 		return errors.New("File of that name already exists in the collection")
@@ -107,6 +119,7 @@ func (v *FileCollectionView) AddFile(name, ctype string, content []byte) error {
 	return nil
 }
 
+// RemoveFile removes the named attachment from the collection.
 func (v *FileCollectionView) RemoveFile(name string) error {
 	att, ok := v.members[name]
 	if !ok {
@@ -120,23 +133,27 @@ func (v *FileCollectionView) RemoveFile(name string) error {
 	return nil
 }
 
+// GetFile returns an Attachment based on the file name. If the file does not
+// the second return value will be false.
 func (v *FileCollectionView) GetFile(name string) (*Attachment, bool) {
 	att, ok := v.members[name]
 	return att, ok
 }
 
+// MarshalJSON implements the json.Marshaler interface for the FileCollectionView type.
 func (v *FileCollectionView) MarshalJSON() ([]byte, error) {
 	names := make([]string, 0, len(v.members))
-	for name, _ := range v.members {
+	for name := range v.members {
 		names = append(names, name)
 	}
 	sort.Strings(names) // For consistent output
 	return json.Marshal(names)
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for the FileCollectionView type.
 func (v *FileCollectionView) UnmarshalJSON(data []byte) error {
 	v.members = make(map[string]*Attachment)
-	names := make([]string, 0)
+	var names []string
 	if err := json.Unmarshal(data, &names); err != nil {
 		return err
 	}
