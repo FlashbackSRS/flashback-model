@@ -9,8 +9,8 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenB64ID []byte = []byte(`"note-VGVzdCBOb3Rl"`)
-var frozenHexID []byte = []byte(`"user-546573742055736572"`)
+var frozenB64ID = []byte(`"note-VGVzdCBOb3Rl"`)
+var frozenHexID = []byte(`"user-546573742055736572"`)
 
 func TestB64ID(t *testing.T) {
 	id, err := fb.NewID("note", []byte("Test Note"))

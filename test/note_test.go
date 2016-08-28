@@ -9,7 +9,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenNote []byte = []byte(`
+var frozenNote = []byte(`
 {
     "type": "note",
     "_id": "note-VGVzdCBOb3Rl",
@@ -77,7 +77,7 @@ func TestNote(t *testing.T) {
 
 }
 
-var frozenExistingNote []byte = []byte(`
+var frozenExistingNote = []byte(`
 {
     "type": "note",
     "_id": "note-VGVzdCBOb3Rl",
@@ -105,7 +105,7 @@ var frozenExistingNote []byte = []byte(`
 }
 `)
 
-var frozenMergedNote []byte = []byte(`
+var frozenMergedNote = []byte(`
 {
     "type": "note",
     "_id": "note-VGVzdCBOb3Rl",

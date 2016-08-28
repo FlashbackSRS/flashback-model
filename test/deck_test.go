@@ -9,7 +9,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenDeck []byte = []byte(`
+var frozenDeck = []byte(`
 {
     "type": "deck",
     "_id": "deck-VGVzdCBEZWNr",
@@ -49,7 +49,7 @@ func TestDecks(t *testing.T) {
 	}
 }
 
-var frozenExistingDeck []byte = []byte(`
+var frozenExistingDeck = []byte(`
 {
     "type": "deck",
     "_id": "deck-VGVzdCBEZWNr",
@@ -63,7 +63,7 @@ var frozenExistingDeck []byte = []byte(`
 }
 `)
 
-var frozenMergedDeck []byte = []byte(`
+var frozenMergedDeck = []byte(`
 {
     "type": "deck",
     "_id": "deck-VGVzdCBEZWNr",

@@ -9,7 +9,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenCard []byte = []byte(`
+var frozenCard = []byte(`
 {
     "type": "card",
     "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
@@ -43,7 +43,7 @@ func TestCard(t *testing.T) {
 }
 
 /*
-var frozenExistingCard []byte = []byte(`
+var frozenExistingCard = []byte(`
 {
     "type": "card",
     "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
@@ -54,7 +54,7 @@ var frozenExistingCard []byte = []byte(`
 }
 `)
 
-var frozenMergedCard []byte = []byte(`
+var frozenMergedCard = []byte(`
 {
     "type": "card",
     "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",

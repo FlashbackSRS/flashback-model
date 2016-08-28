@@ -10,7 +10,7 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenPackage []byte = []byte(`
+var frozenPackage = []byte(`
 {
     "bundle": {
         "type": "bundle",
