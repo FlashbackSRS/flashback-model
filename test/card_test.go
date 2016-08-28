@@ -12,7 +12,7 @@ import (
 var frozenCard = []byte(`
 {
     "type": "card",
-    "_id": "card-mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+    "_id": "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z"
@@ -20,7 +20,9 @@ var frozenCard = []byte(`
 `)
 
 func TestCard(t *testing.T) {
-	c, err := fb.NewCard("mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
+	u, _ := testUser()
+	b, _ := fb.NewBundle([]byte("Test Bundle"), u)
+	c, err := fb.NewCard(b.ID.Identity() + ".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 	if err != nil {
 		t.Fatalf("Error creating card: %s", err)
 	}

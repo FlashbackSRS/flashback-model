@@ -44,7 +44,7 @@ func isValidDbIDType(t string) bool {
 }
 
 // DbID represents a standard document ID
-// Valid characters: a-z, 0-9, _, $, (, ), + -
+// Valid characters: a-z, 0-9, _, $, (, ), +, - (But I prefer to avoid -)
 // See http://wiki.apache.org/couchdb/HTTP_database_API#Naming_and_Addressing
 type DbID struct {
 	docType string

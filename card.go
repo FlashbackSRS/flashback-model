@@ -3,6 +3,8 @@ package fb
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,7 +21,9 @@ const (
 
 // Card represents a struct of card-related statistics and configuration.
 type Card struct {
-	id       string
+	bundleID string
+	noteID   string
+	modelID  int
 	Rev      *string
 	Created  time.Time
 	Modified time.Time
@@ -53,10 +57,28 @@ type cardDoc struct {
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
+func parseID(id string) (string, string, int, error) {
+	parts := strings.Split(strings.TrimPrefix(id, "card-"), ".")
+	if len(parts) != 3 {
+		return "", "", 0, errors.New("Invalid id format")
+	}
+	modelID, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return "", "", 0, errors.New("Invalid ModelID")
+	}
+	return parts[0], parts[1], modelID, nil
+}
+
 // NewCard returns a new Card instance, with the requested id
 func NewCard(id string) (*Card, error) {
+	bundleID, noteID, modelID, err := parseID(id)
+	if err != nil {
+		return nil, err
+	}
 	return &Card{
-		id: id,
+		bundleID: bundleID,
+		noteID:   noteID,
+		modelID:  modelID,
 	}, nil
 }
 
@@ -64,7 +86,7 @@ func NewCard(id string) (*Card, error) {
 func (c *Card) MarshalJSON() ([]byte, error) {
 	doc := cardDoc{
 		Type:     "card",
-		ID:       "card-" + c.id,
+		ID:       c.DocID(),
 		Rev:      c.Rev,
 		Created:  c.Created,
 		Modified: c.Modified,
@@ -76,6 +98,11 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 	return json.Marshal(doc)
 }
 
+// DocID produces the card's full document ID
+func (c *Card) DocID() string {
+	return "card-" + c.Identity()
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface for the Card type.
 func (c *Card) UnmarshalJSON(data []byte) error {
 	doc := &cardDoc{}
@@ -85,7 +112,13 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	if doc.Type != "card" {
 		return errors.New("Invalid document type for card: " + doc.Type)
 	}
-	c.id = strings.TrimPrefix(doc.ID, "card-")
+	bundleID, noteID, modelID, err := parseID(doc.ID)
+	if err != nil {
+		return err
+	}
+	c.bundleID = bundleID
+	c.noteID = noteID
+	c.modelID = modelID
 	c.Rev = doc.Rev
 	c.Created = doc.Created
 	c.Modified = doc.Modified
@@ -116,7 +149,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 
 // Identity returns the identity of the card as a string.
 func (c *Card) Identity() string {
-	return c.id
+	return fmt.Sprintf("%s.%s.%d", c.bundleID, c.noteID, c.modelID)
 }
 
 /*
