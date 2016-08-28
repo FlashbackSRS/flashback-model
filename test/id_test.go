@@ -9,11 +9,11 @@ import (
 	. "github.com/flimzy/flashback-model/test/util"
 )
 
-var frozenB64ID = []byte(`"note-VGVzdCBOb3Rl"`)
+var frozenDocID = []byte(`"note-VGVzdCBOb3Rl"`)
 var frozenHexID = []byte(`"user-546573742055736572"`)
 
-func TestB64ID(t *testing.T) {
-	id, err := fb.NewID("note", []byte("Test Note"))
+func TestDocID(t *testing.T) {
+	id, err := fb.NewDocID("note", []byte("Test Note"))
 	if err != nil {
 		t.Fatalf("Error creating B64 ID: %s\n", err)
 	}
@@ -23,13 +23,13 @@ func TestB64ID(t *testing.T) {
 	if id.Identity() != "VGVzdCBOb3Rl" {
 		t.Fatalf("Unexpected identity for note id. Got %s\n", id.Identity())
 	}
-	JSONDeepEqual(t, "Create B64 ID", Marshal(t, "Create ID1", id), frozenB64ID)
+	JSONDeepEqual(t, "Create DocID", Marshal(t, "Create ID1", id), frozenDocID)
 
-	id2 := fb.ID{}
-	if err := json.Unmarshal(frozenB64ID, &id2); err != nil {
-		t.Fatalf("Error thawing B64 ID: %s", err)
+	id2 := fb.DocID{}
+	if err := json.Unmarshal(frozenDocID, &id2); err != nil {
+		t.Fatalf("Error thawing DocID: %s", err)
 	}
-	JSONDeepEqual(t, "Thawed B64 ID", Marshal(t, "Thaw B64 ID", id2), frozenB64ID)
+	JSONDeepEqual(t, "Thawed DocID", Marshal(t, "Thaw DocID", id2), frozenDocID)
 
 	if !reflect.DeepEqual(id, id2) {
 		PrintDiff(id2, id)
@@ -37,8 +37,8 @@ func TestB64ID(t *testing.T) {
 	}
 }
 
-func TestHexID(t *testing.T) {
-	id, err := fb.NewHexID("user", []byte("Test User"))
+func TestDbID(t *testing.T) {
+	id, err := fb.NewDbID("user", []byte("Test User"))
 	if err != nil {
 		t.Fatalf("Error creating Hex ID: %s\n", err)
 	}
@@ -50,7 +50,7 @@ func TestHexID(t *testing.T) {
 	}
 	JSONDeepEqual(t, "Create Hex ID", Marshal(t, "Create ID1", id), frozenHexID)
 
-	id2 := fb.HexID{}
+	id2 := fb.DbID{}
 	if err := json.Unmarshal(frozenHexID, &id2); err != nil {
 		t.Fatalf("Error thawing Hex ID: %s", err)
 	}
@@ -63,11 +63,11 @@ func TestHexID(t *testing.T) {
 }
 
 func TestID(t *testing.T) {
-	id, err := fb.NewID("user", []byte("User Bob"))
+	id, err := fb.NewDbID("user", []byte("User Bob"))
 	if err != nil {
 		t.Fatalf("Error creating user: %s\n", err)
 	}
-	id2, err := fb.ParseID(id.String())
+	id2, err := fb.ParseDbID(id.String())
 	if err != nil {
 		t.Fatalf("We can't even parse the IDs we generate: %s", err.Error())
 	}
@@ -80,11 +80,11 @@ func TestID(t *testing.T) {
 }
 
 func TestID2(t *testing.T) {
-	id, err := fb.NewID("user", []byte("User Bob"))
+	id, err := fb.NewDbID("user", []byte("User Bob"))
 	if err != nil {
 		t.Fatalf("Error creating user: %s\n", err)
 	}
-	id2, err := fb.ParseID(id.String())
+	id2, err := fb.ParseDbID(id.String())
 	if err != nil {
 		t.Fatalf("We can't even parse the IDs we generate: %s", err.Error())
 	}

@@ -54,7 +54,7 @@ func (cc *CardCollection) All() []string {
 
 // Deck represents a Flashback Deck
 type Deck struct {
-	ID          ID
+	ID          DocID
 	Rev         *string
 	Created     time.Time
 	Modified    time.Time
@@ -66,7 +66,7 @@ type Deck struct {
 
 type deckDoc struct {
 	Type        string          `json:"type"`
-	ID          ID              `json:"_id"`
+	ID          DocID           `json:"_id"`
 	Rev         *string         `json:"_rev,omitempty"`
 	Created     time.Time       `json:"created"`
 	Modified    time.Time       `json:"modified"`
@@ -118,7 +118,7 @@ type DeckConfig struct {
 
 // NewDeck creates a new Deck with the provided id.
 func NewDeck(id []byte) (*Deck, error) {
-	did, err := NewID("deck", id)
+	did, err := NewDocID("deck", id)
 	if err != nil {
 		return nil, err
 	}

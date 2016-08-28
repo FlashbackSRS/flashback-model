@@ -9,7 +9,7 @@ import (
 
 // Theme represents a flackback Theme definition
 type Theme struct {
-	ID            ID
+	ID            DocID
 	Rev           *string
 	Created       time.Time
 	Modified      time.Time
@@ -24,7 +24,7 @@ type Theme struct {
 
 type themeDoc struct {
 	Type          string              `json:"type"`
-	ID            ID                  `json:"_id"`
+	ID            DocID               `json:"_id"`
 	Rev           *string             `json:"_rev,omitempty"`
 	Created       time.Time           `json:"created"`
 	Modified      time.Time           `json:"modified"`
@@ -40,7 +40,7 @@ type themeDoc struct {
 // NewTheme returns a new, bare-bones theme, with the specified ID.
 func NewTheme(id []byte) (*Theme, error) {
 	t := &Theme{}
-	tid, err := NewID("theme", id)
+	tid, err := NewDocID("theme", id)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 
 // Note represents a Flashback note.
 type Note struct {
-	ID          ID
+	ID          DocID
 	Rev         *string
 	Created     time.Time
 	Modified    time.Time
@@ -29,7 +29,7 @@ type Note struct {
 
 type noteDoc struct {
 	Type        string          `json:"type"`
-	ID          ID              `json:"_id"`
+	ID          DocID           `json:"_id"`
 	Rev         *string         `json:"_rev,omitempty"`
 	Created     time.Time       `json:"created"`
 	Modified    time.Time       `json:"modified"`
@@ -42,7 +42,7 @@ type noteDoc struct {
 // NewNote creates a new, empty note with the provided ID and Model.
 func NewNote(id []byte, model *Model) (*Note, error) {
 	n := &Note{}
-	nid, err := NewID("note", id)
+	nid, err := NewDocID("note", id)
 	if err != nil {
 		return nil, err
 	}

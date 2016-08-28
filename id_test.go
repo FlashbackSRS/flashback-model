@@ -6,7 +6,7 @@ import (
 )
 
 func TestID(t *testing.T) {
-	id, err := NewID("note", []byte("Test Note"))
+	id, err := NewDocID("note", []byte("Test Note"))
 	if err != nil {
 		t.Fatalf("Error creating note ID: %s", err)
 	}
@@ -18,8 +18,8 @@ func TestID(t *testing.T) {
 	}
 }
 
-func TestHexID(t *testing.T) {
-	id, err := NewHexID("user", []byte("Test User"))
+func TestDbID(t *testing.T) {
+	id, err := NewDbID("user", []byte("Test User"))
 	if err != nil {
 		t.Fatalf("Error creating user ID: %s", err)
 	}
