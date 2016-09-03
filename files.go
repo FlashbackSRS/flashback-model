@@ -10,7 +10,7 @@ import (
 // Attachment represents a Couch/PouchDB attachment.
 type Attachment struct {
 	refcount    int32
-	ContentType string `json:"content-type"`
+	ContentType string `json:"content_type"`
 	Content     []byte `json:"data"`
 }
 
@@ -131,6 +131,15 @@ func (v *FileCollectionView) RemoveFile(name string) error {
 		v.col.RemoveAll(name)
 	}
 	return nil
+}
+
+// FileList returns a list of filenames contained within the view.
+func (v *FileCollectionView) FileList() []string {
+	files := make([]string, 0, len(v.members))
+	for name := range v.members {
+		files = append(files, name)
+	}
+	return files
 }
 
 // GetFile returns an Attachment based on the file name. If the file does not

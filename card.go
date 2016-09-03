@@ -2,11 +2,12 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 /*
@@ -23,7 +24,7 @@ const (
 type Card struct {
 	bundleID string
 	noteID   string
-	modelID  int
+	modelID  uint32
 	Rev      *string
 	Created  time.Time
 	Modified time.Time
@@ -57,23 +58,23 @@ type cardDoc struct {
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
-func parseID(id string) (string, string, int, error) {
+func parseID(id string) (string, string, uint32, error) {
 	parts := strings.Split(strings.TrimPrefix(id, "card-"), ".")
 	if len(parts) != 3 {
 		return "", "", 0, errors.New("Invalid id format")
 	}
 	modelID, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return "", "", 0, errors.New("Invalid ModelID")
+		return "", "", 0, errors.Wrap(err, "Invalid ModelID")
 	}
-	return parts[0], parts[1], modelID, nil
+	return parts[0], parts[1], uint32(modelID), nil
 }
 
 // NewCard returns a new Card instance, with the requested id
 func NewCard(id string) (*Card, error) {
 	bundleID, noteID, modelID, err := parseID(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error parsing card ID")
 	}
 	return &Card{
 		bundleID: bundleID,
@@ -96,11 +97,6 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		// 		Interval: c.Interval,
 	}
 	return json.Marshal(doc)
-}
-
-// DocID produces the card's full document ID
-func (c *Card) DocID() string {
-	return "card-" + c.Identity()
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Card type.
@@ -152,16 +148,23 @@ func (c *Card) Identity() string {
 	return fmt.Sprintf("%s.%s.%d", c.bundleID, c.noteID, c.modelID)
 }
 
-/*
-func (c *Card) SetRev(rev string)        { c.Rev = &rev }
-func (c *Card) DocID() string            { return "card-" + c.id }
+// SetRev sets the Card's _rev attribute
+func (c *Card) SetRev(rev string) { c.Rev = &rev }
+
+// DocID returns the Card's _id attribute
+func (c *Card) DocID() string { return "card-" + c.Identity() }
+
+// ImportedTime returns the Card's imported time, or nil
 func (c *Card) ImportedTime() *time.Time { return c.Imported }
+
+// ModifiedTime returns the Card's last modified time
 func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
 
+// MergeImport attempts to merge i into c, returning true on success, or false
+// if no merge was necessary.
 func (c *Card) MergeImport(i interface{}) (bool, error) {
-fmt.Printf("0\n")
 	existing := i.(*Card)
-	if c.id != existing.id {
+	if c.Identity() != existing.Identity() {
 		return false, errors.New("IDs don't match")
 	}
 	if !c.Created.Equal(existing.Created) {
@@ -177,4 +180,18 @@ fmt.Printf("0\n")
 	c.Imported = existing.Imported
 	return false, nil
 }
-*/
+
+// BundleID returns the card's BundleID
+func (c *Card) BundleID() string {
+	return "bundle-" + c.bundleID
+}
+
+// ModelID returns the card's ModelID
+func (c *Card) ModelID() uint32 {
+	return c.modelID
+}
+
+// NoteID returns the card's NoteID
+func (c *Card) NoteID() string {
+	return "note-" + c.noteID
+}

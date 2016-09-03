@@ -29,7 +29,7 @@ var frozenNote = []byte(`
     ],
     "_attachments": {
         "foo.mp3": {
-            "content-type": "audio/mpeg",
+            "content_type": "audio/mpeg",
             "data": "bm90IGEgcmVhbCBNUDM="
         }
     }
@@ -98,7 +98,7 @@ var frozenExistingNote = []byte(`
     ],
     "_attachments": {
         "foo.mp3": {
-            "content-type": "audio/mpeg",
+            "content_type": "audio/mpeg",
             "data": "bm90IGEgcmVhbCBNUDM="
         }
     }
@@ -126,7 +126,7 @@ var frozenMergedNote = []byte(`
     ],
     "_attachments": {
         "foo.mp3": {
-            "content-type": "audio/mpeg",
+            "content_type": "audio/mpeg",
             "data": "bm90IGEgcmVhbCBNUDM="
         }
     }

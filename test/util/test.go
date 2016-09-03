@@ -10,6 +10,12 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
+func DeepEqualJSON(t *testing.T, descr string, i1, i2 interface{}) {
+	data1 := Marshal(t, descr+" (interface 1)", i1)
+	data2 := Marshal(t, descr+" (interface 2)", i2)
+	JSONDeepEqual(t, descr, data1, data2)
+}
+
 func JSONDeepEqual(t *testing.T, descr string, data1, data2 []byte) {
 	var o1, o2 interface{}
 
