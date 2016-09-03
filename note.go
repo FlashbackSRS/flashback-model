@@ -2,8 +2,10 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
+	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Note represents a Flashback note.
@@ -169,6 +171,15 @@ func (fv *FieldValue) SetText(text string) error {
 	return nil
 }
 
+// Text retrieves the text of the field value, or an error if no text field
+// is permitted for the field type.
+func (fv *FieldValue) Text() (string, error) {
+	if fv.field.Type != TextField && fv.field.Type != AnkiField {
+		return "", errors.New("FieldValue has no text field")
+	}
+	return *fv.text, nil
+}
+
 // AddFile adds a file of the specified name, type, and content, as an attachment
 // to be used by the FieldValue.
 func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
@@ -213,4 +224,10 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 	n.Attachments = existing.Attachments
 	n.model = existing.model
 	return false, nil
+}
+
+// ThemeID returns the Note's ThemeID
+func (n *Note) ThemeID() string {
+	parts := strings.Split(n.ModelID, ".")
+	return "theme-" + parts[0]
 }

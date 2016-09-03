@@ -60,15 +60,15 @@ var frozenTheme = []byte(`
     ],
     "_attachments": {
         "m1.html": {
-            "content-type": "text/html",
+            "content_type": "text/html",
             "data": "PGh0bWw+PC9odG1sPg=="
         },
         "m1.txt": {
-            "content-type": "text/plain",
+            "content_type": "text/plain",
             "data": "VGVzdCB0ZXh0IGZpbGU="
         },
         "$main.css": {
-            "content-type": "text/css",
+            "content_type": "text/css",
             "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
         }
     },
@@ -171,15 +171,15 @@ var frozenExistingTheme = []byte(`
     ],
     "_attachments": {
         "m1.html": {
-            "content-type": "text/html",
+            "content_type": "text/html",
             "data": "PGh0bWw+PC9odG1sPg=="
         },
         "m1.txt": {
-            "content-type": "text/plain",
+            "content_type": "text/plain",
             "data": "VGVzdCB0ZXh0IGZpbGU="
         },
         "$main.css": {
-            "content-type": "text/css",
+            "content_type": "text/css",
             "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
         }
     },
@@ -242,15 +242,15 @@ var frozenMergedTheme = []byte(`
     ],
     "_attachments": {
         "m1.html": {
-            "content-type": "text/html",
+            "content_type": "text/html",
             "data": "PGh0bWw+PC9odG1sPg=="
         },
         "m1.txt": {
-            "content-type": "text/plain",
+            "content_type": "text/plain",
             "data": "VGVzdCB0ZXh0IGZpbGU="
         },
         "$main.css": {
-            "content-type": "text/css",
+            "content_type": "text/css",
             "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
         }
     },

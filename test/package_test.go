@@ -59,7 +59,7 @@ var frozenPackage = []byte(`
             ],
             "_attachments": {
                 "foo.mp3": {
-                    "content-type": "audio/mpeg",
+                    "content_type": "audio/mpeg",
                     "data": "bm90IGEgcmVhbCBNUDM="
                 }
             }
@@ -128,15 +128,15 @@ var frozenPackage = []byte(`
             ],
             "_attachments": {
                 "$main.css": {
-                    "content-type": "text/css",
+                    "content_type": "text/css",
                     "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
                 },
                 "m1.html": {
-                    "content-type": "text/html",
+                    "content_type": "text/html",
                     "data": "PGh0bWw+PC9odG1sPg=="
                 },
                 "m1.txt": {
-                    "content-type": "text/plain",
+                    "content_type": "text/plain",
                     "data": "VGVzdCB0ZXh0IGZpbGU="
                 }
             },
