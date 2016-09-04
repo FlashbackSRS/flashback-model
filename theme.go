@@ -7,7 +7,13 @@ import (
 	"time"
 )
 
-// Theme represents a flackback Theme definition
+// Theme contains related visual representation elements.
+//
+// A theme should generally group all card types (models) of a standard visual
+// theme. A theme may contain files that are shared across all included modules,
+// such as a CSS theme, common graphics files, or even JavaScript. Within a
+// theme must exist one or more models, each of which represents a specific card
+// type, and which may additionally have its own attachments.
 type Theme struct {
 	ID            DocID
 	Rev           *string
