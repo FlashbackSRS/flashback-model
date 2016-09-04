@@ -15,5 +15,5 @@ install:
 
 script:
     - diff -u <(echo -n) <(gofmt -d ./)
-    - go test github.com/flimzy/flashback-model github.com/flimzy/flashback-model/test
-    - gopherjs test github.com/flimzy/flashback-model github.com/flimzy/flashback-model/test
+    - go test github.com/FlashbackSRS/flashback-model github.com/FlashbackSRS/flashback-model/test
+    - gopherjs test github.com/FlashbackSRS/flashback-model github.com/FlashbackSRS/flashback-model/test
