@@ -5,7 +5,7 @@
     "author": "Jonathan Hall <flimzy@flimzy.com",
     "repository": {
         "type": "git",
-        "url": "https://github.com/flimzy/flashback-model"
+        "url": "https://github.com/FlashbackSRS/flashback-model"
     },
     "dependencies": {
         "sql.js": "*"

@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/flimzy/flashback-model"
-	. "github.com/flimzy/flashback-model/test/util"
+	"github.com/FlashbackSRS/flashback-model"
+	. "github.com/FlashbackSRS/flashback-model/test/util"
 )
 
 var frozenBundle = []byte(`
