@@ -10,6 +10,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
+// DeepEqualJSON asserts that the two passed interfaces marshal to the same JSON structure.
 func DeepEqualJSON(t *testing.T, descr string, i1, i2 interface{}) {
 	data1 := Marshal(t, descr+" (interface 1)", i1)
 	data2 := Marshal(t, descr+" (interface 2)", i2)
@@ -65,6 +66,8 @@ func StringsEqual(t *testing.T, descr, got, expected string) {
 	}
 }
 
+// Marshal marshals the passed interface, returning the JSON representation, or
+// calling t.Error()
 func Marshal(t *testing.T, descr string, i interface{}) []byte {
 	output, err := json.MarshalIndent(i, "", "    ")
 	if err != nil {

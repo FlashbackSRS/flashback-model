@@ -2,8 +2,6 @@ package fb
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -16,7 +14,8 @@ type Note struct {
 	Created     time.Time
 	Modified    time.Time
 	Imported    *time.Time
-	ModelID     string
+	ThemeID     string
+	ModelID     uint32
 	FieldValues []*FieldValue
 	Attachments *FileCollection
 	model       *Model
@@ -37,7 +36,8 @@ type noteDoc struct {
 	Created     time.Time       `json:"created"`
 	Modified    time.Time       `json:"modified"`
 	Imported    *time.Time      `json:"imported,omitempty"`
-	ModelID     string          `json:"model"`
+	ThemeID     string          `json:"theme"`
+	ModelID     uint32          `json:"model"`
 	FieldValues []*FieldValue   `json:"fieldValues"`
 	Attachments *FileCollection `json:"_attachments,omitempty"`
 }
@@ -50,7 +50,8 @@ func NewNote(id []byte, model *Model) (*Note, error) {
 		return nil, err
 	}
 	n.ID = nid
-	n.ModelID = model.Identity()
+	n.ThemeID = model.Theme.ID.Identity()
+	n.ModelID = model.ID
 	n.FieldValues = make([]*FieldValue, len(model.Fields))
 	n.Attachments = NewFileCollection()
 	n.model = model
@@ -80,6 +81,7 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 		Created:     n.Created,
 		Modified:    n.Modified,
 		Imported:    n.Imported,
+		ThemeID:     n.ThemeID,
 		ModelID:     n.ModelID,
 		FieldValues: n.FieldValues,
 		Attachments: n.Attachments,
@@ -100,6 +102,7 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 	n.Created = doc.Created
 	n.Modified = doc.Modified
 	n.Imported = doc.Imported
+	n.ThemeID = doc.ThemeID
 	n.ModelID = doc.ModelID
 	n.FieldValues = doc.FieldValues
 	n.Attachments = doc.Attachments
@@ -225,16 +228,4 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 	n.Attachments = existing.Attachments
 	n.model = existing.model
 	return false, nil
-}
-
-// ThemeID returns the Note's ThemeID
-func (n *Note) ThemeID() string {
-	parts := strings.Split(n.ModelID, ".")
-	return "theme-" + parts[0]
-}
-
-func (n *Note) ModelSubID() uint32 {
-	parts := strings.Split(n.ModelID, ".")
-	i, _ := strconv.Atoi(parts[1])
-	return uint32(i)
 }
