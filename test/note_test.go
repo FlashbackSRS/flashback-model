@@ -16,7 +16,8 @@ var frozenNote = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "model": "VGVzdCBUaGVtZQ.1",
+    "theme": "VGVzdCBUaGVtZQ",
+    "model": 1,
     "fieldValues": [
         {
             "text": "cat"
@@ -85,7 +86,8 @@ var frozenExistingNote = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-15T15:07:24.730156517Z",
     "imported": "2016-08-01T15:08:24.730156517Z",
-    "model": "VGVzdCBUaGVtZQ.1",
+    "theme": "VGVzdCBUaGVtZQ",
+    "model": 1,
     "fieldValues": [
         {
             "text": "Cat"
@@ -113,7 +115,8 @@ var frozenMergedNote = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "model": "VGVzdCBUaGVtZQ.1",
+    "theme": "VGVzdCBUaGVtZQ",
+    "model": 1,
     "fieldValues": [
         {
             "text": "cat"

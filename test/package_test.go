@@ -46,7 +46,8 @@ var frozenPackage = []byte(`
             "created": "2016-07-31T15:08:24.730156517Z",
             "modified": "2016-07-31T15:08:24.730156517Z",
             "imported": "2016-08-02T15:08:24.730156517Z",
-            "model": "VGVzdCBUaGVtZQ.1",
+            "theme": "VGVzdCBUaGVtZQ",
+            "model": 1,
             "fieldValues": [
                 {
                     "text": "cat"
