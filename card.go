@@ -22,13 +22,13 @@ const (
 
 // Card represents a struct of card-related statistics and configuration.
 type Card struct {
-	bundleID string
-	noteID   string
-	modelID  uint32
-	Rev      *string
-	Created  time.Time
-	Modified time.Time
-	Imported *time.Time
+	bundleID   string
+	noteID     string
+	templateID uint32
+	Rev        *string
+	Created    time.Time
+	Modified   time.Time
+	Imported   *time.Time
 	// 	Queue       CardQueue
 	// 	Suspended   bool
 	// 	Buried      bool
@@ -63,23 +63,23 @@ func parseID(id string) (string, string, uint32, error) {
 	if len(parts) != 3 {
 		return "", "", 0, errors.New("Invalid id format")
 	}
-	modelID, err := strconv.Atoi(parts[2])
+	templateID, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return "", "", 0, errors.Wrap(err, "Invalid ModelID")
+		return "", "", 0, errors.Wrap(err, "Invalid TemplateID")
 	}
-	return parts[0], parts[1], uint32(modelID), nil
+	return parts[0], parts[1], uint32(templateID), nil
 }
 
 // NewCard returns a new Card instance, with the requested id
 func NewCard(id string) (*Card, error) {
-	bundleID, noteID, modelID, err := parseID(id)
+	bundleID, noteID, templateID, err := parseID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing card ID")
 	}
 	return &Card{
-		bundleID: bundleID,
-		noteID:   noteID,
-		modelID:  modelID,
+		bundleID:   bundleID,
+		noteID:     noteID,
+		templateID: templateID,
 	}, nil
 }
 
@@ -108,13 +108,13 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	if doc.Type != "card" {
 		return errors.New("Invalid document type for card: " + doc.Type)
 	}
-	bundleID, noteID, modelID, err := parseID(doc.ID)
+	bundleID, noteID, templateID, err := parseID(doc.ID)
 	if err != nil {
 		return err
 	}
 	c.bundleID = bundleID
 	c.noteID = noteID
-	c.modelID = modelID
+	c.templateID = templateID
 	c.Rev = doc.Rev
 	c.Created = doc.Created
 	c.Modified = doc.Modified
@@ -145,7 +145,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 
 // Identity returns the identity of the card as a string.
 func (c *Card) Identity() string {
-	return fmt.Sprintf("%s.%s.%d", c.bundleID, c.noteID, c.modelID)
+	return fmt.Sprintf("%s.%s.%d", c.bundleID, c.noteID, c.templateID)
 }
 
 // SetRev sets the Card's _rev attribute
@@ -186,9 +186,9 @@ func (c *Card) BundleID() string {
 	return "bundle-" + c.bundleID
 }
 
-// ModelID returns the card's ModelID
-func (c *Card) ModelID() uint32 {
-	return c.modelID
+// TemplateID returns the card's TemplateID
+func (c *Card) TemplateID() uint32 {
+	return c.templateID
 }
 
 // NoteID returns the card's NoteID

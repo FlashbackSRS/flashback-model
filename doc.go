@@ -26,7 +26,11 @@ A theme is a collection of Models.
 Model
 
 A model is essentially a card type definition. It defines the layout, including
-fields, of a card type. A model must have one or more views.
+fields, of a card type. A model must have one or more templates.
+
+Template
+
+A template is what defines the front and back of a given card.
 
 Note
 

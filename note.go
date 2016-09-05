@@ -2,7 +2,6 @@ package fb
 
 import (
 	"encoding/json"
-	"strconv"
 	"strings"
 	"time"
 
@@ -231,10 +230,4 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 func (n *Note) ThemeID() string {
 	parts := strings.Split(n.ModelID, ".")
 	return "theme-" + parts[0]
-}
-
-func (n *Note) ModelSubID() uint32 {
-	parts := strings.Split(n.ModelID, ".")
-	i, _ := strconv.Atoi(parts[1])
-	return uint32(i)
 }
