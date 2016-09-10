@@ -2,13 +2,13 @@ package test
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
+
+	"github.com/flimzy/testify/require"
 
 	"github.com/pborman/uuid"
 
 	"github.com/FlashbackSRS/flashback-model"
-	. "github.com/FlashbackSRS/flashback-model/test/util"
 )
 
 var frozenUser = []byte(`
@@ -23,24 +23,18 @@ var frozenUser = []byte(`
 `)
 
 func TestNewUser(t *testing.T) {
+	require := require.New(t)
 	u, err := fb.NewUser(uuid.Parse("9d11d024-a100-4045-a5b7-9f1ccf96cc9f"), "mrsmith")
-	if err != nil {
-		t.Errorf("Error creating user: %s\n", err)
-	}
-	StringsEqual(t, "ID", u.ID.String(), "user-tui5ajfbabaeljnxt4om7fwmt4")
-	StringsEqual(t, "Type", u.ID.Type(), "user")
-	JSONDeepEqual(t, "New user", Marshal(t, "New User", u), frozenUser)
+	require.Nil(err, "Error creating user: %s", err)
+	require.Equal("user-tui5ajfbabaeljnxt4om7fwmt4", u.ID.String(), "User ID not as expected")
+	require.Equal("user", u.ID.Type(), "User type not as expected")
+	require.MarshalsToJSON(frozenUser, u, "New User")
 
 	u2, err := testUser()
-	if err != nil {
-		t.Fatalf("Error thawing user: %s", err)
-	}
-	JSONDeepEqual(t, "New user", Marshal(t, "New User", u2), frozenUser)
+	require.Nil(err, "Error thawing user: %s", err)
+	require.MarshalsToJSON(frozenUser, u2, "Thawed User")
 
-	if !reflect.DeepEqual(u, u2) {
-		PrintDiff(u2, u)
-		t.Fatalf("Thawed and created Users don't match")
-	}
+	require.DeepEqual(u, u2, "Thawed vs. Created Users")
 }
 
 func testUser() (*fb.User, error) {

@@ -2,11 +2,11 @@ package test
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
+	"github.com/flimzy/testify/require"
+
 	"github.com/FlashbackSRS/flashback-model"
-	. "github.com/FlashbackSRS/flashback-model/test/util"
 )
 
 var frozenCard = []byte(`
@@ -20,28 +20,24 @@ var frozenCard = []byte(`
 `)
 
 func TestCard(t *testing.T) {
+	require := require.New(t)
 	u, _ := testUser()
 	b, _ := fb.NewBundle([]byte("Test Bundle"), u)
 	c, err := fb.NewCard(b.ID.Identity() + ".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
-	if err != nil {
-		t.Fatalf("Error creating card: %s", err)
-	}
+	require.Nil(err, "Error creating card: %s", err)
+
 	c.Created = now
 	c.Modified = now
 	imp := now.AddDate(0, 0, 2)
 	c.Imported = &imp
-	JSONDeepEqual(t, "Create Card", Marshal(t, "Create Card", c), frozenCard)
+	require.MarshalsToJSON(frozenCard, c, "Created Card")
 
 	c2 := &fb.Card{}
-	if err := json.Unmarshal(frozenCard, c2); err != nil {
-		t.Fatalf("Error thawing card: %s", err)
-	}
-	JSONDeepEqual(t, "Thawed Card", Marshal(t, "Thaw Card", c2), frozenCard)
+	err = json.Unmarshal(frozenCard, c2)
+	require.Nil(err, "Error thawing card: %s", err)
+	require.MarshalsToJSON(frozenCard, c2, "Thawed Card")
 
-	if !reflect.DeepEqual(c, c2) {
-		PrintDiff(c2, c)
-		t.Fatal("Thawed and created Cards don't match")
-	}
+	require.DeepEqual(c, c2, "Thawed vs Created Cards")
 }
 
 /*

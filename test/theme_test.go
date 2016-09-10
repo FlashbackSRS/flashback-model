@@ -2,11 +2,11 @@ package test
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
+	"github.com/flimzy/testify/require"
+
 	"github.com/FlashbackSRS/flashback-model"
-	. "github.com/FlashbackSRS/flashback-model/test/util"
 )
 
 var frozenTheme = []byte(`
@@ -80,10 +80,10 @@ var frozenTheme = []byte(`
 `)
 
 func TestCreateTheme(t *testing.T) {
+	require := require.New(t)
 	th, err := fb.NewTheme([]byte("Test Theme"))
-	if err != nil {
-		t.Fatalf("Error creating theme: %s\n", err)
-	}
+	require.Nil(err, "Error creating theme: %s", err)
+
 	name := "Test Theme"
 	th.Name = &name
 	descr := "Theme for testing"
@@ -105,18 +105,14 @@ func TestCreateTheme(t *testing.T) {
 	m2.Name = &name2
 	m1.AddFile("m1.html", "text/html", []byte("<html></html>"))
 	m2.AddFile("m1.txt", "text/plain", []byte("Test text file"))
-	JSONDeepEqual(t, "Create Theme", Marshal(t, "Create Theme", th), frozenTheme)
+	require.MarshalsToJSON(frozenTheme, th, "Create Theme")
 
 	th2 := &fb.Theme{}
-	if err := json.Unmarshal(frozenTheme, th2); err != nil {
-		t.Fatalf("Error thawing theme: %s\n", err)
-	}
-	JSONDeepEqual(t, "Thawed Theme", Marshal(t, "Thaw Theme", th2), frozenTheme)
+	err = json.Unmarshal(frozenTheme, th2)
+	require.Nil(err, "Error thawing theme: %s", err)
+	require.MarshalsToJSON(frozenTheme, th2, "Thawed Theme")
 
-	if !reflect.DeepEqual(th, th2) {
-		PrintDiff(th2, th)
-		t.Fatal("Thawed and created Themes don't match")
-	}
+	require.DeepEqual(th, th2, "Thawed vs. Created Themes")
 }
 
 var frozenExistingTheme = []byte(`
@@ -262,20 +258,18 @@ var frozenMergedTheme = []byte(`
 `)
 
 func TestThemeMergeImport(t *testing.T) {
+	require := require.New(t)
 	th := &fb.Theme{}
-	if err := json.Unmarshal(frozenTheme, th); err != nil {
-		t.Fatalf("Error thawing Theme: %s", err)
-	}
+	err := json.Unmarshal(frozenTheme, th)
+	require.Nil(err, "Error thawing Theme: %s", err)
+
 	e := &fb.Theme{}
-	if err := json.Unmarshal(frozenExistingTheme, e); err != nil {
-		t.Fatalf("Error thawing ExistingTheme: %s", err)
-	}
+	err = json.Unmarshal(frozenExistingTheme, e)
+	require.Nil(err, "Error thawing ExistingTheme: %s", err)
+
 	changed, err := th.MergeImport(e)
-	if err != nil {
-		t.Fatalf("Error merging Theme: %s\n", err)
-	}
-	if !changed {
-		t.Fatalf("No change!")
-	}
-	JSONDeepEqual(t, "Merged Theme", Marshal(t, "Merge Theme", th), frozenMergedTheme)
+	require.Nil(err, "Error merging Theme: %s", err)
+	require.True(changed, "No change merging Theme")
+
+	require.MarshalsToJSON(frozenMergedTheme, th, "Merged Theme")
 }

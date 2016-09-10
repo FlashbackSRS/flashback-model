@@ -2,11 +2,11 @@ package test
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
+	"github.com/flimzy/testify/require"
+
 	"github.com/FlashbackSRS/flashback-model"
-	. "github.com/FlashbackSRS/flashback-model/test/util"
 )
 
 var frozenDeck = []byte(`
@@ -23,10 +23,10 @@ var frozenDeck = []byte(`
 `)
 
 func TestDecks(t *testing.T) {
+	require := require.New(t)
 	d, err := fb.NewDeck([]byte("Test Deck"))
-	if err != nil {
-		t.Fatalf("Error creating deck: %s", err)
-	}
+	require.Nil(err, "Error creating deck: %s", err)
+
 	name := "Test Deck"
 	d.Name = &name
 	descr := "Deck for testing"
@@ -35,18 +35,14 @@ func TestDecks(t *testing.T) {
 	d.Modified = now
 	imp := now.AddDate(0, 0, 2)
 	d.Imported = &imp
-	JSONDeepEqual(t, "Create Deck", Marshal(t, "Create Deck", d), frozenDeck)
+	require.MarshalsToJSON(frozenDeck, d, "Create Deck")
 
 	d2 := &fb.Deck{}
-	if err := json.Unmarshal(frozenDeck, d2); err != nil {
-		t.Fatalf("Error thawing deck: %s", err)
-	}
-	JSONDeepEqual(t, "Thawed Deck", Marshal(t, "Thaw Deck", d2), frozenDeck)
+	err = json.Unmarshal(frozenDeck, d2)
+	require.Nil(err, "Error thawing deck: %s", err)
+	require.MarshalsToJSON(frozenDeck, d2, "Thawed Deck")
 
-	if !reflect.DeepEqual(d, d2) {
-		PrintDiff(d2, d)
-		t.Fatal("Thawed and created Decks don't match")
-	}
+	require.DeepEqual(d, d2, "Thawed vs. Created Decks")
 }
 
 var frozenExistingDeck = []byte(`
@@ -78,20 +74,17 @@ var frozenMergedDeck = []byte(`
 `)
 
 func TestDeckMergeImport(t *testing.T) {
+	require := require.New(t)
 	d := &fb.Deck{}
-	if err := json.Unmarshal(frozenDeck, d); err != nil {
-		t.Fatalf("Error thawing Deck: %s", err)
-	}
+	err := json.Unmarshal(frozenDeck, d)
+	require.Nil(err, "Error thawing deck: %s", err)
+
 	e := &fb.Deck{}
-	if err := json.Unmarshal(frozenExistingDeck, e); err != nil {
-		t.Fatalf("Error thawing ExistingDeck: %s", err)
-	}
+	err = json.Unmarshal(frozenExistingDeck, e)
+	require.Nil(err, "Error thawing Existing Deck: %s", err)
+
 	changed, err := d.MergeImport(e)
-	if err != nil {
-		t.Fatalf("Error merging Deck: %s\n", err)
-	}
-	if !changed {
-		t.Fatalf("No change in deck merge")
-	}
-	JSONDeepEqual(t, "Merged Deck", Marshal(t, "Merge Deck", d), frozenMergedDeck)
+	require.Nil(err, "Error merging Deck: %s", err)
+	require.True(changed, "Deck changed during merge")
+	require.MarshalsToJSON(frozenMergedDeck, d, "Merged Deck")
 }
