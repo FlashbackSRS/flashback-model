@@ -50,7 +50,7 @@ func NewNote(id []byte, model *Model) (*Note, error) {
 		return nil, err
 	}
 	n.ID = nid
-	n.ThemeID = model.Theme.ID.Identity()
+	n.ThemeID = model.Theme.ID.String()
 	n.ModelID = model.ID
 	n.FieldValues = make([]*FieldValue, len(model.Fields))
 	n.Attachments = NewFileCollection()
