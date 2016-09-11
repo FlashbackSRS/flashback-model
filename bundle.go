@@ -2,8 +2,9 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -68,7 +69,7 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 func (b *Bundle) UnmarshalJSON(data []byte) error {
 	doc := &bundleDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "Unmarshal Bundle")
 	}
 	if doc.Type != "bundle" {
 		return errors.New("Invalid document type for bundle: " + doc.Type)

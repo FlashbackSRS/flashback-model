@@ -103,7 +103,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 func (c *Card) UnmarshalJSON(data []byte) error {
 	doc := &cardDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "Unmarshal Card")
 	}
 	if doc.Type != "card" {
 		return errors.New("Invalid document type for card: " + doc.Type)

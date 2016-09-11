@@ -3,9 +3,10 @@ package fb
 import (
 	"bytes"
 	"encoding/base32"
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var validDbIDTypes map[string]struct{}
@@ -70,7 +71,7 @@ func (id *DbID) parse(parts ...string) error {
 	docType, identity := parseParts(parts...)
 	data, err := b32dec(identity)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Parsing DbID")
 	}
 	if !isValidDbIDType(docType) {
 		return errors.New("Invalid docType: " + docType)
