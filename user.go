@@ -7,6 +7,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+var nilUser = uuid.UUID([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+
 func isValidID(id string) bool {
 	return uuid.Parse(id) != nil
 }
@@ -65,10 +67,10 @@ func NewUserStub(id string) (*User, error) {
 	return NewUser(userUUID, "")
 }
 
-// RandomUser creates a new random user. For testing. Please don't use this!
-// FIXME: Remove this after testing.
-func RandomUser() *User {
-	u, _ := NewUser(uuid.NewRandom(), "randomuser")
+// NilUser returns a special user, whose UUID bits are all set to zero, to be
+// used as a placeholder when the actual user isn't known.
+func NilUser() *User {
+	u, _ := NewUser(nilUser, "niluser")
 	return u
 }
 
