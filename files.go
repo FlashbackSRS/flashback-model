@@ -21,6 +21,13 @@ type FileCollection struct {
 	views []*FileCollectionView
 }
 
+// GetFile returns an Attachment based on the file name. If the file does not
+// the second return value will be false.
+func (fc *FileCollection) GetFile(name string) (*Attachment, bool) {
+	att, ok := fc.files[name]
+	return att, ok
+}
+
 // FileCollectionView represents a view into a larger FileCollection, which can
 // be used by sub-elements.
 type FileCollectionView struct {
