@@ -18,7 +18,7 @@ before_install:
 
 install:
     - npm install
-    - go get -u github.com/gopherjs/gopherjs
+    - go get -u github.com/gopherjs/gopherjs github.com/flimzy/testify
     - go get -u ./...
     - go get -u -d -tags=js ./...
 

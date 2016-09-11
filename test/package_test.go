@@ -3,11 +3,11 @@ package test
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"testing"
 
+	"github.com/flimzy/testify/require"
+
 	"github.com/FlashbackSRS/flashback-model"
-	. "github.com/FlashbackSRS/flashback-model/test/util"
 )
 
 var frozenPackage = []byte(`
@@ -157,11 +157,11 @@ var frozenPackage = []byte(`
 `)
 
 func TestPackage(t *testing.T) {
+	require := require.New(t)
 	u, _ := testUser()
 	b, err := fb.NewBundle([]byte("Test Bundle"), u)
-	if err != nil {
-		t.Fatalf("Error creating bundle: %s", err)
-	}
+	require.Nil(err, "Error creating bundle: %s", err)
+
 	b.Created = now
 	b.Modified = now
 	th := &fb.Theme{}
@@ -182,27 +182,21 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, err := fb.NewCard(fmt.Sprintf("%s.%s.%d", b.ID.Identity(), n.ID.Identity(), i))
-		if err != nil {
-			t.Fatalf("Error creating new card: %s", err)
-		}
+		c, e := fb.NewCard(fmt.Sprintf("%s.%s.%d", b.ID.Identity(), n.ID.Identity(), i))
+		require.Nil(e, "Error creating new card: %s", err)
 		c.Created = now
 		c.Modified = now
 		p.Cards = append(p.Cards, c)
 	}
-	JSONDeepEqual(t, "Create Package", Marshal(t, "Create Package", p), frozenPackage)
+	require.MarshalsToJSON(frozenPackage, p, "Create Package")
 
 	p2 := &fb.Package{}
-	if err := json.Unmarshal(frozenPackage, p2); err != nil {
-		t.Fatalf("Error thawing package: %s", err)
-	}
-	JSONDeepEqual(t, "Thawed Package", Marshal(t, "Thaw Package", p2), frozenPackage)
+	err = json.Unmarshal(frozenPackage, p2)
+	require.Nil(err, "Error thawing package: %s", err)
+	require.MarshalsToJSON(frozenPackage, p2, "Thawed Package")
 
 	// We have to set the username explicitly for the next test to pass, as a simple unmarshaling
 	// of a bundle doesn't know user details (nor should it)
 	p2.Bundle.Owner.Username = "mrsmith"
-	if !reflect.DeepEqual(p, p2) {
-		PrintDiff(p2, p)
-		t.Fatal("Thawed and created Packages don't match")
-	}
+	require.DeepEqual(p2, p, "Thawed vs Created Packages")
 }
