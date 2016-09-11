@@ -12,6 +12,7 @@ import (
 
 var frozenPackage = []byte(`
 {
+    "version": 0,
     "bundle": {
         "type": "bundle",
         "_id": "bundle-krsxg5baij2w4zdmmu",
