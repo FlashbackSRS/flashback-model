@@ -2,9 +2,10 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 	"sort"
 	"sync/atomic"
+
+	"github.com/pkg/errors"
 )
 
 // Attachment represents a Couch/PouchDB attachment.
@@ -103,7 +104,10 @@ func (fc *FileCollection) MarshalJSON() ([]byte, error) {
 func (fc *FileCollection) UnmarshalJSON(data []byte) error {
 	fc.files = make(map[string]*Attachment)
 	fc.views = make([]*FileCollectionView, 0)
-	return json.Unmarshal(data, &fc.files)
+	if err := json.Unmarshal(data, &fc.files); err != nil {
+		return errors.Wrap(err, "Unmarshal FileCollection")
+	}
+	return nil
 }
 
 // SetFile sets the requested attachment, replacing it if it already exists.
@@ -171,7 +175,7 @@ func (v *FileCollectionView) UnmarshalJSON(data []byte) error {
 	v.members = make(map[string]*Attachment)
 	var names []string
 	if err := json.Unmarshal(data, &names); err != nil {
-		return err
+		return errors.Wrap(err, "Unmarshal FileCollectionView")
 	}
 	for _, filename := range names {
 		v.members[filename] = nil

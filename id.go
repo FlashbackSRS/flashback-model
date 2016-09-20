@@ -2,8 +2,9 @@ package fb
 
 import (
 	"bytes"
-	"errors"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var validDocIDTypes map[string]struct{}
@@ -55,7 +56,7 @@ func (id *DocID) parse(parts ...string) error {
 	docType, identity := parseParts(parts...)
 	data, err := b64encoder.DecodeString(identity)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Parsing DocID")
 	}
 	if !isValidDocIDType(docType) {
 		return errors.New("Invalid docType: " + docType)

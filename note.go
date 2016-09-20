@@ -92,7 +92,7 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 func (n *Note) UnmarshalJSON(data []byte) error {
 	doc := &noteDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "Unmarshal Note")
 	}
 	if doc.Type != "note" {
 		return errors.New("Invalid document type for note: " + doc.Type)
@@ -158,7 +158,7 @@ func (fv *FieldValue) MarshalJSON() ([]byte, error) {
 func (fv *FieldValue) UnmarshalJSON(data []byte) error {
 	doc := &fieldValueDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "Unmarshal FieldValue")
 	}
 	fv.text = doc.Text
 	fv.files = doc.Files
