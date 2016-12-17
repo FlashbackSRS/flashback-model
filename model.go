@@ -16,14 +16,14 @@ type Model struct {
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
 
-// ModelType describes the model type
-type ModelType int
+// ModelType represents the type of model
+type ModelType string
 
 const (
-	// AnkiStandard describes a model imported from Anki of the "standard" type
-	AnkiStandard ModelType = iota
-	// AnkiCloze describes a model imported from Anki of the Cloze type
-	AnkiCloze
+	// AnkiStandardModel is a Basic Anki note
+	AnkiStandardModel ModelType = "anki-basic"
+	// AnkiClozeModel is an Anki Cloze note. Not yet implemented.
+	AnkiClozeModel ModelType = "anki-cloze"
 )
 
 // NewModel creates a new model as a member of the provided theme, and of the
