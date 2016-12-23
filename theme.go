@@ -2,9 +2,10 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 	"sync/atomic"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Theme contains related visual representation elements.
@@ -48,7 +49,7 @@ func NewTheme(id []byte) (*Theme, error) {
 	t := &Theme{}
 	tid, err := NewDocID("theme", id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create DocID for Theme")
 	}
 	t.ID = tid
 	t.Attachments = NewFileCollection()
@@ -85,7 +86,7 @@ func (t *Theme) MarshalJSON() ([]byte, error) {
 func (t *Theme) NewModel(mType string) (*Model, error) {
 	m, err := NewModel(t, mType)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create model")
 	}
 	t.Models = append(t.Models, m)
 	return m, nil
@@ -95,7 +96,7 @@ func (t *Theme) NewModel(mType string) (*Model, error) {
 func (t *Theme) UnmarshalJSON(data []byte) error {
 	doc := &themeDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal Theme")
 	}
 	if doc.Type != "theme" {
 		return errors.New("Invalid document type for theme: " + doc.Type)

@@ -2,9 +2,9 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 )
 
 var nilUser = uuid.UUID([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
@@ -48,7 +48,7 @@ type userDoc struct {
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	uid, err := NewDbID("user", id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid user id")
 	}
 	return &User{
 		ID:       uid,
@@ -61,7 +61,7 @@ func NewUser(id uuid.UUID, username string) (*User, error) {
 func NewUserStub(id string) (*User, error) {
 	userID, err := ParseDbID("user", id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid DbID")
 	}
 	userUUID := uuid.UUID(userID.RawID())
 	return NewUser(userUUID, "")
@@ -98,15 +98,11 @@ func (u *User) MarshalJSON() ([]byte, error) {
 func (u *User) UnmarshalJSON(data []byte) error {
 	doc := userDoc{}
 	if err := json.Unmarshal(data, &doc); err != nil {
-		return err
+		return errors.Wrap(err, "failedto unmarshal user")
 	}
 	if doc.Type != "user" {
 		return errors.New("Invalid document type for user")
 	}
-	// 	id, err := b64encoder.DecodeString(doc.ID.Identity())
-	// 	if err != nil {
-	// 		return errors.New(doc.ID.Identity() + " is not a valid UUID")
-	// 	}
 	u.ID = doc.ID
 	u.uuid = u.ID.RawID()
 	u.Rev = doc.Rev
