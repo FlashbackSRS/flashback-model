@@ -8,7 +8,7 @@ import (
 type Model struct {
 	Theme       *Theme              `json:"-"`
 	ID          uint32              `json:"id"`
-	Type        ModelType           `json:"modelType"`
+	Type        string              `json:"modelType"`
 	Name        *string             `json:"name,omitempty"`
 	Description *string             `json:"description,omitempty"`
 	Templates   []string            `json:"templates"`
@@ -16,19 +16,16 @@ type Model struct {
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
 
-// ModelType represents the type of model
-type ModelType string
-
 const (
 	// AnkiStandardModel is a Basic Anki note
-	AnkiStandardModel ModelType = "anki-basic"
+	AnkiStandardModel = "anki-basic"
 	// AnkiClozeModel is an Anki Cloze note. Not yet implemented.
-	AnkiClozeModel ModelType = "anki-cloze"
+	AnkiClozeModel = "anki-cloze"
 )
 
 // NewModel creates a new model as a member of the provided theme, and of the
 // provided type.
-func NewModel(t *Theme, mType ModelType) (*Model, error) {
+func NewModel(t *Theme, mType string) (*Model, error) {
 	return &Model{
 		Theme:     t,
 		ID:        t.NextModelSequence(),

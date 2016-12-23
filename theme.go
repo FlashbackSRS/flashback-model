@@ -82,7 +82,7 @@ func (t *Theme) MarshalJSON() ([]byte, error) {
 }
 
 // NewModel returns a new model of the requested type.
-func (t *Theme) NewModel(mType ModelType) (*Model, error) {
+func (t *Theme) NewModel(mType string) (*Model, error) {
 	m, err := NewModel(t, mType)
 	if err != nil {
 		return nil, err

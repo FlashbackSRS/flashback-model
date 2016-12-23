@@ -21,7 +21,7 @@ var frozenTheme = []byte(`
     "models": [
         {
             "id": 0,
-            "modelType": 0,
+            "modelType": "anki-basic",
             "name": "Model A",
             "templates": [],
             "fields": [
@@ -40,7 +40,7 @@ var frozenTheme = []byte(`
         },
         {
             "id": 1,
-            "modelType": 1,
+            "modelType": "anki-cloze",
             "name": "Model 2",
             "templates": [],
             "fields": [
@@ -93,8 +93,8 @@ func TestCreateTheme(t *testing.T) {
 	imp := now.AddDate(0, 0, 2)
 	th.Imported = &imp
 	th.SetFile("$main.css", "text/css", []byte("/* an empty CSS file */"))
-	m1, _ := th.NewModel(fb.ModelType(0))
-	m2, _ := th.NewModel(fb.ModelType(1))
+	m1, _ := th.NewModel("anki-basic")
+	m2, _ := th.NewModel("anki-cloze")
 	m1.AddField(fb.TextField, "Word")
 	m1.AddField(fb.TextField, "Definition")
 	m2.AddField(fb.TextField, "Word")
@@ -128,7 +128,7 @@ var frozenExistingTheme = []byte(`
     "models": [
         {
             "id": 0,
-            "modelType": 0,
+            "modelType": "anki-basic",
             "name": "Model A",
             "templates": [],
             "fields": [
@@ -147,7 +147,7 @@ var frozenExistingTheme = []byte(`
         },
         {
             "id": 1,
-            "modelType": 1,
+            "modelType": "anki-cloze",
             "name": "Model 2",
             "templates": [],
             "fields": [
@@ -199,7 +199,7 @@ var frozenMergedTheme = []byte(`
     "models": [
         {
             "id": 0,
-            "modelType": 0,
+            "modelType": "anki-basic",
             "name": "Model A",
             "templates": [],
             "fields": [
@@ -218,7 +218,7 @@ var frozenMergedTheme = []byte(`
         },
         {
             "id": 1,
-            "modelType": 1,
+            "modelType": "anki-cloze",
             "name": "Model 2",
             "templates": [],
             "fields": [

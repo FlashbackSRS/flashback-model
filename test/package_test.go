@@ -91,7 +91,7 @@ var frozenPackage = []byte(`
             "models": [
                 {
                     "id": 0,
-                    "modelType": 0,
+                    "modelType": "anki-basic",
                     "name": "Model A",
                     "templates": [],
                     "fields": [
@@ -110,7 +110,7 @@ var frozenPackage = []byte(`
                 },
                 {
                     "id": 1,
-                    "modelType": 1,
+                    "modelType": "anki-cloze",
                     "name": "Model 2",
                     "templates": [],
                     "fields": [
