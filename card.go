@@ -25,6 +25,8 @@ type Card struct {
 	bundleID   string
 	noteID     string
 	templateID uint32
+	themeID    string
+	modelID    uint8
 	Rev        *string
 	Created    time.Time
 	Modified   time.Time
@@ -47,6 +49,8 @@ type cardDoc struct {
 	Created  time.Time  `json:"created"`
 	Modified time.Time  `json:"modified"`
 	Imported *time.Time `json:"imported,omitempty"`
+	ThemeID  string     `json:"theme"`
+	ModelID  uint8      `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
 	// 	Suspended   *bool          `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
@@ -71,7 +75,7 @@ func parseID(id string) (string, string, uint32, error) {
 }
 
 // NewCard returns a new Card instance, with the requested id
-func NewCard(id string) (*Card, error) {
+func NewCard(theme string, model uint8, id string) (*Card, error) {
 	bundleID, noteID, templateID, err := parseID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing card ID")
@@ -80,6 +84,8 @@ func NewCard(id string) (*Card, error) {
 		bundleID:   bundleID,
 		noteID:     noteID,
 		templateID: templateID,
+		themeID:    theme,
+		modelID:    model,
 	}, nil
 }
 
@@ -92,6 +98,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		Created:  c.Created,
 		Modified: c.Modified,
 		Imported: c.Imported,
+		ModelID:  fmt.Sprintf("%s/%d", c.themeID, c.modelID),
 		// 		Queue:    c.Queue,
 		// 		Due:      c.Due,
 		// 		Interval: c.Interval,
@@ -119,6 +126,13 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	c.Created = doc.Created
 	c.Modified = doc.Modified
 	c.Imported = doc.Imported
+	model := strings.Split(doc.ModelID, "/")
+	c.themeID = model[0]
+	m, err := strconv.Atoi(model[1])
+	if err != nil {
+		return errors.Wrap(err, "invalid model ID")
+	}
+	c.modelID = uint8(m)
 	// 	c.Queue = doc.Queue
 	// 	if doc.Suspended != nil {
 	// 		c.Suspended = *doc.Suspended
