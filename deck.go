@@ -2,9 +2,10 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 	"sort"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // CardCollection represents a collection of cards, which make up a deck.
@@ -34,7 +35,7 @@ func NewCardCollection() *CardCollection {
 func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 	var ids []string
 	if err := json.Unmarshal(data, &ids); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal CardCollection")
 	}
 	cc.col = make(map[string]struct{})
 	for _, id := range ids {
@@ -153,7 +154,7 @@ func (d *Deck) AddCard(cardID string) error {
 func (d *Deck) UnmarshalJSON(data []byte) error {
 	doc := &deckDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal Deck")
 	}
 	if doc.Type != "deck" {
 		return errors.New("Invalid document type for deck: " + doc.Type)

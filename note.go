@@ -47,7 +47,7 @@ func NewNote(id []byte, model *Model) (*Note, error) {
 	n := &Note{}
 	nid, err := NewDocID("note", id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "cannot create DocID")
 	}
 	n.ID = nid
 	n.ThemeID = model.Theme.ID.String()
@@ -92,7 +92,7 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 func (n *Note) UnmarshalJSON(data []byte) error {
 	doc := &noteDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal Note")
 	}
 	if doc.Type != "note" {
 		return errors.New("Invalid document type for note: " + doc.Type)
@@ -158,7 +158,7 @@ func (fv *FieldValue) MarshalJSON() ([]byte, error) {
 func (fv *FieldValue) UnmarshalJSON(data []byte) error {
 	doc := &fieldValueDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal FieldValue")
 	}
 	fv.text = doc.Text
 	fv.files = doc.Files

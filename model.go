@@ -7,8 +7,8 @@ import (
 // Model represents a Flashback card Model
 type Model struct {
 	Theme       *Theme              `json:"-"`
-	ID          uint32              `json:"id"`
-	Type        ModelType           `json:"modelType"`
+	ID          uint32              `json:"id"` // I'd prefer uint8, but that doesn't support easy atomic incrementing
+	Type        string              `json:"modelType"`
 	Name        *string             `json:"name,omitempty"`
 	Description *string             `json:"description,omitempty"`
 	Templates   []string            `json:"templates"`
@@ -16,19 +16,16 @@ type Model struct {
 	Files       *FileCollectionView `json:"files,omitempty"`
 }
 
-// ModelType describes the model type
-type ModelType int
-
 const (
-	// AnkiStandard describes a model imported from Anki of the "standard" type
-	AnkiStandard ModelType = iota
-	// AnkiCloze describes a model imported from Anki of the Cloze type
-	AnkiCloze
+	// AnkiStandardModel is a Basic Anki note
+	AnkiStandardModel = "anki-basic"
+	// AnkiClozeModel is an Anki Cloze note. Not yet implemented.
+	AnkiClozeModel = "anki-cloze"
 )
 
 // NewModel creates a new model as a member of the provided theme, and of the
 // provided type.
-func NewModel(t *Theme, mType ModelType) (*Model, error) {
+func NewModel(t *Theme, mType string) (*Model, error) {
 	return &Model{
 		Theme:     t,
 		ID:        t.NextModelSequence(),

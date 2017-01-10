@@ -15,7 +15,8 @@ var frozenCard = []byte(`
     "_id": "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
-    "imported": "2016-08-02T15:08:24.730156517Z"
+    "imported": "2016-08-02T15:08:24.730156517Z",
+    "model": "theme-VGVzdCBUaGVtZQ/0"
 }
 `)
 
@@ -23,7 +24,7 @@ func TestCard(t *testing.T) {
 	require := require.New(t)
 	u, _ := testUser()
 	b, _ := fb.NewBundle([]byte("Test Bundle"), u)
-	c, err := fb.NewCard(b.ID.Identity() + ".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
+	c, err := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, b.ID.Identity()+".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 	require.Nil(err, "Error creating card: %s", err)
 
 	c.Created = now

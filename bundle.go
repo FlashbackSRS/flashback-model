@@ -2,8 +2,9 @@ package fb
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -42,7 +43,7 @@ func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	b := &Bundle{}
 	bid, err := NewDbID("bundle", id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create DbID")
 	}
 	b.ID = bid
 	b.Owner = owner
@@ -68,14 +69,14 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 func (b *Bundle) UnmarshalJSON(data []byte) error {
 	doc := &bundleDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal Bundle")
 	}
 	if doc.Type != "bundle" {
 		return errors.New("Invalid document type for bundle: " + doc.Type)
 	}
 	user, err := NewUserStub(doc.Owner)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "invalid user for bundle")
 	}
 	b.ID = doc.ID
 	b.Rev = doc.Rev
