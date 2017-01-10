@@ -26,7 +26,7 @@ type Card struct {
 	noteID     string
 	templateID uint32
 	themeID    string
-	modelID    uint8
+	modelID    uint32
 	Rev        *string
 	Created    time.Time
 	Modified   time.Time
@@ -35,8 +35,8 @@ type Card struct {
 	// 	Suspended   bool
 	// 	Buried      bool
 	// 	AutoBuried  bool
-	// 	Due         *time.Time
-	// 	Interval    *time.Duration
+	Due      *time.Time
+	Interval *time.Duration
 	// 	SRSFactor   float32
 	// 	ReviewCount int
 	// 	LapseCount  int
@@ -49,14 +49,13 @@ type cardDoc struct {
 	Created  time.Time  `json:"created"`
 	Modified time.Time  `json:"modified"`
 	Imported *time.Time `json:"imported,omitempty"`
-	ThemeID  string     `json:"theme"`
-	ModelID  uint8      `json:"model"`
+	ModelID  string     `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
 	// 	Suspended   *bool          `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
-	// 	Due         *time.Time     `json:"due,omitempty"`
-	// 	Interval    *time.Duration `json:"interval,omitempty"`
+	Due      *time.Time     `json:"due,omitempty"`
+	Interval *time.Duration `json:"interval,omitempty,string"`
 	// 	SRSFactor   *float32       `json:"srsFactor,omitempty"`
 	// 	ReviewCount *int           `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
@@ -75,7 +74,7 @@ func parseID(id string) (string, string, uint32, error) {
 }
 
 // NewCard returns a new Card instance, with the requested id
-func NewCard(theme string, model uint8, id string) (*Card, error) {
+func NewCard(theme string, model uint32, id string) (*Card, error) {
 	bundleID, noteID, templateID, err := parseID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing card ID")
@@ -100,8 +99,8 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		Imported: c.Imported,
 		ModelID:  fmt.Sprintf("%s/%d", c.themeID, c.modelID),
 		// 		Queue:    c.Queue,
-		// 		Due:      c.Due,
-		// 		Interval: c.Interval,
+		Due:      c.Due,
+		Interval: c.Interval,
 	}
 	return json.Marshal(doc)
 }
@@ -132,7 +131,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "invalid model ID")
 	}
-	c.modelID = uint8(m)
+	c.modelID = uint32(m)
 	// 	c.Queue = doc.Queue
 	// 	if doc.Suspended != nil {
 	// 		c.Suspended = *doc.Suspended
@@ -143,8 +142,8 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	// 	if doc.AutoBuried != nil {
 	// 		c.AutoBuried = *doc.AutoBuried
 	// 	}
-	// 	c.Due = doc.Due
-	// 	c.Interval = doc.Interval
+	c.Due = doc.Due
+	c.Interval = doc.Interval
 	// 	if doc.SRSFactor != nil {
 	// 		c.SRSFactor = *doc.SRSFactor
 	// 	}
