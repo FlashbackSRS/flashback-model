@@ -1,7 +1,7 @@
 package fb
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"strconv"
 	"time"
@@ -37,7 +37,7 @@ func ParseDue(src string) (Due, error) {
 	if t, err := time.Parse(DueSeconds, src); err == nil {
 		return Due(t), nil
 	}
-	return Due{}, errors.New("Unrecognized input")
+	return Due{}, fmt.Errorf("Unrecognized input: %s", src)
 }
 
 // DueIn returns a new Due time d duration into the future. Durations greater
@@ -75,12 +75,12 @@ func midnight(t time.Time) time.Time {
 
 // MarshalJSON implements the json.Marshaler interface
 func (d Due) MarshalJSON() ([]byte, error) {
-	return []byte(d.String()), nil
+	return []byte(fmt.Sprintf("\"%s\"", d)), nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface
 func (d *Due) UnmarshalJSON(src []byte) error {
-	due, err := ParseDue(string(src))
+	due, err := ParseDue(string(bytes.Trim(src, "\"")))
 	*d = due
 	return err
 }
@@ -106,7 +106,7 @@ func ParseInterval(s string) (Interval, error) {
 	}
 	unit, ok := unitMap[s[len(s)-1:]]
 	if !ok {
-		return 0, fmt.Errorf("Unknown unit  in '%s'", s)
+		return 0, fmt.Errorf("Unknown unit in '%s'", s)
 	}
 	return Interval(time.Duration(q) * unit), nil
 }
@@ -128,12 +128,12 @@ func (i Interval) String() string {
 
 // MarshalJSON implements the json.Marshaler interface
 func (i Interval) MarshalJSON() ([]byte, error) {
-	return []byte(i.String()), nil
+	return []byte(fmt.Sprintf("\"%s\"", i)), nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface
 func (i *Interval) UnmarshalJSON(src []byte) error {
-	ivl, err := ParseInterval(string(src))
+	ivl, err := ParseInterval(string(bytes.Trim(src, "\"")))
 	*i = ivl
 	return err
 }

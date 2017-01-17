@@ -35,10 +35,11 @@ type Card struct {
 	// 	Suspended   bool
 	// 	Buried      bool
 	// 	AutoBuried  bool
-	Due      *time.Time
-	Interval *time.Duration
+	Due        *Due
+	Interval   *Interval
+	EaseFactor float32
 	// 	SRSFactor   float32
-	// 	ReviewCount int
+	ReviewCount int
 	// 	LapseCount  int
 }
 
@@ -54,8 +55,8 @@ type cardDoc struct {
 	// 	Suspended   *bool          `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
-	Due      *time.Time     `json:"due,omitempty"`
-	Interval *time.Duration `json:"interval,omitempty,string"`
+	Due      *Due      `json:"due,omitempty"`
+	Interval *Interval `json:"interval,omitempty,string"`
 	// 	SRSFactor   *float32       `json:"srsFactor,omitempty"`
 	// 	ReviewCount *int           `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`

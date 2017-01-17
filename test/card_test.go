@@ -16,7 +16,9 @@ var frozenCard = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "model": "theme-VGVzdCBUaGVtZQ/0"
+    "model": "theme-VGVzdCBUaGVtZQ/0",
+    "due": "2017-01-01",
+    "interval": "50d"
 }
 `)
 
@@ -31,6 +33,10 @@ func TestCard(t *testing.T) {
 	c.Modified = now
 	imp := now.AddDate(0, 0, 2)
 	c.Imported = &imp
+	due, _ := fb.ParseDue("2017-01-01")
+	c.Due = &due
+	ivl, _ := fb.ParseInterval("50d")
+	c.Interval = &ivl
 	require.MarshalsToJSON(frozenCard, c, "Created Card")
 
 	c2 := &fb.Card{}
