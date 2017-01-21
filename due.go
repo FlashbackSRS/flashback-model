@@ -56,6 +56,11 @@ func (d Due) Add(ivl Interval) Due {
 	return Due(time.Time(d).Truncate(Day).Add(dur + Day - time.Nanosecond).Truncate(Day))
 }
 
+// Sub returns the interval between d and s
+func (d Due) Sub(s Due) Interval {
+	return Interval(time.Time(d).Sub(time.Time(s)))
+}
+
 func (d Due) String() string {
 	t := time.Time(d)
 	if t.Truncate(Day).Equal(t) {
