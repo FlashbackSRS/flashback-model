@@ -9,10 +9,10 @@ import (
 
 // Duration unit available for scheduling
 const (
-	Second = time.Second
-	Minute = time.Minute
-	Hour   = time.Hour
-	Day    = time.Hour * 24
+	Second = Interval(time.Second)
+	Minute = Interval(time.Minute)
+	Hour   = Interval(time.Hour)
+	Day    = Interval(time.Hour * 24)
 )
 
 // This allows overriding time.Now() for tests
@@ -40,20 +40,20 @@ func ParseDue(src string) (Due, error) {
 	return Due{}, fmt.Errorf("Unrecognized input: %s", src)
 }
 
-// DueIn returns a new Due time d duration into the future. Durations greater
+// DueIn returns a new Due time i interval into the future. Durations greater
 // than 24 hours into the future are rounded to the day.
-func DueIn(dur time.Duration) Due {
-	return Due(now()).Add(Interval(dur))
+func DueIn(i Interval) Due {
+	return Due(now()).Add(i)
 }
 
 // Add returns a new Due time with the duration added to it.
 func (d Due) Add(ivl Interval) Due {
 	dur := time.Duration(ivl)
-	if dur.Hours() < 24 {
+	if ivl < Day {
 		return Due(time.Time(d).Add(dur))
 	}
 	// Round up to the next whole day
-	return Due(time.Time(d).Truncate(Day).Add(dur + Day - time.Nanosecond).Truncate(Day))
+	return Due(time.Time(d).Truncate(time.Duration(Day)).Add(time.Duration(ivl + Day - 1)).Truncate(time.Duration(Day)))
 }
 
 // Sub returns the interval between d and s
@@ -63,7 +63,7 @@ func (d Due) Sub(s Due) Interval {
 
 func (d Due) String() string {
 	t := time.Time(d)
-	if t.Truncate(Day).Equal(t) {
+	if t.Truncate(time.Duration(Day)).Equal(t) {
 		return t.Format(DueDays)
 	}
 	return t.Format(DueSeconds)
@@ -93,7 +93,7 @@ func (d *Due) UnmarshalJSON(src []byte) error {
 // Interval represents the number of days or seconds between reviews
 type Interval time.Duration
 
-var unitMap = map[string]time.Duration{
+var unitMap = map[string]Interval{
 	"s": Second,
 	"m": Minute,
 	"h": Hour,
@@ -113,15 +113,14 @@ func ParseInterval(s string) (Interval, error) {
 	if !ok {
 		return 0, fmt.Errorf("Unknown unit in '%s'", s)
 	}
-	return Interval(time.Duration(q) * unit), nil
+	return Interval(q) * unit, nil
 }
 
 func (i Interval) String() string {
-	d := time.Duration(i)
-	if d >= 24*Hour {
-		return fmt.Sprintf("%dd", int(d.Hours()/24))
+	if i >= Day {
+		return fmt.Sprintf("%dd", int(time.Duration(i).Hours()/24))
 	}
-	s := int(d.Seconds())
+	s := int(time.Duration(i).Seconds())
 	if s%3600 == 0 {
 		return fmt.Sprintf("%dh", s/3600)
 	}

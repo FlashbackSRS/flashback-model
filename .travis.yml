@@ -24,5 +24,4 @@ install:
 
 script:
     - diff -u <(echo -n) <(gofmt -d ./)
-    - go test github.com/FlashbackSRS/flashback-model github.com/FlashbackSRS/flashback-model/test
-    - gopherjs test --tags=disableunsafe github.com/FlashbackSRS/flashback-model github.com/FlashbackSRS/flashback-model/test
+    - ./test.sh
