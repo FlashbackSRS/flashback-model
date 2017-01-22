@@ -35,10 +35,9 @@ type Card struct {
 	// 	Suspended   bool
 	// 	Buried      bool
 	// 	AutoBuried  bool
-	Due        *Due
-	Interval   *Interval
-	EaseFactor float32
-	// 	SRSFactor   float32
+	Due         *Due
+	Interval    *Interval
+	EaseFactor  float32
 	ReviewCount int
 	// 	LapseCount  int
 }
@@ -55,9 +54,9 @@ type cardDoc struct {
 	// 	Suspended   *bool          `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
-	Due      *Due      `json:"due,omitempty"`
-	Interval *Interval `json:"interval,omitempty,string"`
-	// 	SRSFactor   *float32       `json:"srsFactor,omitempty"`
+	Due        *Due      `json:"due,omitempty"`
+	Interval   *Interval `json:"interval,omitempty,string"`
+	EaseFactor float32   `json:"easeFactor,omitempty"`
 	// 	ReviewCount *int           `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
@@ -92,16 +91,16 @@ func NewCard(theme string, model uint32, id string) (*Card, error) {
 // MarshalJSON implements the json.Marshaler interface for the Card type.
 func (c *Card) MarshalJSON() ([]byte, error) {
 	doc := cardDoc{
-		Type:     "card",
-		ID:       c.DocID(),
-		Rev:      c.Rev,
-		Created:  c.Created,
-		Modified: c.Modified,
-		Imported: c.Imported,
-		ModelID:  fmt.Sprintf("%s/%d", c.themeID, c.modelID),
-		// 		Queue:    c.Queue,
-		Due:      c.Due,
-		Interval: c.Interval,
+		Type:       "card",
+		ID:         c.DocID(),
+		Rev:        c.Rev,
+		Created:    c.Created,
+		Modified:   c.Modified,
+		Imported:   c.Imported,
+		ModelID:    fmt.Sprintf("%s/%d", c.themeID, c.modelID),
+		Due:        c.Due,
+		Interval:   c.Interval,
+		EaseFactor: c.EaseFactor,
 	}
 	return json.Marshal(doc)
 }
@@ -145,9 +144,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	// 	}
 	c.Due = doc.Due
 	c.Interval = doc.Interval
-	// 	if doc.SRSFactor != nil {
-	// 		c.SRSFactor = *doc.SRSFactor
-	// 	}
+	c.EaseFactor = doc.EaseFactor
 	// 	if doc.ReviewCount != nil {
 	// 		c.ReviewCount = *doc.ReviewCount
 	// 	}
