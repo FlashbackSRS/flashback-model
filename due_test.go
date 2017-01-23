@@ -75,7 +75,7 @@ func TestStringer(t *testing.T) {
 		StringerTest{
 			Name:     "Interval days",
 			I:        Interval(100 * Hour),
-			Expected: "4d",
+			Expected: "5d",
 		},
 		StringerTest{
 			Name:     "Due seconds",

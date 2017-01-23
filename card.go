@@ -31,6 +31,7 @@ type Card struct {
 	Created    time.Time
 	Modified   time.Time
 	Imported   *time.Time
+	LastReview *time.Time
 	// 	Queue       CardQueue
 	// 	Suspended   bool
 	// 	Buried      bool
@@ -43,21 +44,22 @@ type Card struct {
 }
 
 type cardDoc struct {
-	Type     string     `json:"type"`
-	ID       string     `json:"_id"`
-	Rev      *string    `json:"_rev,omitempty"`
-	Created  time.Time  `json:"created"`
-	Modified time.Time  `json:"modified"`
-	Imported *time.Time `json:"imported,omitempty"`
-	ModelID  string     `json:"model"`
+	Type       string     `json:"type"`
+	ID         string     `json:"_id"`
+	Rev        *string    `json:"_rev,omitempty"`
+	Created    time.Time  `json:"created"`
+	Modified   time.Time  `json:"modified"`
+	Imported   *time.Time `json:"imported,omitempty"`
+	LastReview *time.Time `json:"lastReview,omitempty"`
+	ModelID    string     `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
 	// 	Suspended   *bool          `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
-	Due        *Due      `json:"due,omitempty"`
-	Interval   *Interval `json:"interval,omitempty,string"`
-	EaseFactor float32   `json:"easeFactor,omitempty"`
-	// 	ReviewCount *int           `json:"reviewCount,omitempty"`
+	Due         *Due      `json:"due,omitempty"`
+	Interval    *Interval `json:"interval,omitempty"`
+	EaseFactor  float32   `json:"easeFactor,omitempty"`
+	ReviewCount int       `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
@@ -91,16 +93,18 @@ func NewCard(theme string, model uint32, id string) (*Card, error) {
 // MarshalJSON implements the json.Marshaler interface for the Card type.
 func (c *Card) MarshalJSON() ([]byte, error) {
 	doc := cardDoc{
-		Type:       "card",
-		ID:         c.DocID(),
-		Rev:        c.Rev,
-		Created:    c.Created,
-		Modified:   c.Modified,
-		Imported:   c.Imported,
-		ModelID:    fmt.Sprintf("%s/%d", c.themeID, c.modelID),
-		Due:        c.Due,
-		Interval:   c.Interval,
-		EaseFactor: c.EaseFactor,
+		Type:        "card",
+		ID:          c.DocID(),
+		Rev:         c.Rev,
+		Created:     c.Created,
+		Modified:    c.Modified,
+		Imported:    c.Imported,
+		LastReview:  c.LastReview,
+		ModelID:     fmt.Sprintf("%s/%d", c.themeID, c.modelID),
+		Due:         c.Due,
+		Interval:    c.Interval,
+		EaseFactor:  c.EaseFactor,
+		ReviewCount: c.ReviewCount,
 	}
 	return json.Marshal(doc)
 }
@@ -125,6 +129,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	c.Created = doc.Created
 	c.Modified = doc.Modified
 	c.Imported = doc.Imported
+	c.LastReview = doc.LastReview
 	model := strings.Split(doc.ModelID, "/")
 	c.themeID = model[0]
 	m, err := strconv.Atoi(model[1])
@@ -145,9 +150,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	c.Due = doc.Due
 	c.Interval = doc.Interval
 	c.EaseFactor = doc.EaseFactor
-	// 	if doc.ReviewCount != nil {
-	// 		c.ReviewCount = *doc.ReviewCount
-	// 	}
+	c.ReviewCount = doc.ReviewCount
 	// 	if doc.LapseCount != nil {
 	// 		c.LapseCount = *doc.LapseCount
 	// 	}

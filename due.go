@@ -29,6 +29,11 @@ const (
 // Due represents the time/date a card is due.
 type Due time.Time
 
+// Today return's today's date as a Due value
+func Today() Due {
+	return Due(now().Truncate(time.Duration(Day)))
+}
+
 // ParseDue attempts to parse the provided string as a due time.
 func ParseDue(src string) (Due, error) {
 	if t, err := time.Parse(DueDays, src); err == nil {
@@ -59,6 +64,20 @@ func (d Due) Add(ivl Interval) Due {
 // Sub returns the interval between d and s
 func (d Due) Sub(s Due) Interval {
 	return Interval(time.Time(d).Sub(time.Time(s)))
+}
+
+// Equal returns true if the two due dates are equal.
+func (d Due) Equal(d2 Due) bool {
+	t1 := time.Time(d)
+	t2 := time.Time(d2)
+	return t1.Equal(t2)
+}
+
+// After returns true if d2 is after d.
+func (d Due) After(d2 Due) bool {
+	t1 := time.Time(d)
+	t2 := time.Time(d2)
+	return t1.After(t2)
 }
 
 func (d Due) String() string {
@@ -117,8 +136,8 @@ func ParseInterval(s string) (Interval, error) {
 }
 
 func (i Interval) String() string {
-	if i >= Day {
-		return fmt.Sprintf("%dd", int(time.Duration(i).Hours()/24))
+	if days := i.Days(); days > 0 {
+		return fmt.Sprintf("%dd", days)
 	}
 	s := int(time.Duration(i).Seconds())
 	if s%3600 == 0 {
@@ -130,14 +149,53 @@ func (i Interval) String() string {
 	return fmt.Sprintf("%ds", s)
 }
 
-// MarshalJSON implements the json.Marshaler interface
-func (i Interval) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", i)), nil
+// Equal returns true if the two intervals are effectively equal.
+func (i Interval) Equal(i2 Interval) bool {
+	return i.String() == i2.String()
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface
+// MarshalJSON implements the json.Marshaler interface
+//
+// Values > 1 day are stored as a positive integer. Sub-day values are stored
+// as negative seconds. This is to make sorting easy in PouchDB.
+func (i Interval) MarshalJSON() ([]byte, error) {
+	var str string
+	if days := i.Days(); days > 0 {
+		str = strconv.Itoa(days)
+	} else {
+		str = strconv.Itoa(-int(time.Duration(i).Seconds()))
+	}
+	return []byte(str), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
 func (i *Interval) UnmarshalJSON(src []byte) error {
-	ivl, err := ParseInterval(string(bytes.Trim(src, "\"")))
+	// Legacy support; just for testing
+	if bytes.ContainsAny(src, "dhms") {
+		ivl, err := ParseInterval(string(bytes.Trim(src, "\"")))
+		*i = ivl
+		return err
+	}
+	num, err := strconv.Atoi(string(src))
+	if err != nil {
+		return err
+	}
+	var ivl Interval
+	if num < 0 {
+		ivl = -Interval(num) * Second
+	} else {
+		ivl = Interval(num) * Day
+	}
 	*i = ivl
-	return err
+	return nil
+}
+
+// Days returns the number of whole days in the interval. Intervals
+// less than one day return 0. Intervals greater than one day always
+// round up to the next whole day.
+func (i Interval) Days() int {
+	if i >= Day {
+		return int(time.Duration(i+24*Hour-1).Hours() / 24)
+	}
+	return 0
 }

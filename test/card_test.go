@@ -18,7 +18,7 @@ var frozenCard = []byte(`
     "imported": "2016-08-02T15:08:24.730156517Z",
     "model": "theme-VGVzdCBUaGVtZQ/0",
     "due": "2017-01-01",
-    "interval": "50d"
+    "interval": 50
 }
 `)
 
