@@ -59,7 +59,7 @@ type cardDoc struct {
 	Due         *Due      `json:"due,omitempty"`
 	Interval    *Interval `json:"interval,omitempty"`
 	EaseFactor  float32   `json:"easeFactor,omitempty"`
-	ReviewCount *int      `json:"reviewCount,omitempty"`
+	ReviewCount int       `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 }
 
@@ -104,7 +104,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		Due:         c.Due,
 		Interval:    c.Interval,
 		EaseFactor:  c.EaseFactor,
-		ReviewCount: &c.ReviewCount,
+		ReviewCount: c.ReviewCount,
 	}
 	return json.Marshal(doc)
 }
@@ -150,9 +150,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	c.Due = doc.Due
 	c.Interval = doc.Interval
 	c.EaseFactor = doc.EaseFactor
-	if doc.ReviewCount != nil {
-		c.ReviewCount = *doc.ReviewCount
-	}
+	c.ReviewCount = doc.ReviewCount
 	// 	if doc.LapseCount != nil {
 	// 		c.LapseCount = *doc.LapseCount
 	// 	}
