@@ -61,6 +61,20 @@ func (d Due) Sub(s Due) Interval {
 	return Interval(time.Time(d).Sub(time.Time(s)))
 }
 
+// Equal returns true if the two due dates are equal.
+func (d Due) Equal(d2 Due) bool {
+	t1 := time.Time(d)
+	t2 := time.Time(d2)
+	return t1.Equal(t2)
+}
+
+// After returns true if d2 is after d.
+func (d Due) After(d2 Due) bool {
+	t1 := time.Time(d)
+	t2 := time.Time(d2)
+	return t1.After(t2)
+}
+
 func (d Due) String() string {
 	t := time.Time(d)
 	if t.Truncate(time.Duration(Day)).Equal(t) {
