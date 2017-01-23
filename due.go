@@ -29,6 +29,11 @@ const (
 // Due represents the time/date a card is due.
 type Due time.Time
 
+// Today return's today's date as a Due value
+func Today() Due {
+	return Due(now().Truncate(time.Duration(Day)))
+}
+
 // ParseDue attempts to parse the provided string as a due time.
 func ParseDue(src string) (Due, error) {
 	if t, err := time.Parse(DueDays, src); err == nil {
