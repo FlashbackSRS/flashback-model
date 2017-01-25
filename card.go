@@ -116,7 +116,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if doc.Type != "card" {
-		return errors.New("Invalid document type for card: " + doc.Type)
+		return errors.New("invalid document type for card: " + doc.Type)
 	}
 	bundleID, noteID, templateID, err := parseID(doc.ID)
 	if err != nil {

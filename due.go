@@ -29,9 +29,14 @@ const (
 // Due represents the time/date a card is due.
 type Due time.Time
 
-// Today return's today's date as a Due value
+// Today returns today's date as a Due value
 func Today() Due {
 	return Due(now().Truncate(time.Duration(Day)))
+}
+
+// Now returns the current time as a Due value. Intended for use in comparisons.
+func Now() Due {
+	return Due(now())
 }
 
 // ParseDue attempts to parse the provided string as a due time.
