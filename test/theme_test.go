@@ -67,7 +67,7 @@ var frozenTheme = []byte(`
             "content_type": "text/plain",
             "data": "VGVzdCB0ZXh0IGZpbGU="
         },
-        "$main.css": {
+        "%24main.css": {
             "content_type": "text/css",
             "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
         }
@@ -174,7 +174,7 @@ var frozenExistingTheme = []byte(`
             "content_type": "text/plain",
             "data": "VGVzdCB0ZXh0IGZpbGU="
         },
-        "$main.css": {
+        "%24main.css": {
             "content_type": "text/css",
             "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
         }
@@ -245,7 +245,7 @@ var frozenMergedTheme = []byte(`
             "content_type": "text/plain",
             "data": "VGVzdCB0ZXh0IGZpbGU="
         },
-        "$main.css": {
+        "%24main.css": {
             "content_type": "text/css",
             "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
         }

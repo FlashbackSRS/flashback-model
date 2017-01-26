@@ -24,11 +24,21 @@ var frozenNote = []byte(`
         },
         {
             "files": [
-                "foo.mp3"
+                "_weirdname.txt",
+                "foo.mp3",
+                "영상.jpg"
             ]
         }
     ],
     "_attachments": {
+        "%EC%98%81%EC%83%81.jpg": {
+            "content_type": "audio/mpeg",
+            "data": "YSBLb3JlYW4gZmlsZW5hbWU="
+        },
+        "%5Fweirdname.txt": {
+            "content_type": "audio/mpeg",
+            "data": "YSBmaWxlIHdpdGggYSBzdHJhbmdlIG5hbWU="
+        },
         "foo.mp3": {
             "content_type": "audio/mpeg",
             "data": "bm90IGEgcmVhbCBNUDM="
@@ -61,6 +71,12 @@ func TestNote(t *testing.T) {
 
 	err = fv2.AddFile("foo.mp3", "audio/mpeg", []byte("not a real MP3"))
 	require.Nil(err, "Error attaching audio file: %s", err)
+
+	err = fv2.AddFile("_weirdname.txt", "audio/mpeg", []byte("a file with a strange name"))
+	require.Nil(err, "Error attaching strangely named file: %s", err)
+
+	err = fv2.AddFile("영상.jpg", "audio/mpeg", []byte("a Korean filename"))
+	require.Nil(err, "Error attaching strangely named file: %s", err)
 
 	require.MarshalsToJSON(frozenNote, n, "Create Note")
 
@@ -120,11 +136,21 @@ var frozenMergedNote = []byte(`
         },
         {
             "files": [
-                "foo.mp3"
+                "_weirdname.txt",
+                "foo.mp3",
+                "영상.jpg"
             ]
         }
     ],
     "_attachments": {
+        "%5Fweirdname.txt": {
+            "content_type": "audio/mpeg",
+            "data": "YSBmaWxlIHdpdGggYSBzdHJhbmdlIG5hbWU="
+        },
+        "%EC%98%81%EC%83%81.jpg": {
+            "content_type": "audio/mpeg",
+            "data": "YSBLb3JlYW4gZmlsZW5hbWU="
+        },
         "foo.mp3": {
             "content_type": "audio/mpeg",
             "data": "bm90IGEgcmVhbCBNUDM="
