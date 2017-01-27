@@ -33,7 +33,7 @@ type Card struct {
 	Imported   *time.Time
 	LastReview *time.Time
 	// 	Queue       CardQueue
-	// 	Suspended   bool
+	Suspended bool
 	// 	Buried      bool
 	// 	AutoBuried  bool
 	Due         *Due
@@ -53,7 +53,7 @@ type cardDoc struct {
 	LastReview *time.Time `json:"lastReview,omitempty"`
 	ModelID    string     `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
-	// 	Suspended   *bool          `json:"suspended,omitempty"`
+	Suspended *bool `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
 	Due         *Due      `json:"due,omitempty"`
@@ -106,6 +106,9 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		EaseFactor:  c.EaseFactor,
 		ReviewCount: c.ReviewCount,
 	}
+	if c.Suspended {
+		doc.Suspended = &c.Suspended
+	}
 	return json.Marshal(doc)
 }
 
@@ -154,6 +157,9 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	// 	if doc.LapseCount != nil {
 	// 		c.LapseCount = *doc.LapseCount
 	// 	}
+	if doc.Suspended != nil {
+		c.Suspended = *doc.Suspended
+	}
 	return nil
 }
 
