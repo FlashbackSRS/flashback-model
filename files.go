@@ -2,8 +2,8 @@ package fb
 
 import (
 	"encoding/json"
-	"net/url"
 	"sort"
+	"strings"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
@@ -96,21 +96,27 @@ func (fc *FileCollection) RemoveAll(name string) {
 	}
 }
 
+// filenameEscapeChar is used to escape the first character of attachments
+// that begin with '_' or the escape char itself. '^' was chosen, as it does
+// not require special JSON escaping (as '\' would, for example), and should
+// appear rarely in filenames.
+const filenameEscapeChar = '^'
+
 // escapeFilename and unescapeFilename convert filenames to legal PouchDB
 // representations. In particular, this means non-ASCII and special characters
 // are URL-encoded, and leading '_' characters as well, as these upset PouchDB.
 // Any '_' characters found elsewhere in the filename are left alone, to
 // preserve a few bytes of space (woot!).
 func escapeFilename(filename string) string {
-	filename = url.QueryEscape(filename)
-	if filename[0] == '_' {
-		return "%5F" + filename[1:]
+	switch filename[0] {
+	case '_', filenameEscapeChar:
+		return string(filenameEscapeChar) + filename
 	}
 	return filename
 }
 
 func unescapeFilename(escaped string) (string, error) {
-	return url.QueryUnescape(escaped)
+	return strings.TrimPrefix(escaped, string(filenameEscapeChar)), nil
 }
 
 // MarshalJSON implements the json.Marshaler interface for the FileCollection type.

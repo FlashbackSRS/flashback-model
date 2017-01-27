@@ -31,11 +31,11 @@ var frozenNote = []byte(`
         }
     ],
     "_attachments": {
-        "%EC%98%81%EC%83%81.jpg": {
+        "영상.jpg": {
             "content_type": "audio/mpeg",
             "data": "YSBLb3JlYW4gZmlsZW5hbWU="
         },
-        "%5Fweirdname.txt": {
+        "^_weirdname.txt": {
             "content_type": "audio/mpeg",
             "data": "YSBmaWxlIHdpdGggYSBzdHJhbmdlIG5hbWU="
         },
@@ -143,11 +143,11 @@ var frozenMergedNote = []byte(`
         }
     ],
     "_attachments": {
-        "%5Fweirdname.txt": {
+        "^_weirdname.txt": {
             "content_type": "audio/mpeg",
             "data": "YSBmaWxlIHdpdGggYSBzdHJhbmdlIG5hbWU="
         },
-        "%EC%98%81%EC%83%81.jpg": {
+        "영상.jpg": {
             "content_type": "audio/mpeg",
             "data": "YSBLb3JlYW4gZmlsZW5hbWU="
         },

@@ -65,11 +65,11 @@ var frozenPackage = []byte(`
                 }
             ],
             "_attachments": {
-                "%5Fweirdname.txt": {
+                "^_weirdname.txt": {
                     "content_type": "audio/mpeg",
                     "data": "YSBmaWxlIHdpdGggYSBzdHJhbmdlIG5hbWU="
                 },
-                "%EC%98%81%EC%83%81.jpg": {
+                "영상.jpg": {
                     "content_type": "audio/mpeg",
                     "data": "YSBLb3JlYW4gZmlsZW5hbWU="
                 },
@@ -142,7 +142,7 @@ var frozenPackage = []byte(`
                 }
             ],
             "_attachments": {
-                "%24main.css": {
+                "$main.css": {
                     "content_type": "text/css",
                     "data": "LyogYW4gZW1wdHkgQ1NTIGZpbGUgKi8="
                 },

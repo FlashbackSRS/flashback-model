@@ -15,11 +15,19 @@ func TestEscapeFilename(t *testing.T) {
 		},
 		escapeFilenameTest{
 			Filename: "_foobar.jpg",
-			Expected: "%5Ffoobar.jpg",
+			Expected: "^_foobar.jpg",
 		},
 		escapeFilenameTest{
-			Filename: "^영상.jpg",
-			Expected: "%5E%EC%98%81%EC%83%81.jpg",
+			Filename: "^foobar.jpg",
+			Expected: "^^foobar.jpg",
+		},
+		escapeFilenameTest{
+			Filename: "foo^bar_baz.jpg",
+			Expected: "foo^bar_baz.jpg",
+		},
+		escapeFilenameTest{
+			Filename: "영상.jpg",
+			Expected: "영상.jpg",
 		},
 	}
 	for _, test := range tests {
