@@ -41,6 +41,10 @@ type Card struct {
 	EaseFactor  float32
 	ReviewCount int
 	// 	LapseCount  int
+	// Context can store card-specific context, such as typed or recorded answers.
+	// TODO: Answers should probably be stored in a separate db, which can be
+	// easily synced to others for review, but for now this is the easy way.
+	Context interface{}
 }
 
 type cardDoc struct {
@@ -61,6 +65,7 @@ type cardDoc struct {
 	EaseFactor  float32   `json:"easeFactor,omitempty"`
 	ReviewCount int       `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
+	Context interface{} `json:"context,omitempty"`
 }
 
 func parseID(id string) (string, string, uint32, error) {
@@ -105,6 +110,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		Interval:    c.Interval,
 		EaseFactor:  c.EaseFactor,
 		ReviewCount: c.ReviewCount,
+		Context:     c.Context,
 	}
 	if c.Suspended {
 		doc.Suspended = &c.Suspended
@@ -160,6 +166,7 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	if doc.Suspended != nil {
 		c.Suspended = *doc.Suspended
 	}
+	c.Context = doc.Context
 	return nil
 }
 
