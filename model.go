@@ -6,14 +6,15 @@ import (
 
 // Model represents a Flashback card Model
 type Model struct {
-	Theme       *Theme              `json:"-"`
-	ID          uint32              `json:"id"` // I'd prefer uint8, but that doesn't support easy atomic incrementing
-	Type        string              `json:"modelType"`
-	Name        *string             `json:"name,omitempty"`
-	Description *string             `json:"description,omitempty"`
-	Templates   []string            `json:"templates"`
-	Fields      []*Field            `json:"fields"`
-	Files       *FileCollectionView `json:"files,omitempty"`
+	Theme       *Theme  `json:"-"`
+	ID          uint32  `json:"id"` // I'd prefer uint8, but that doesn't support easy atomic incrementing
+	Type        string  `json:"modelType"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	// Templates are analogous to anki Card definitions.
+	Templates []string            `json:"templates"`
+	Fields    []*Field            `json:"fields"`
+	Files     *FileCollectionView `json:"files,omitempty"`
 }
 
 const (

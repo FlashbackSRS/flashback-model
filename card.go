@@ -218,6 +218,11 @@ func (c *Card) TemplateID() uint32 {
 	return c.templateID
 }
 
+// ModelID returns the card's Model ID
+func (c *Card) ModelID() int {
+	return int(c.modelID)
+}
+
 // NoteID returns the card's NoteID
 func (c *Card) NoteID() string {
 	return "note-" + c.noteID
