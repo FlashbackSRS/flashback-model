@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flimzy/testify/require"
-
 	"github.com/pborman/uuid"
 
 	"github.com/FlashbackSRS/flashback-model"

@@ -34,9 +34,9 @@ type Card struct {
 	LastReview *time.Time
 	// 	Queue       CardQueue
 	Suspended bool
-	// 	Buried      bool
 	// 	AutoBuried  bool
 	Due         *Due
+	BuriedUntil *Due
 	Interval    *Interval
 	EaseFactor  float32
 	ReviewCount int
@@ -61,6 +61,7 @@ type cardDoc struct {
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
 	Due         *Due      `json:"due,omitempty"`
+	BuriedUntil *Due      `json:"buriedUntil,omitempty"`
 	Interval    *Interval `json:"interval,omitempty"`
 	EaseFactor  float32   `json:"easeFactor,omitempty"`
 	ReviewCount int       `json:"reviewCount,omitempty"`
@@ -107,6 +108,7 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 		LastReview:  c.LastReview,
 		ModelID:     fmt.Sprintf("%s/%d", c.themeID, c.modelID),
 		Due:         c.Due,
+		BuriedUntil: c.BuriedUntil,
 		Interval:    c.Interval,
 		EaseFactor:  c.EaseFactor,
 		ReviewCount: c.ReviewCount,
@@ -150,13 +152,11 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 	// 	if doc.Suspended != nil {
 	// 		c.Suspended = *doc.Suspended
 	// 	}
-	// 	if doc.Buried != nil {
-	// 		c.Buried = *doc.Buried
-	// 	}
 	// 	if doc.AutoBuried != nil {
 	// 		c.AutoBuried = *doc.AutoBuried
 	// 	}
 	c.Due = doc.Due
+	c.BuriedUntil = doc.BuriedUntil
 	c.Interval = doc.Interval
 	c.EaseFactor = doc.EaseFactor
 	c.ReviewCount = doc.ReviewCount
