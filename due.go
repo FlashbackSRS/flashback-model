@@ -56,6 +56,11 @@ func DueIn(i Interval) Due {
 	return Due(now()).Add(i)
 }
 
+// IsZero returns true if the value is zero
+func (d Due) IsZero() bool {
+	return time.Time(d).IsZero()
+}
+
 // Add returns a new Due time with the duration added to it.
 func (d Due) Add(ivl Interval) Due {
 	dur := time.Duration(ivl)
