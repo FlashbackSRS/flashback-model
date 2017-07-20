@@ -1,6 +1,9 @@
 package fb
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type version int
 
@@ -28,4 +31,29 @@ type Package struct {
 func (p *Package) MarshalJSON() ([]byte, error) {
 	p.Version = CurrentVersion
 	return json.Marshal(*p)
+}
+
+// Validate does some basic sanity checking on the package.
+func (p *Package) Validate() error {
+	cardMap := map[string]*Card{}
+	for _, c := range p.Cards {
+		cardMap[c.Identity()] = c
+	}
+
+	cards := make([]*Card, 0, len(cardMap))
+
+	for _, d := range p.Decks {
+		for _, id := range d.Cards.All() {
+			c, ok := cardMap[id]
+			if !ok {
+				return fmt.Errorf("card '%s' listed in deck, but not found in package", id)
+			}
+			cards = append(cards, c)
+			delete(cardMap, id)
+		}
+	}
+	for id := range cardMap {
+		return fmt.Errorf("card '%s' found in package, but not in a deck", id)
+	}
+	return nil
 }
