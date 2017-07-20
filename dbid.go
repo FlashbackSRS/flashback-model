@@ -52,6 +52,11 @@ type DbID struct {
 	id      []byte
 }
 
+// Valid returns true if the DbID is considered valid
+func (id *DbID) Valid() bool {
+	return len(id.id) > 0 && id.docType != ""
+}
+
 // Type returns the DbID's docType.
 func (id *DbID) Type() string {
 	return id.docType
