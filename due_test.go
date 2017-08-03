@@ -133,5 +133,35 @@ func TestAdd(t *testing.T) {
 	if result.String() != expected {
 		t.Errorf("Add 9000 hours:\n\tExpected: %s\n\t  Actual: %s\n", expected, result)
 	}
+}
 
+func TestOn(t *testing.T) {
+	ts, e := time.Parse(time.RFC3339, "2016-01-01T01:01:01+00:00")
+	if e != nil {
+		t.Fatal(e)
+	}
+	d := On(ts)
+	expected, e := time.Parse("2006-01-02", "2016-01-01")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !time.Time(d).Equal(expected) {
+		t.Errorf("Unexpected result: %v", d)
+	}
+}
+
+func TestNow(t *testing.T) {
+	now := time.Now()
+	n := Now()
+	if s := time.Time(n).Sub(now).Seconds(); s > 0.000001 {
+		t.Errorf("Result differs by %fs", s)
+	}
+}
+
+func TestToday(t *testing.T) {
+	today := Today()
+	expected := now().Truncate(time.Duration(Day))
+	if !expected.Equal(time.Time(today)) {
+		t.Errorf("Unepxected result: %v", today)
+	}
 }

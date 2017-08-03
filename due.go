@@ -31,7 +31,12 @@ type Due time.Time
 
 // Today returns today's date as a Due value
 func Today() Due {
-	return Due(now().Truncate(time.Duration(Day)))
+	return On(now())
+}
+
+// On returns the passed day's date as a Due value
+func On(t time.Time) Due {
+	return Due(t.Truncate(time.Duration(Day)))
 }
 
 // Now returns the current time as a Due value. Intended for use in comparisons.
