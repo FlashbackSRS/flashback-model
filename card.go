@@ -69,6 +69,30 @@ type cardDoc struct {
 	Context interface{} `json:"context,omitempty"`
 }
 
+// Validate validates that all of the data in the card appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (c *cardDoc) Validate() error {
+	if c.ID == "" {
+		return errors.New("id required")
+	}
+	if _, _, _, err := parseID(c.ID); err != nil {
+		return err
+	}
+	if c.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if c.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if c.ModelID == "" {
+		return errors.New("model id required")
+	}
+	if !strings.HasPrefix(c.ModelID, "model-") {
+		return errors.New("invalid type in model ID")
+	}
+	return nil
+}
+
 func parseID(id string) (bundleID string, noteID string, templateID uint32, err error) {
 	if !strings.HasPrefix(id, "card-") {
 		return "", "", 0, errors.New("invalid ID type")

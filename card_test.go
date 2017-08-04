@@ -312,3 +312,55 @@ func TestNoteID(t *testing.T) {
 		t.Errorf("Unexpected result: %s", id)
 	}
 }
+
+func TestCardValidate(t *testing.T) {
+	type cvTest struct {
+		name string
+		card *cardDoc
+		err  string
+	}
+	tests := []cvTest{
+		{
+			name: "empty card",
+			card: &cardDoc{},
+			err:  "id required",
+		},
+		{
+			name: "invalid id",
+			card: &cardDoc{ID: "chicken"},
+			err:  "invalid ID type",
+		},
+		{
+			name: "zero created time",
+			card: &cardDoc{ID: "card-foo.bar.0"},
+			err:  "created time required",
+		},
+		{
+			name: "zero modified time",
+			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z")},
+			err:  "modified time required",
+		},
+		{
+			name: "missing model id",
+			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			err:  "model id required",
+		},
+		{
+			name: "invalid model id",
+			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
+				ModelID: "chicken"},
+			err: "invalid type in model ID",
+		},
+		{
+			name: "valid",
+			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
+				ModelID: "model-foo"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.card.Validate()
+			checkErr(t, test.err, err)
+		})
+	}
+}
