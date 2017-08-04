@@ -32,4 +32,5 @@ install:
 
 script:
     - diff -u <(echo -n) <(gofmt -d ./)
-    - ./test.sh
+    - go test $(go list ./... | grep -v vendor/)
+    - gopherjs test $(go list ./... | grep -v vendor/)

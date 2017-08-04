@@ -26,7 +26,7 @@ func TestCard(t *testing.T) {
 	require := require.New(t)
 	u, _ := testUser()
 	b, _ := fb.NewBundle([]byte("Test Bundle"), u)
-	c, err := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, b.ID.Identity()+".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
+	c, err := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, "card-"+b.ID.Identity()+".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 	require.Nil(err, "Error creating card: %s", err)
 
 	c.Created = now
