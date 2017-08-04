@@ -108,7 +108,9 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 	n.Attachments = doc.Attachments
 	for _, fv := range n.FieldValues {
 		if fv.files != nil {
-			n.Attachments.AddView(fv.files)
+			if err := n.Attachments.AddView(fv.files); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
