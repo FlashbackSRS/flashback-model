@@ -30,7 +30,7 @@ type Card struct {
 	LastReview *time.Time `json:"lastReview,omitempty"`
 	ModelID    string     `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
-	Suspended *bool `json:"suspended,omitempty"`
+	Suspended bool `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
 	Due         *Due      `json:"due,omitempty"`
@@ -101,7 +101,8 @@ type cardAlias Card
 
 type jsonCard struct {
 	cardAlias
-	Type string `json:"type"`
+	Type      string `json:"type"`
+	Suspended *bool  `json:"suspended,omitempty"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the Card type.
@@ -112,6 +113,9 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 	doc := jsonCard{
 		Type:      "card",
 		cardAlias: cardAlias(*c),
+	}
+	if c.Suspended {
+		doc.Suspended = &c.Suspended
 	}
 	return json.Marshal(doc)
 }
@@ -126,6 +130,9 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 		return errors.New("invalid document type for card: " + doc.Type)
 	}
 	*c = Card(doc.cardAlias)
+	if doc.Suspended != nil {
+		c.Suspended = *doc.Suspended
+	}
 	return errors.Wrap(c.Validate(), "validation error")
 }
 

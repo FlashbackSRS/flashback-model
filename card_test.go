@@ -111,7 +111,7 @@ func TestMarshalJSON(t *testing.T) {
 			ModelID:   "theme-baz/2",
 			Created:   parseTime("2017-01-01T01:01:01Z"),
 			Modified:  parseTime("2017-01-01T01:01:01Z"),
-			Suspended: func() *bool { x := true; return &x }(),
+			Suspended: true,
 		}
 		expected := []byte(`{
             "_id": "card-foo.bar.1",
@@ -159,7 +159,7 @@ func TestUnmarshalJSON(t *testing.T) {
 				ModelID:   "theme-foo/2",
 				Created:   parseTime("2017-01-01T01:01:01Z"),
 				Modified:  parseTime("2017-01-01T01:01:01Z"),
-				Suspended: func() *bool { x := true; return &x }(),
+				Suspended: true,
 			},
 		},
 	}
