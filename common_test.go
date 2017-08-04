@@ -2,7 +2,22 @@ package fb
 
 import (
 	"testing"
+	"time"
 )
+
+func init() {
+	now = func() time.Time {
+		return parseTime("2017-01-01T00:00:00Z")
+	}
+}
+
+func parseTime(src string) time.Time {
+	t, err := time.Parse(time.RFC3339, src)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
 
 func checkErr(t *testing.T, expected interface{}, err error) {
 	var expectedMsg, errMsg string

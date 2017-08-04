@@ -45,7 +45,8 @@ func TestParseID(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			bundle, note, template, err := parseID(test.input)
+			c := &Card{ID: test.input}
+			bundle, note, template, err := c.parseID()
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -70,17 +71,17 @@ func TestNewCard(t *testing.T) {
 		{
 			name: "invalid id",
 			id:   "chicken man",
-			err:  "error parsing card ID: invalid ID type",
+			err:  "validation failure: invalid ID type",
 		},
 		{
 			name:  "valid",
 			theme: "theme-foo",
 			id:    "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1",
 			expected: &Card{
-				bundleID:   "krsxg5baij2w4zdmmu",
-				noteID:     "mViuXQThMLoh1G1Nlc4d_E8kR8o",
-				templateID: 1,
-				themeID:    "theme-foo",
+				ID:       "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1",
+				ModelID:  "theme-foo/0",
+				Created:  parseTime("2017-01-01T00:00:00Z"),
+				Modified: parseTime("2017-01-01T00:00:00Z"),
 			},
 		},
 	}
@@ -99,29 +100,33 @@ func TestNewCard(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	card := &Card{
-		bundleID:   "foo",
-		themeID:    "bar",
-		noteID:     "baz",
-		templateID: 1,
-		modelID:    2,
-		Created:    parseTime("2017-01-01T01:01:01Z"),
-		Modified:   parseTime("2017-01-01T01:01:01Z"),
-		Suspended:  true,
-	}
-	expected := []byte(`{
-        "_id": "card-foo.baz.1",
-        "created": "2017-01-01T01:01:01Z",
-        "model": "bar/2",
-        "modified": "2017-01-01T01:01:01Z",
-        "suspended": true,
-        "type": "card"
-    }`)
-	result, err := json.Marshal(card)
-	checkErr(t, nil, err)
-	if d := diff.JSON(expected, result); d != "" {
-		t.Error(d)
-	}
+	t.Run("invalid", func(t *testing.T) {
+		card := &Card{}
+		_, err := json.Marshal(card)
+		checkErr(t, "json: error calling MarshalJSON for type *fb.Card: validation error: id required", err)
+	})
+	t.Run("valid", func(t *testing.T) {
+		card := &Card{
+			ID:        "card-foo.bar.1",
+			ModelID:   "theme-baz/2",
+			Created:   parseTime("2017-01-01T01:01:01Z"),
+			Modified:  parseTime("2017-01-01T01:01:01Z"),
+			Suspended: func() *bool { x := true; return &x }(),
+		}
+		expected := []byte(`{
+            "_id": "card-foo.bar.1",
+            "created": "2017-01-01T01:01:01Z",
+            "model": "theme-baz/2",
+            "modified": "2017-01-01T01:01:01Z",
+            "suspended": true,
+            "type": "card"
+        }`)
+		result, err := json.Marshal(card)
+		checkErr(t, nil, err)
+		if d := diff.JSON(expected, result); d != "" {
+			t.Error(d)
+		}
+	})
 }
 
 func TestUnmarshalJSON(t *testing.T) {
@@ -142,25 +147,19 @@ func TestUnmarshalJSON(t *testing.T) {
 			err:   "invalid document type for card: chicken",
 		},
 		{
-			name:  "invalid id",
+			name:  "validation failure",
 			input: `{"type":"card","_id":"oink"}`,
-			err:   "invalid ID type",
-		},
-		{
-			name:  "invalid model id",
-			input: `{"type":"card", "_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "foo/chicken"}`,
-			err:   `invalid model ID: strconv.Atoi: parsing "chicken": invalid syntax`,
+			err:   "validation error: invalid ID type",
 		},
 		{
 			name:  "valid",
-			input: `{"type":"card", "_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "foo/2", "suspended":true}`,
+			input: `{"type":"card", "_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "theme-foo/2", "suspended":true, "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z"}`,
 			expected: &Card{
-				bundleID:   "krsxg5baij2w4zdmmu",
-				noteID:     "mViuXQThMLoh1G1Nlc4d_E8kR8o",
-				templateID: 1,
-				themeID:    "foo",
-				modelID:    2,
-				Suspended:  true,
+				ID:        "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1",
+				ModelID:   "theme-foo/2",
+				Created:   parseTime("2017-01-01T01:01:01Z"),
+				Modified:  parseTime("2017-01-01T01:01:01Z"),
+				Suspended: func() *bool { x := true; return &x }(),
 			},
 		},
 	}
@@ -180,7 +179,7 @@ func TestUnmarshalJSON(t *testing.T) {
 }
 
 func TestIdentity(t *testing.T) {
-	card := &Card{bundleID: "bundle", noteID: "note", templateID: 2}
+	card := &Card{ID: "card-bundle.note.2"}
 	expected := "bundle.note.2"
 	result := card.Identity()
 	if result != expected {
@@ -198,7 +197,7 @@ func TestSetRev(t *testing.T) {
 }
 
 func TestDocID(t *testing.T) {
-	card := &Card{bundleID: "bundle", noteID: "note", templateID: 2}
+	card := &Card{ID: "card-bundle.note.2"}
 	expected := "card-bundle.note.2"
 	result := card.DocID()
 	if result != expected {
@@ -240,28 +239,28 @@ func TestMergeImport(t *testing.T) {
 		},
 		{
 			name: "mismatched identities",
-			card: &Card{bundleID: "foo", noteID: "bar", templateID: 1},
-			i:    &Card{bundleID: "foo", noteID: "bar", templateID: 2},
+			card: &Card{ID: "card-foo.bar.1"},
+			i:    &Card{ID: "card-foo.bar.2"},
 			err:  "IDs don't match",
 		},
 		{
 			name: "different timestamps",
-			card: &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z")},
-			i:    &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-02-01T01:01:01Z")},
+			card: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z")},
+			i:    &Card{ID: "card-foo.bar.1", Created: parseTime("2017-02-01T01:01:01Z")},
 			err:  "Created timestamps don't match",
 		},
 		{
 			name:         "existing is newer",
-			card:         &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
-			i:            &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
-			expectedCard: &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+			card:         &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			i:            &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+			expectedCard: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
 		},
 		{
 			name:         "new is newer",
-			card:         &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
-			i:            &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			card:         &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+			i:            &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
 			expected:     true,
-			expectedCard: &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+			expectedCard: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
 		},
 	}
 	for _, test := range tests {
@@ -282,7 +281,7 @@ func TestMergeImport(t *testing.T) {
 }
 
 func TestBundleID(t *testing.T) {
-	card := &Card{bundleID: "foo"}
+	card := &Card{ID: "card-foo.bar.1"}
 	expected := "bundle-foo"
 	if id := card.BundleID(); id != expected {
 		t.Errorf("Unexpected result: %s", id)
@@ -291,22 +290,22 @@ func TestBundleID(t *testing.T) {
 
 func TestTemplateID(t *testing.T) {
 	expected := uint32(3)
-	card := &Card{templateID: expected}
+	card := &Card{ID: "card-foo.bar.3"}
 	if id := card.TemplateID(); id != expected {
 		t.Errorf("Unexpected result: %d", id)
 	}
 }
 
-func TestModelID(t *testing.T) {
-	expected := 4
-	card := &Card{modelID: uint32(expected)}
-	if id := card.ModelID(); id != expected {
-		t.Errorf("Unexpected result: %d", id)
-	}
-}
+// func TestModelID(t *testing.T) {
+// 	expected := 4
+// 	card := &Card{ModelID: "theme-foo/4"}
+// 	if id := card.ModelID(); id != expected {
+// 		t.Errorf("Unexpected result: %d", id)
+// 	}
+// }
 
 func TestNoteID(t *testing.T) {
-	card := &Card{noteID: "bar"}
+	card := &Card{ID: "card-foo.bar.1"}
 	expected := "note-bar"
 	if id := card.NoteID(); id != expected {
 		t.Errorf("Unexpected result: %s", id)
@@ -316,45 +315,45 @@ func TestNoteID(t *testing.T) {
 func TestCardValidate(t *testing.T) {
 	type cvTest struct {
 		name string
-		card *cardDoc
+		card *Card
 		err  string
 	}
 	tests := []cvTest{
 		{
 			name: "empty card",
-			card: &cardDoc{},
+			card: &Card{},
 			err:  "id required",
 		},
 		{
 			name: "invalid id",
-			card: &cardDoc{ID: "chicken"},
+			card: &Card{ID: "chicken"},
 			err:  "invalid ID type",
 		},
 		{
 			name: "zero created time",
-			card: &cardDoc{ID: "card-foo.bar.0"},
+			card: &Card{ID: "card-foo.bar.0"},
 			err:  "created time required",
 		},
 		{
 			name: "zero modified time",
-			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z")},
+			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:  "modified time required",
 		},
 		{
 			name: "missing model id",
-			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
 			err:  "model id required",
 		},
 		{
 			name: "invalid model id",
-			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
+			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
 				ModelID: "chicken"},
 			err: "invalid type in model ID",
 		},
 		{
 			name: "valid",
-			card: &cardDoc{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
-				ModelID: "model-foo"},
+			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
+				ModelID: "theme-foo/2"},
 		},
 	}
 	for _, test := range tests {
