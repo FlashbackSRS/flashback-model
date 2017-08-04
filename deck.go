@@ -145,9 +145,8 @@ func (d *Deck) MarshalJSON() ([]byte, error) {
 }
 
 // AddCard adds the provided card to the deck.
-func (d *Deck) AddCard(cardID string) error {
+func (d *Deck) AddCard(cardID string) {
 	d.Cards.col[cardID] = struct{}{}
-	return nil
 }
 
 // UnmarshalJSON fulfills the json.Unmarshaler interface for the Deck type.

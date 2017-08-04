@@ -196,7 +196,7 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, e := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, fmt.Sprintf("%s.%s.%d", b.ID.Identity(), n.ID.Identity(), i))
+		c, e := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, fmt.Sprintf("card-%s.%s.%d", b.ID.Identity(), n.ID.Identity(), i))
 		require.Nil(e, "Error creating new card: %s", err)
 		c.Created = now
 		c.Modified = now

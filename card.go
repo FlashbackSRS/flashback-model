@@ -22,33 +22,6 @@ const (
 
 // Card represents a struct of card-related statistics and configuration.
 type Card struct {
-	bundleID   string
-	noteID     string
-	templateID uint32
-	themeID    string
-	modelID    uint32
-	Rev        *string
-	Created    time.Time
-	Modified   time.Time
-	Imported   *time.Time
-	LastReview *time.Time
-	// 	Queue       CardQueue
-	Suspended bool
-	// 	AutoBuried  bool
-	Due         *Due
-	BuriedUntil *Due
-	Interval    *Interval
-	EaseFactor  float32
-	ReviewCount int
-	// 	LapseCount  int
-	// Context can store card-specific context, such as typed or recorded answers.
-	// TODO: Answers should probably be stored in a separate db, which can be
-	// easily synced to others for review, but for now this is the easy way.
-	Context interface{}
-}
-
-type cardDoc struct {
-	Type       string     `json:"type"`
 	ID         string     `json:"_id"`
 	Rev        *string    `json:"_rev,omitempty"`
 	Created    time.Time  `json:"created"`
@@ -57,7 +30,7 @@ type cardDoc struct {
 	LastReview *time.Time `json:"lastReview,omitempty"`
 	ModelID    string     `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
-	Suspended *bool `json:"suspended,omitempty"`
+	Suspended bool `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
 	Due         *Due      `json:"due,omitempty"`
@@ -69,50 +42,77 @@ type cardDoc struct {
 	Context interface{} `json:"context,omitempty"`
 }
 
-func parseID(id string) (string, string, uint32, error) {
-	parts := strings.Split(strings.TrimPrefix(id, "card-"), ".")
+// Validate validates that all of the data in the card appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (c *Card) Validate() error {
+	if c.ID == "" {
+		return errors.New("id required")
+	}
+	if _, _, _, err := c.parseID(); err != nil {
+		return err
+	}
+	if c.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if c.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if c.ModelID == "" {
+		return errors.New("model id required")
+	}
+	if !strings.HasPrefix(c.ModelID, "theme-") {
+		return errors.New("invalid type in model ID")
+	}
+	return nil
+}
+
+func (c *Card) parseID() (bundleID string, noteID string, templateID uint32, err error) {
+	if !strings.HasPrefix(c.ID, "card-") {
+		return "", "", 0, errors.New("invalid ID type")
+	}
+	parts := strings.Split(strings.TrimPrefix(c.ID, "card-"), ".")
 	if len(parts) != 3 {
-		return "", "", 0, errors.New("Invalid id format")
+		return "", "", 0, errors.New("invalid ID format")
 	}
-	templateID, err := strconv.Atoi(parts[2])
+	template, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return "", "", 0, errors.Wrap(err, "Invalid TemplateID")
+		return "", "", 0, errors.Wrap(err, "invalid TemplateID")
 	}
-	return parts[0], parts[1], uint32(templateID), nil
+	return parts[0], parts[1], uint32(template), nil
 }
 
 // NewCard returns a new Card instance, with the requested id
 func NewCard(theme string, model uint32, id string) (*Card, error) {
-	bundleID, noteID, templateID, err := parseID(id)
-	if err != nil {
-		return nil, errors.Wrap(err, "error parsing card ID")
+	nowTime := now()
+	c := &Card{
+		Created:  nowTime,
+		Modified: nowTime,
+		ID:       id,
+		ModelID:  fmt.Sprintf("%s/%d", theme, model),
 	}
-	return &Card{
-		bundleID:   bundleID,
-		noteID:     noteID,
-		templateID: templateID,
-		themeID:    theme,
-		modelID:    model,
-	}, nil
+	if err := c.Validate(); err != nil {
+		return nil, errors.Wrap(err, "validation failure")
+	}
+	return c, nil
+}
+
+// To avoid loops when (un)marshaling
+type cardAlias Card
+
+type jsonCard struct {
+	cardAlias
+	Type      string `json:"type"`
+	Suspended *bool  `json:"suspended,omitempty"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the Card type.
 func (c *Card) MarshalJSON() ([]byte, error) {
-	doc := cardDoc{
-		Type:        "card",
-		ID:          c.DocID(),
-		Rev:         c.Rev,
-		Created:     c.Created,
-		Modified:    c.Modified,
-		Imported:    c.Imported,
-		LastReview:  c.LastReview,
-		ModelID:     fmt.Sprintf("%s/%d", c.themeID, c.modelID),
-		Due:         c.Due,
-		BuriedUntil: c.BuriedUntil,
-		Interval:    c.Interval,
-		EaseFactor:  c.EaseFactor,
-		ReviewCount: c.ReviewCount,
-		Context:     c.Context,
+	if err := c.Validate(); err != nil {
+		return nil, errors.Wrap(err, "validation error")
+	}
+	doc := jsonCard{
+		Type:      "card",
+		cardAlias: cardAlias(*c),
 	}
 	if c.Suspended {
 		doc.Suspended = &c.Suspended
@@ -122,64 +122,30 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Card type.
 func (c *Card) UnmarshalJSON(data []byte) error {
-	doc := &cardDoc{}
+	doc := &jsonCard{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return err
 	}
 	if doc.Type != "card" {
 		return errors.New("invalid document type for card: " + doc.Type)
 	}
-	bundleID, noteID, templateID, err := parseID(doc.ID)
-	if err != nil {
-		return err
-	}
-	c.bundleID = bundleID
-	c.noteID = noteID
-	c.templateID = templateID
-	c.Rev = doc.Rev
-	c.Created = doc.Created
-	c.Modified = doc.Modified
-	c.Imported = doc.Imported
-	c.LastReview = doc.LastReview
-	model := strings.Split(doc.ModelID, "/")
-	c.themeID = model[0]
-	m, err := strconv.Atoi(model[1])
-	if err != nil {
-		return errors.Wrap(err, "invalid model ID")
-	}
-	c.modelID = uint32(m)
-	// 	c.Queue = doc.Queue
-	// 	if doc.Suspended != nil {
-	// 		c.Suspended = *doc.Suspended
-	// 	}
-	// 	if doc.AutoBuried != nil {
-	// 		c.AutoBuried = *doc.AutoBuried
-	// 	}
-	c.Due = doc.Due
-	c.BuriedUntil = doc.BuriedUntil
-	c.Interval = doc.Interval
-	c.EaseFactor = doc.EaseFactor
-	c.ReviewCount = doc.ReviewCount
-	// 	if doc.LapseCount != nil {
-	// 		c.LapseCount = *doc.LapseCount
-	// 	}
+	*c = Card(doc.cardAlias)
 	if doc.Suspended != nil {
 		c.Suspended = *doc.Suspended
 	}
-	c.Context = doc.Context
-	return nil
+	return errors.Wrap(c.Validate(), "validation error")
 }
 
 // Identity returns the identity of the card as a string.
 func (c *Card) Identity() string {
-	return fmt.Sprintf("%s.%s.%d", c.bundleID, c.noteID, c.templateID)
+	return strings.TrimPrefix(c.ID, "card-")
 }
 
 // SetRev sets the Card's _rev attribute
 func (c *Card) SetRev(rev string) { c.Rev = &rev }
 
 // DocID returns the Card's _id attribute
-func (c *Card) DocID() string { return "card-" + c.Identity() }
+func (c *Card) DocID() string { return c.ID }
 
 // ImportedTime returns the Card's imported time, or nil
 func (c *Card) ImportedTime() *time.Time { return c.Imported }
@@ -190,7 +156,10 @@ func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
 // MergeImport attempts to merge i into c, returning true on success, or false
 // if no merge was necessary.
 func (c *Card) MergeImport(i interface{}) (bool, error) {
-	existing := i.(*Card)
+	existing, ok := i.(*Card)
+	if !ok {
+		return false, errors.Errorf("i is %T, not *fb.Card", i)
+	}
 	if c.Identity() != existing.Identity() {
 		return false, errors.New("IDs don't match")
 	}
@@ -210,20 +179,18 @@ func (c *Card) MergeImport(i interface{}) (bool, error) {
 
 // BundleID returns the card's BundleID
 func (c *Card) BundleID() string {
-	return "bundle-" + c.bundleID
+	bundleID, _, _, _ := c.parseID()
+	return "bundle-" + bundleID
 }
 
 // TemplateID returns the card's TemplateID
 func (c *Card) TemplateID() uint32 {
-	return c.templateID
-}
-
-// ModelID returns the card's Model ID
-func (c *Card) ModelID() int {
-	return int(c.modelID)
+	_, _, templateID, _ := c.parseID()
+	return templateID
 }
 
 // NoteID returns the card's NoteID
 func (c *Card) NoteID() string {
-	return "note-" + c.noteID
+	_, noteID, _, _ := c.parseID()
+	return "note-" + noteID
 }

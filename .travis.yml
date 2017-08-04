@@ -3,7 +3,14 @@ sudo: required
 dist: trusty
 
 go:
-    - 1.8
+    - 1.8.x
+
+addons:
+    apt:
+        sources:
+            - sourceline: 'ppa:masterminds/glide'
+        packages:
+            - glide
 
 before_install:
     # To install the latest version of Node.js
@@ -18,10 +25,12 @@ before_install:
 
 install:
     - npm install
-    - go get -u github.com/gopherjs/gopherjs github.com/flimzy/testify
+    - glide update
+    - go get -u github.com/gopherjs/gopherjs
     - go get -u ./...
     - go get -u -d -tags=js ./...
 
 script:
     - diff -u <(echo -n) <(gofmt -d ./)
-    - ./test.sh
+    - go test $(go list ./... | grep -v vendor/)
+    - gopherjs test $(go list ./... | grep -v vendor/)

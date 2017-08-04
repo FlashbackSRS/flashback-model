@@ -6,20 +6,6 @@ import (
 	"time"
 )
 
-func init() {
-	now = func() time.Time {
-		return parseTime("2017-01-01T00:00:00Z")
-	}
-}
-
-func parseTime(src string) time.Time {
-	t, err := time.Parse(time.RFC3339, src)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
 func TestParseDue(t *testing.T) {
 	if _, err := ParseDue("foobar"); err == nil {
 		t.Errorf("Expected an error for invalid input to ParseDue")

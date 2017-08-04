@@ -11,11 +11,11 @@ func TestPkgValidate(t *testing.T) {
 	tests := []pvTest{
 		{
 			name: "card without deck",
-			err:  "card 'bundle-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0' found in package, but not in a deck",
+			err:  "card 'abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0' found in package, but not in a deck",
 			pkg: &Package{
 				Cards: []*Card{
 					func() *Card {
-						c, err := NewCard("theme-VGVzdCBUaGVtZQ", 0, "bundle-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
+						c, err := NewCard("theme-VGVzdCBUaGVtZQ", 0, "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 						if err != nil {
 							t.Fatal(err)
 						}
