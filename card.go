@@ -22,13 +22,21 @@ const (
 
 // Card represents a struct of card-related statistics and configuration.
 type Card struct {
+	// ID is the unique ID for the card. It is a compound key, in the format:
+	//
+	//    card-<bundle>.<note>.<template>
 	ID         string     `json:"_id"`
 	Rev        *string    `json:"_rev,omitempty"`
 	Created    time.Time  `json:"created"`
 	Modified   time.Time  `json:"modified"`
 	Imported   *time.Time `json:"imported,omitempty"`
 	LastReview *time.Time `json:"lastReview,omitempty"`
-	ModelID    string     `json:"model"`
+
+	// ModelID is a compound key refering to a specific model. It is in the
+	// format:
+	//
+	//    theme-<theme>/<model>
+	ModelID string `json:"model"`
 	// 	Queue       CardQueue      `json:"state"`
 	Suspended bool `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
@@ -193,4 +201,33 @@ func (c *Card) TemplateID() uint32 {
 func (c *Card) NoteID() string {
 	_, noteID, _, _ := c.parseID()
 	return "note-" + noteID
+}
+
+const themeIDPrefix = "theme-"
+
+func (c *Card) parseThemeID() (theme string, model int, err error) {
+	if !strings.HasPrefix(c.ModelID, themeIDPrefix) {
+		return "", 0, errors.New("invalid theme ID type")
+	}
+	parts := strings.Split(strings.TrimPrefix(c.ModelID, themeIDPrefix), "/")
+	if len(parts) != 2 {
+		return "", 0, errors.New("invalid theme ID format")
+	}
+	model, err = strconv.Atoi(parts[1])
+	if err != nil {
+		return "", 0, errors.Wrap(err, "invalid Model index")
+	}
+	return parts[0], model, nil
+}
+
+// ThemeID returns the fully qualified ThemeID associated with this card.
+func (c *Card) ThemeID() string {
+	theme, _, _ := c.parseThemeID()
+	return themeIDPrefix + theme
+}
+
+// ThemeModelID returns the integer model ID relative to the theme.
+func (c *Card) ThemeModelID() int {
+	_, model, _ := c.parseThemeID()
+	return model
 }

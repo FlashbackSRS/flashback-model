@@ -363,3 +363,69 @@ func TestCardValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestParseThemeID(t *testing.T) {
+	type ptiTest struct {
+		name  string
+		card  *Card
+		theme string
+		model int
+		err   string
+	}
+	tests := []ptiTest{
+		{
+			name: "no input",
+			card: &Card{},
+			err:  "invalid theme ID type",
+		},
+		{
+			name: "invalid type",
+			card: &Card{ModelID: "foo-bar"},
+			err:  "invalid theme ID type",
+		},
+		{
+			name: "too many parts",
+			card: &Card{ModelID: "theme-bar/baz/qux"},
+			err:  "invalid theme ID format",
+		},
+		{
+			name: "invalid model id",
+			card: &Card{ModelID: "theme-foo/bar"},
+			err:  `invalid Model index: strconv.Atoi: parsing "bar": invalid syntax`,
+		},
+		{
+			name:  "valid",
+			card:  &Card{ModelID: "theme-foo/3"},
+			theme: "foo",
+			model: 3,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			theme, model, err := test.card.parseThemeID()
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if theme != test.theme || model != test.model {
+				t.Errorf("Unexpected result: %s %d", theme, model)
+			}
+		})
+	}
+}
+
+func TestCardThemeID(t *testing.T) {
+	card := &Card{ModelID: "theme-foo/2"}
+	expected := "theme-foo"
+	if id := card.ThemeID(); id != expected {
+		t.Errorf("Unexpected result: %s", id)
+	}
+}
+
+func TestCardThemeModelID(t *testing.T) {
+	card := &Card{ModelID: "theme-foo/2"}
+	expected := 2
+	if id := card.ThemeModelID(); id != expected {
+		t.Errorf("Unexpected result: %d", id)
+	}
+}
