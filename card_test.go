@@ -342,13 +342,13 @@ func TestCardValidate(t *testing.T) {
 		{
 			name: "missing model id",
 			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
-			err:  "model id required",
+			err:  "invalid theme ID type",
 		},
 		{
 			name: "invalid model id",
 			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
 				ModelID: "chicken"},
-			err: "invalid type in model ID",
+			err: "invalid theme ID type",
 		},
 		{
 			name: "valid",

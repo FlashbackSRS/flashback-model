@@ -65,11 +65,8 @@ func (c *Card) Validate() error {
 	if c.Modified.IsZero() {
 		return errors.New("modified time required")
 	}
-	if c.ModelID == "" {
-		return errors.New("model id required")
-	}
-	if !strings.HasPrefix(c.ModelID, "theme-") {
-		return errors.New("invalid type in model ID")
+	if _, _, err := c.parseThemeID(); err != nil {
+		return err
 	}
 	return nil
 }
