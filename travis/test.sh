@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euC
 
+diff -u <(echo -n) <(gofmt -e -d $(find . -type f -name '*.go' -not -path "./vendor/*"))
+gometalinter.v1 --config .linter_test.json
+gometalinter.v1 --config .linter.json
+
 echo "" > coverage.txt
 
 for d in $(go list ./... | grep -v /vendor/); do
@@ -11,3 +15,5 @@ for d in $(go list ./... | grep -v /vendor/); do
         rm profile.out
     fi
 done
+
+bash <(curl -s https://codecov.io/bash)
