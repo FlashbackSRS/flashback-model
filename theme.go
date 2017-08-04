@@ -113,9 +113,13 @@ func (t *Theme) UnmarshalJSON(data []byte) error {
 	t.Files = doc.Files
 	t.modelSequence = doc.ModelSequence
 
-	t.Attachments.AddView(t.Files)
+	if err := t.Attachments.AddView(t.Files); err != nil {
+		return err
+	}
 	for _, m := range t.Models {
-		t.Attachments.AddView(m.Files)
+		if err := t.Attachments.AddView(m.Files); err != nil {
+			return err
+		}
 		m.Theme = t
 	}
 

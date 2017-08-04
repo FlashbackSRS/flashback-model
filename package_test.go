@@ -33,7 +33,7 @@ func TestPkgValidate(t *testing.T) {
 						id, _ := NewDocID("deck", []byte{1, 2, 3})
 						return &Deck{
 							ID:    id,
-							Cards: &CardCollection{map[string]struct{}{"card-12345": struct{}{}}},
+							Cards: &CardCollection{map[string]struct{}{"card-12345": {}}},
 						}
 					}(),
 				},

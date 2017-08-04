@@ -9,23 +9,23 @@ type escapeFilenameTest struct {
 
 func TestEscapeFilename(t *testing.T) {
 	tests := []escapeFilenameTest{
-		escapeFilenameTest{
+		{
 			Filename: "foobar.jpg",
 			Expected: "foobar.jpg",
 		},
-		escapeFilenameTest{
+		{
 			Filename: "_foobar.jpg",
 			Expected: "^_foobar.jpg",
 		},
-		escapeFilenameTest{
+		{
 			Filename: "^foobar.jpg",
 			Expected: "^^foobar.jpg",
 		},
-		escapeFilenameTest{
+		{
 			Filename: "foo^bar_baz.jpg",
 			Expected: "foo^bar_baz.jpg",
 		},
-		escapeFilenameTest{
+		{
 			Filename: "영상.jpg",
 			Expected: "영상.jpg",
 		},
