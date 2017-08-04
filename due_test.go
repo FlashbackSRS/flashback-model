@@ -38,37 +38,37 @@ type StringerTest struct {
 
 func TestStringer(t *testing.T) {
 	tests := []StringerTest{
-		StringerTest{
+		{
 			Name:     "Interval seconds",
 			I:        Interval(100 * Second),
 			Expected: "100s",
 		},
-		StringerTest{
+		{
 			Name:     "Interval seconds, plus nanoseconds",
 			I:        Interval(10*Second + 1),
 			Expected: "10s",
 		},
-		StringerTest{
+		{
 			Name:     "Interval seconds",
 			I:        Interval(5 * Minute),
 			Expected: "5m",
 		},
-		StringerTest{
+		{
 			Name:     "Interval seconds",
 			I:        Interval(6 * Hour),
 			Expected: "6h",
 		},
-		StringerTest{
+		{
 			Name:     "Interval days",
 			I:        Interval(100 * Hour),
 			Expected: "5d",
 		},
-		StringerTest{
+		{
 			Name:     "Due seconds",
 			I:        Due(parseTime("2017-01-17T00:01:40Z")),
 			Expected: "2017-01-17 00:01:40",
 		},
-		StringerTest{
+		{
 			Name:     "Due days",
 			I:        Due(parseTime("1970-04-11T00:00:00Z")),
 			Expected: "1970-04-11",
