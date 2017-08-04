@@ -18,8 +18,6 @@ const (
 // This allows overriding time.Now() for tests
 var now = time.Now
 
-var epoch = time.Unix(0, 0).UTC()
-
 // Due formatting constants
 const (
 	DueDays    = "2006-01-02"
