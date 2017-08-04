@@ -69,16 +69,19 @@ type cardDoc struct {
 	Context interface{} `json:"context,omitempty"`
 }
 
-func parseID(id string) (string, string, uint32, error) {
+func parseID(id string) (bundleID string, noteID string, templateID uint32, err error) {
+	if !strings.HasPrefix(id, "card-") {
+		return "", "", 0, errors.New("invalid ID type")
+	}
 	parts := strings.Split(strings.TrimPrefix(id, "card-"), ".")
 	if len(parts) != 3 {
-		return "", "", 0, errors.New("Invalid id format")
+		return "", "", 0, errors.New("invalid ID format")
 	}
-	templateID, err := strconv.Atoi(parts[2])
+	template, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return "", "", 0, errors.Wrap(err, "Invalid TemplateID")
+		return "", "", 0, errors.Wrap(err, "invalid TemplateID")
 	}
-	return parts[0], parts[1], uint32(templateID), nil
+	return parts[0], parts[1], uint32(template), nil
 }
 
 // NewCard returns a new Card instance, with the requested id
