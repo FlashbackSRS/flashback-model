@@ -1,6 +1,8 @@
 package fb
 
-import "testing"
+import (
+	"testing"
+)
 
 func checkErr(t *testing.T, expected interface{}, err error) {
 	var expectedMsg, errMsg string
@@ -14,6 +16,8 @@ func checkErr(t *testing.T, expected interface{}, err error) {
 		}
 	case string:
 		expectedMsg = e
+	case nil:
+		// use empty string
 	default:
 		t.Fatalf("Unexpected type error type %T", expected)
 	}

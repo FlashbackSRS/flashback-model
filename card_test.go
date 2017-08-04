@@ -1,7 +1,9 @@
 package fb
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/flimzy/diff"
 )
@@ -93,5 +95,129 @@ func TestNewCard(t *testing.T) {
 				t.Error(d)
 			}
 		})
+	}
+}
+
+func TestMarshalJSON(t *testing.T) {
+	card := &Card{
+		bundleID:   "foo",
+		themeID:    "bar",
+		noteID:     "baz",
+		templateID: 1,
+		modelID:    2,
+		Created:    parseTime("2017-01-01T01:01:01Z"),
+		Modified:   parseTime("2017-01-01T01:01:01Z"),
+		Suspended:  true,
+	}
+	expected := []byte(`{
+        "_id": "card-foo.baz.1",
+        "created": "2017-01-01T01:01:01Z",
+        "model": "bar/2",
+        "modified": "2017-01-01T01:01:01Z",
+        "suspended": true,
+        "type": "card"
+    }`)
+	result, err := json.Marshal(card)
+	checkErr(t, nil, err)
+	if d := diff.JSON(expected, result); d != "" {
+		t.Error(d)
+	}
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	type ujTest struct {
+		name     string
+		input    string
+		expected *Card
+		err      string
+	}
+	tests := []ujTest{
+		{
+			name: "no input",
+			err:  "unexpected end of JSON input",
+		},
+		{
+			name:  "wrong type",
+			input: `{"type":"chicken"}`,
+			err:   "invalid document type for card: chicken",
+		},
+		{
+			name:  "invalid id",
+			input: `{"type":"card","_id":"oink"}`,
+			err:   "invalid ID type",
+		},
+		{
+			name:  "invalid model id",
+			input: `{"type":"card", "_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "foo/chicken"}`,
+			err:   `invalid model ID: strconv.Atoi: parsing "chicken": invalid syntax`,
+		},
+		{
+			name:  "valid",
+			input: `{"type":"card", "_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "foo/2", "suspended":true}`,
+			expected: &Card{
+				bundleID:   "krsxg5baij2w4zdmmu",
+				noteID:     "mViuXQThMLoh1G1Nlc4d_E8kR8o",
+				templateID: 1,
+				themeID:    "foo",
+				modelID:    2,
+				Suspended:  true,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := &Card{}
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestIdentity(t *testing.T) {
+	card := &Card{bundleID: "bundle", noteID: "note", templateID: 2}
+	expected := "bundle.note.2"
+	result := card.Identity()
+	if result != expected {
+		t.Errorf("Unexpected result: %s", result)
+	}
+}
+
+func TestSetRev(t *testing.T) {
+	card := &Card{}
+	rev := "1-xxx"
+	card.SetRev(rev)
+	if *card.Rev != rev {
+		t.Errorf("Unexpected rev: %s", *card.Rev)
+	}
+}
+
+func TestDocID(t *testing.T) {
+	card := &Card{bundleID: "bundle", noteID: "note", templateID: 2}
+	expected := "card-bundle.note.2"
+	result := card.DocID()
+	if result != expected {
+		t.Errorf("Unexpected result: %s", result)
+	}
+}
+
+func TestImportedTime(t *testing.T) {
+	ts := time.Now()
+	card := &Card{Imported: &ts}
+	if it := card.ImportedTime(); !it.Equal(ts) {
+		t.Errorf("Unexpected result: %v", *it)
+	}
+}
+
+func TestModifiedTime(t *testing.T) {
+	ts := time.Now()
+	card := &Card{Modified: ts}
+	if mt := card.ModifiedTime(); !mt.Equal(ts) {
+		t.Errorf("Unexpected result: %v", *mt)
 	}
 }
