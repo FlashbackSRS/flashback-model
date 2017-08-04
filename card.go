@@ -193,7 +193,10 @@ func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
 // MergeImport attempts to merge i into c, returning true on success, or false
 // if no merge was necessary.
 func (c *Card) MergeImport(i interface{}) (bool, error) {
-	existing := i.(*Card)
+	existing, ok := i.(*Card)
+	if !ok {
+		return false, errors.Errorf("i is %T, not *fb.Card", i)
+	}
 	if c.Identity() != existing.Identity() {
 		return false, errors.New("IDs don't match")
 	}

@@ -221,3 +221,94 @@ func TestModifiedTime(t *testing.T) {
 		t.Errorf("Unexpected result: %v", *mt)
 	}
 }
+
+func TestMergeImport(t *testing.T) {
+	type miTest struct {
+		name         string
+		card         *Card
+		i            interface{}
+		expected     bool
+		expectedCard *Card
+		err          string
+	}
+	tests := []miTest{
+		{
+			name: "no input",
+			card: &Card{},
+			i:    nil,
+			err:  "i is <nil>, not *fb.Card",
+		},
+		{
+			name: "mismatched identities",
+			card: &Card{bundleID: "foo", noteID: "bar", templateID: 1},
+			i:    &Card{bundleID: "foo", noteID: "bar", templateID: 2},
+			err:  "IDs don't match",
+		},
+		{
+			name: "different timestamps",
+			card: &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z")},
+			i:    &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-02-01T01:01:01Z")},
+			err:  "Created timestamps don't match",
+		},
+		{
+			name:         "existing is newer",
+			card:         &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			i:            &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+			expectedCard: &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+		},
+		{
+			name:         "new is newer",
+			card:         &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+			i:            &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			expected:     true,
+			expectedCard: &Card{bundleID: "foo", noteID: "bar", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-02T01:01:01Z")},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.card.MergeImport(test.i)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if result != test.expected {
+				t.Errorf("Unexpected result: %t", result)
+			}
+			if d := diff.Interface(test.expectedCard, test.card); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestBundleID(t *testing.T) {
+	card := &Card{bundleID: "foo"}
+	expected := "bundle-foo"
+	if id := card.BundleID(); id != expected {
+		t.Errorf("Unexpected result: %s", id)
+	}
+}
+
+func TestTemplateID(t *testing.T) {
+	expected := uint32(3)
+	card := &Card{templateID: expected}
+	if id := card.TemplateID(); id != expected {
+		t.Errorf("Unexpected result: %d", id)
+	}
+}
+
+func TestModelID(t *testing.T) {
+	expected := 4
+	card := &Card{modelID: uint32(expected)}
+	if id := card.ModelID(); id != expected {
+		t.Errorf("Unexpected result: %d", id)
+	}
+}
+
+func TestNoteID(t *testing.T) {
+	card := &Card{noteID: "bar"}
+	expected := "note-bar"
+	if id := card.NoteID(); id != expected {
+		t.Errorf("Unexpected result: %s", id)
+	}
+}
