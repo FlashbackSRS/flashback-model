@@ -1,6 +1,7 @@
 package fb
 
 import (
+	"errors"
 	"strconv"
 )
 
@@ -26,11 +27,17 @@ const (
 
 // NewModel creates a new model as a member of the provided theme, and of the
 // provided type.
-func NewModel(t *Theme, mType string) (*Model, error) {
+func NewModel(t *Theme, modelType string) (*Model, error) {
+	if t == nil {
+		return nil, errors.New("theme is required")
+	}
+	if modelType == "" {
+		return nil, errors.New("model type is required")
+	}
 	return &Model{
 		Theme:     t,
 		ID:        t.NextModelSequence(),
-		Type:      mType,
+		Type:      modelType,
 		Templates: make([]string, 0, 1),
 		Fields:    make([]*Field, 0, 1),
 		Files:     t.Attachments.NewView(),
