@@ -81,6 +81,12 @@ func (m *Model) Identity() string {
 
 // AddField adds a field of the specified type and name to the Model.
 func (m *Model) AddField(fType FieldType, name string) error {
+	if fType > AnkiField {
+		return errors.New("invalid field type")
+	}
+	if name == "" {
+		return errors.New("field name is required")
+	}
 	m.Fields = append(m.Fields, &Field{
 		Type: fType,
 		Name: name,

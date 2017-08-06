@@ -2,6 +2,7 @@ package fb
 
 import (
 	"testing"
+	"time"
 
 	"github.com/flimzy/diff"
 )
@@ -97,4 +98,151 @@ func TestModelValidate(t *testing.T) {
 		},
 	}
 	testValidation(t, tests)
+}
+
+func TestModelAddfile(t *testing.T) {
+	type Test struct {
+		name     string
+		model    *Model
+		filename string
+		expected interface{}
+		err      string
+	}
+	tests := []Test{
+		{
+			name: "duplicate",
+			model: func() *Model {
+				theme, _ := NewTheme([]byte("foo"))
+				model := &Model{
+					Theme: theme,
+					Files: theme.Attachments.NewView(),
+				}
+				_ = model.AddFile("foo.txt", "text/plain", []byte("foo"))
+				theme.Models = []*Model{model}
+				return model
+			}(),
+			filename: "foo.txt",
+			err:      "'foo.txt' already exists in the collection",
+		},
+		{
+			name: "success",
+			model: func() *Model {
+				theme, _ := NewTheme([]byte("foo"))
+				model := &Model{
+					Theme: theme,
+					Files: theme.Attachments.NewView(),
+				}
+				theme.Models = []*Model{model}
+				return model
+			}(),
+			filename: "foo.txt",
+			expected: map[string]interface{}{
+				"type":     "theme",
+				"_id":      "theme-Zm9v",
+				"created":  time.Time{},
+				"modified": time.Time{},
+				"_attachments": map[string]interface{}{
+					"foo.txt": map[string]interface{}{
+						"content_type": "text/plain",
+						"data":         "Zm9v",
+					},
+				},
+				"files":         []string{},
+				"modelSequence": 0,
+				"models": []map[string]interface{}{
+					{
+						"id":        0,
+						"modelType": "",
+						"templates": nil,
+						"fields":    nil,
+						"files":     []string{"foo.txt"},
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.model.AddFile(test.filename, "text/plain", []byte("foo"))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.AsJSON(test.expected, test.model.Theme); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestModelIdentity(t *testing.T) {
+	t.Run("Null theme", func(t *testing.T) {
+		model := &Model{}
+		expected := ""
+		if id := model.Identity(); id != expected {
+			t.Errorf("Unexpected result: %s", id)
+		}
+	})
+	t.Run("full id", func(t *testing.T) {
+		model := &Model{
+			Theme: &Theme{ID: DocID{docType: "theme", id: []byte("foo")}},
+			ID:    1,
+		}
+		expected := "Zm9v.1"
+		if id := model.Identity(); id != expected {
+			t.Errorf("Unexpected result: %s", id)
+		}
+	})
+}
+
+func TestModelAddField(t *testing.T) {
+	type Test struct {
+		name     string
+		model    *Model
+		fType    FieldType
+		fName    string
+		expected interface{}
+		err      string
+	}
+	tests := []Test{
+		{
+			name:  "invalid type",
+			fType: 9999,
+			err:   "invalid field type",
+		},
+		{
+			name:  "missing name",
+			fType: 1,
+			err:   "field name is required",
+		},
+		{
+			name:  "valid",
+			fType: 1,
+			fName: "Foo",
+			model: &Model{Fields: []*Field{}},
+			expected: map[string]interface{}{
+				"id":        0,
+				"modelType": "",
+				"templates": nil,
+				"fields": []map[string]interface{}{
+					{
+						"fieldType": 1,
+						"name":      "Foo",
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.model.AddField(test.fType, test.fName)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.AsJSON(test.expected, test.model); d != "" {
+				t.Error(d)
+			}
+		})
+	}
 }
