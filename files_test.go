@@ -94,3 +94,42 @@ func TestFilesUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestFileCollectionViewUnmarshalJSON(t *testing.T) {
+	type Test struct {
+		name     string
+		input    string
+		expected interface{}
+		err      string
+	}
+	tests := []Test{
+		{
+			name:  "invalid json",
+			input: "invalid json",
+			err:   "failed to unmarshal file collection view: invalid character 'i' looking for beginning of value",
+		},
+		{
+			name:  "valid",
+			input: `["foo.txt","bar.mp3"]`,
+			expected: &FileCollectionView{
+				members: map[string]*Attachment{
+					"foo.txt": nil,
+					"bar.mp3": nil,
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := &FileCollectionView{}
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
