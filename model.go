@@ -11,7 +11,7 @@ type Model struct {
 	Type        string  `json:"modelType"`
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
-	// Templates are analogous to anki Card definitions.
+	// Templates are analogous to anki Card definitions. This field just holds the name of each template.
 	Templates []string            `json:"templates"`
 	Fields    []*Field            `json:"fields"`
 	Files     *FileCollectionView `json:"files,omitempty"`
