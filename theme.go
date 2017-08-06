@@ -44,8 +44,9 @@ type themeDoc struct {
 	ModelSequence uint32              `json:"modelSequence"`
 }
 
-// Validate validates that all of the data in the theme appears valid and self
-// consistent. A nil return value means no errors were detected.
+// Validate validates that all of the data in the theme, including its models,
+// appears valid and self consistent. A nil return value means no errors were
+// detected.
 func (t *themeDoc) Validate() error {
 	if t.ID.id == nil || len(t.ID.id) == 0 {
 		return errors.New("id required")
@@ -69,8 +70,11 @@ func (t *themeDoc) Validate() error {
 		return errors.New("file list must be a member of attachments collection")
 	}
 	for _, m := range t.Models {
-		if m.ID <= t.ModelSequence {
+		if t.ModelSequence <= m.ID {
 			return errors.New("modelSequence must larger than existing model IDs")
+		}
+		if err := m.Validate(); err != nil {
+			return errors.Wrap(err, "invalid model")
 		}
 	}
 	return nil

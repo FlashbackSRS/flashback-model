@@ -423,6 +423,15 @@ func TestThemeValidate(t *testing.T) {
 			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 0, Models: []*Model{{ID: 0}}},
 			err:  "modelSequence must larger than existing model IDs",
 		},
+		{
+			name: "invalid model",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{}}},
+			err:  "invalid model: theme is required",
+		},
+		{
+			name: "valid",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view},
+		},
 	}
 	testValidation(t, tests)
 }
