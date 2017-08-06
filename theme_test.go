@@ -46,6 +46,23 @@ func TestNewTheme(t *testing.T) {
 	}
 }
 
+func TestSetFile(t *testing.T) {
+	att := NewFileCollection()
+	view := att.NewView()
+	_ = view.AddFile("foo.mp3", "audio/mpeg", []byte("foo"))
+	theme, _ := NewTheme([]byte("foo"))
+	theme.SetFile("foo.mp3", "audio/mpeg", []byte("foo"))
+	expected := &Theme{
+		ID:          DocID{docType: "theme", id: []byte("foo")},
+		Models:      []*Model{},
+		Attachments: att,
+		Files:       view,
+	}
+	if d := diff.Interface(expected, theme); d != "" {
+		t.Error(d)
+	}
+}
+
 func TestThemeUnmarshalJSON(t *testing.T) {
 	type Test struct {
 		name     string
