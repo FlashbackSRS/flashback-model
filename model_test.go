@@ -60,3 +60,41 @@ func TestNewModel(t *testing.T) {
 		})
 	}
 }
+
+func TestModelValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "nil theme",
+			v:    &Model{},
+			err:  "theme is required",
+		},
+		{
+			name: "empty type",
+			v:    &Model{Theme: &Theme{}},
+			err:  "type is required",
+		},
+		{
+			name: "nil files",
+			v:    &Model{Theme: &Theme{}, Type: "foo"},
+			err:  "file list must not be nil",
+		},
+		{
+			name: "incomplete theme",
+			v:    &Model{Theme: &Theme{}, Type: "foo", Files: NewFileCollection().NewView()},
+			err:  "invalid theme",
+		},
+		{
+			name: "mismatched file collection",
+			v:    &Model{Theme: &Theme{Attachments: NewFileCollection()}, Type: "foo", Files: NewFileCollection().NewView()},
+			err:  "file list must be a member of attachments collection",
+		},
+		{
+			name: "valid",
+			v: func() *Model {
+				att := NewFileCollection()
+				return &Model{Theme: &Theme{Attachments: att}, Type: "foo", Files: att.NewView()}
+			}(),
+		},
+	}
+	testValidation(t, tests)
+}
