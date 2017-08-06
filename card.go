@@ -25,12 +25,12 @@ type Card struct {
 	// ID is the unique ID for the card. It is a compound key, in the format:
 	//
 	//    card-<bundle>.<note>.<template>
-	ID         string     `json:"_id"`
-	Rev        *string    `json:"_rev,omitempty"`
-	Created    time.Time  `json:"created"`
-	Modified   time.Time  `json:"modified"`
-	Imported   *time.Time `json:"imported,omitempty"`
-	LastReview *time.Time `json:"lastReview,omitempty"`
+	ID         string    `json:"_id"`
+	Rev        *string   `json:"_rev,omitempty"`
+	Created    time.Time `json:"created"`
+	Modified   time.Time `json:"modified"`
+	Imported   time.Time `json:"imported,omitempty"`
+	LastReview time.Time `json:"lastReview,omitempty"`
 
 	// ModelID is a compound key refering to a specific model. It is in the
 	// format:
@@ -41,11 +41,11 @@ type Card struct {
 	Suspended bool `json:"suspended,omitempty"`
 	// 	Buried      *bool          `json:"buried,omitempty"`
 	// 	AutoBuried  *bool          `json:"autoBuried,omitempty"`
-	Due         *Due      `json:"due,omitempty"`
-	BuriedUntil *Due      `json:"buriedUntil,omitempty"`
-	Interval    *Interval `json:"interval,omitempty"`
-	EaseFactor  float32   `json:"easeFactor,omitempty"`
-	ReviewCount int       `json:"reviewCount,omitempty"`
+	Due         Due      `json:"due,omitempty"`
+	BuriedUntil Due      `json:"buriedUntil,omitempty"`
+	Interval    Interval `json:"interval,omitempty"`
+	EaseFactor  float32  `json:"easeFactor,omitempty"`
+	ReviewCount int      `json:"reviewCount,omitempty"`
 	// 	LapseCount  *int           `json:"lapseCount,omitempty"`
 	Context interface{} `json:"context,omitempty"`
 }
@@ -106,8 +106,7 @@ type cardAlias Card
 
 type jsonCard struct {
 	cardAlias
-	Type      string `json:"type"`
-	Suspended *bool  `json:"suspended,omitempty"`
+	Type string `json:"type"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the Card type.
@@ -115,14 +114,36 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 	if err := c.Validate(); err != nil {
 		return nil, errors.Wrap(err, "validation error")
 	}
-	doc := jsonCard{
-		Type:      "card",
-		cardAlias: cardAlias(*c),
+	doc := struct {
+		jsonCard
+		Suspended   *bool      `json:"suspended,omitempty"`
+		Imported    *time.Time `json:"imported,omitempty"`
+		LastReview  *time.Time `json:"lastReview,omitempty"`
+		Due         *Due       `json:"due,omitempty"`
+		BuriedUntil *Due       `json:"buriedUntil,omitempty"`
+	}{
+		jsonCard: jsonCard{
+			Type:      "card",
+			cardAlias: cardAlias(*c),
+		},
 	}
 	if c.Suspended {
 		doc.Suspended = &c.Suspended
 	}
-	return json.Marshal(doc)
+	if !c.Imported.IsZero() {
+		doc.Imported = &c.Imported
+	}
+	if !c.BuriedUntil.IsZero() {
+		doc.BuriedUntil = &c.BuriedUntil
+	}
+	if !c.Due.IsZero() {
+		doc.Due = &c.Due
+	}
+	if !c.LastReview.IsZero() {
+		doc.LastReview = &c.LastReview
+	}
+	j, err := json.Marshal(doc)
+	return j, err
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Card type.
@@ -135,9 +156,6 @@ func (c *Card) UnmarshalJSON(data []byte) error {
 		return errors.New("invalid document type for card: " + doc.Type)
 	}
 	*c = Card(doc.cardAlias)
-	if doc.Suspended != nil {
-		c.Suspended = *doc.Suspended
-	}
 	return errors.Wrap(c.Validate(), "validation error")
 }
 
@@ -153,7 +171,7 @@ func (c *Card) SetRev(rev string) { c.Rev = &rev }
 func (c *Card) DocID() string { return c.ID }
 
 // ImportedTime returns the Card's imported time, or nil
-func (c *Card) ImportedTime() *time.Time { return c.Imported }
+func (c *Card) ImportedTime() time.Time { return c.Imported }
 
 // ModifiedTime returns the Card's last modified time
 func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
@@ -168,7 +186,7 @@ func (c *Card) MergeImport(i interface{}) (bool, error) {
 	if c.Identity() != existing.Identity() {
 		return false, errors.New("IDs don't match")
 	}
-	if c.Imported == nil || existing.Imported == nil {
+	if c.Imported.IsZero() || existing.Imported.IsZero() {
 		return false, errors.New("not an import")
 	}
 	if !c.Created.Equal(existing.Created) {
