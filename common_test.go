@@ -11,6 +11,11 @@ func init() {
 	}
 }
 
+func parseTimePtr(src string) *time.Time {
+	t := parseTime(src)
+	return &t
+}
+
 func parseTime(src string) time.Time {
 	t, err := time.Parse(time.RFC3339, src)
 	if err != nil {

@@ -1,6 +1,7 @@
 package fb
 
 import (
+	"errors"
 	"strconv"
 )
 
@@ -11,7 +12,7 @@ type Model struct {
 	Type        string  `json:"modelType"`
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
-	// Templates are analogous to anki Card definitions.
+	// Templates are analogous to anki Card definitions. This field just holds the name of each template.
 	Templates []string            `json:"templates"`
 	Fields    []*Field            `json:"fields"`
 	Files     *FileCollectionView `json:"files,omitempty"`
@@ -26,11 +27,17 @@ const (
 
 // NewModel creates a new model as a member of the provided theme, and of the
 // provided type.
-func NewModel(t *Theme, mType string) (*Model, error) {
+func NewModel(t *Theme, modelType string) (*Model, error) {
+	if t == nil {
+		return nil, errors.New("theme is required")
+	}
+	if modelType == "" {
+		return nil, errors.New("model type is required")
+	}
 	return &Model{
 		Theme:     t,
 		ID:        t.NextModelSequence(),
-		Type:      mType,
+		Type:      modelType,
 		Templates: make([]string, 0, 1),
 		Fields:    make([]*Field, 0, 1),
 		Files:     t.Attachments.NewView(),

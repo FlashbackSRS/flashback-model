@@ -115,8 +115,8 @@ func escapeFilename(filename string) string {
 	return filename
 }
 
-func unescapeFilename(escaped string) (string, error) {
-	return strings.TrimPrefix(escaped, string(filenameEscapeChar)), nil
+func unescapeFilename(escaped string) string {
+	return strings.TrimPrefix(escaped, string(filenameEscapeChar))
 }
 
 // MarshalJSON implements the json.Marshaler interface for the FileCollection type.
@@ -137,10 +137,7 @@ func (fc *FileCollection) UnmarshalJSON(data []byte) error {
 	fc.files = make(map[string]*Attachment)
 	fc.views = make([]*FileCollectionView, 0)
 	for escapedName, attachment := range escaped {
-		filename, err := unescapeFilename(escapedName)
-		if err != nil {
-			return errors.Wrapf(err, "failed to unescape filename '%s'", escapedName)
-		}
+		filename := unescapeFilename(escapedName)
 		fc.files[filename] = attachment
 	}
 	return nil

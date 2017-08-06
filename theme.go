@@ -113,6 +113,13 @@ func (t *Theme) UnmarshalJSON(data []byte) error {
 	t.Files = doc.Files
 	t.modelSequence = doc.ModelSequence
 
+	if t.Attachments == nil {
+		return errors.New("invalid theme: no attachments")
+	}
+	if t.Files == nil {
+		return errors.New("invalid theme: no file list")
+	}
+
 	if err := t.Attachments.AddView(t.Files); err != nil {
 		return err
 	}
@@ -153,6 +160,9 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	if !t.ID.Equal(&existing.ID) {
 		return false, errors.New("IDs don't match")
 	}
+	if t.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
+	}
 	if !t.Created.Equal(existing.Created) {
 		return false, errors.New("Created timestamps don't match")
 	}
@@ -168,5 +178,7 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	t.Attachments = existing.Attachments
 	t.Files = existing.Files
 	t.modelSequence = existing.modelSequence
+	t.Modified = existing.Modified
+	t.Imported = existing.Imported
 	return false, nil
 }

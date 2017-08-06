@@ -168,6 +168,9 @@ func (c *Card) MergeImport(i interface{}) (bool, error) {
 	if c.Identity() != existing.Identity() {
 		return false, errors.New("IDs don't match")
 	}
+	if c.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
+	}
 	if !c.Created.Equal(existing.Created) {
 		return false, errors.New("Created timestamps don't match")
 	}
