@@ -193,3 +193,55 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestThemeNewModel(t *testing.T) {
+	type Test struct {
+		name      string
+		theme     *Theme
+		modelType string
+		expected  *Model
+		err       string
+	}
+	tests := []Test{
+		{
+			name:  "no type",
+			theme: &Theme{},
+			err:   "failed to create model: model type is required",
+		},
+		{
+			name: "success",
+			theme: func() *Theme {
+				theme, _ := NewTheme([]byte("foo"))
+				return theme
+			}(),
+			modelType: "chicken",
+			expected: func() *Model {
+				theme, _ := NewTheme([]byte("foo"))
+				// att := NewFileCollection()
+				// theme.Files = att.NewView()
+				theme.modelSequence = 1
+				model := &Model{
+					Type:      "chicken",
+					Templates: []string{},
+					Fields:    []*Field{},
+					Files:     theme.Attachments.NewView(),
+					Theme:     theme,
+				}
+				theme.Models = []*Model{model}
+				return model
+			}(),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.theme.NewModel(test.modelType)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
