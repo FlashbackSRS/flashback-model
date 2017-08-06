@@ -160,6 +160,9 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	if !t.ID.Equal(&existing.ID) {
 		return false, errors.New("IDs don't match")
 	}
+	if t.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
+	}
 	if !t.Created.Equal(existing.Created) {
 		return false, errors.New("Created timestamps don't match")
 	}
@@ -176,5 +179,6 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	t.Files = existing.Files
 	t.modelSequence = existing.modelSequence
 	t.Modified = existing.Modified
+	t.Imported = existing.Imported
 	return false, nil
 }
