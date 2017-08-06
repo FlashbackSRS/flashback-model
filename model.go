@@ -33,9 +33,6 @@ func (m *Model) Validate() error {
 	if m.Theme.Attachments == nil {
 		return errors.New("invalid theme")
 	}
-	if !m.Theme.Attachments.hasMemberView(m.Files) {
-		return errors.New("file list must be a member of attachments collection")
-	}
 	return nil
 }
 

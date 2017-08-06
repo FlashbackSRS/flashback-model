@@ -424,8 +424,13 @@ func TestThemeValidate(t *testing.T) {
 			err:  "modelSequence must larger than existing model IDs",
 		},
 		{
+			name: "invalid model file list",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: NewFileCollection().NewView()}}},
+			err:  "model 0 file list must be a member of attachments collection",
+		},
+		{
 			name: "invalid model",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{}}},
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: view}}},
 			err:  "invalid model: theme is required",
 		},
 		{

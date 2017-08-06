@@ -73,6 +73,9 @@ func (t *themeDoc) Validate() error {
 		if t.ModelSequence <= m.ID {
 			return errors.New("modelSequence must larger than existing model IDs")
 		}
+		if !t.Attachments.hasMemberView(m.Files) {
+			return errors.Errorf("model %d file list must be a member of attachments collection", m.ID)
+		}
 		if err := m.Validate(); err != nil {
 			return errors.Wrap(err, "invalid model")
 		}

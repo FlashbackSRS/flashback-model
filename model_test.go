@@ -85,11 +85,6 @@ func TestModelValidate(t *testing.T) {
 			err:  "invalid theme",
 		},
 		{
-			name: "mismatched file collection",
-			v:    &Model{Theme: &Theme{Attachments: NewFileCollection()}, Type: "foo", Files: NewFileCollection().NewView()},
-			err:  "file list must be a member of attachments collection",
-		},
-		{
 			name: "valid",
 			v: func() *Model {
 				att := NewFileCollection()
