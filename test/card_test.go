@@ -31,12 +31,11 @@ func TestCard(t *testing.T) {
 
 	c.Created = now
 	c.Modified = now
-	imp := now.AddDate(0, 0, 2)
-	c.Imported = &imp
+	c.Imported = now.AddDate(0, 0, 2)
 	due, _ := fb.ParseDue("2017-01-01")
-	c.Due = &due
+	c.Due = due
 	ivl, _ := fb.ParseInterval("50d")
-	c.Interval = &ivl
+	c.Interval = ivl
 	require.MarshalsToJSON(frozenCard, c, "Created Card")
 
 	c2 := &fb.Card{}

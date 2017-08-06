@@ -105,22 +105,50 @@ func TestMarshalJSON(t *testing.T) {
 		_, err := json.Marshal(card)
 		checkErr(t, "json: error calling MarshalJSON for type *fb.Card: validation error: id required", err)
 	})
-	t.Run("valid", func(t *testing.T) {
+	t.Run("null fields", func(t *testing.T) {
 		card := &Card{
-			ID:        "card-foo.bar.1",
-			ModelID:   "theme-baz/2",
-			Created:   parseTime("2017-01-01T01:01:01Z"),
-			Modified:  parseTime("2017-01-01T01:01:01Z"),
-			Suspended: true,
+			ID:       "card-foo.bar.1",
+			ModelID:  "theme-baz/2",
+			Created:  parseTime("2017-01-01T01:01:01Z"),
+			Modified: parseTime("2017-01-01T01:01:01Z"),
 		}
 		expected := []byte(`{
-            "_id": "card-foo.bar.1",
-            "created": "2017-01-01T01:01:01Z",
-            "model": "theme-baz/2",
-            "modified": "2017-01-01T01:01:01Z",
-            "suspended": true,
-            "type": "card"
-        }`)
+			"_id":      "card-foo.bar.1",
+			"type":     "card",
+			"created":  "2017-01-01T01:01:01Z",
+			"model":    "theme-baz/2",
+			"modified": "2017-01-01T01:01:01Z"
+		}`)
+		result, err := json.Marshal(card)
+		checkErr(t, nil, err)
+		if d := diff.JSON(expected, result); d != "" {
+			t.Error(d)
+		}
+	})
+	t.Run("full fields", func(t *testing.T) {
+		card := &Card{
+			ID:          "card-foo.bar.1",
+			ModelID:     "theme-baz/2",
+			Created:     parseTime("2017-01-01T01:01:01Z"),
+			Modified:    parseTime("2017-01-01T01:01:01Z"),
+			Imported:    parseTime("2017-01-01T01:01:01Z"),
+			BuriedUntil: Due(parseTime("2017-03-01T00:00:00Z")),
+			Due:         Due(parseTime("2018-01-01T00:00:00Z")),
+			LastReview:  parseTime("2016-12-30T12:00:00Z"),
+			Suspended:   true,
+		}
+		expected := []byte(`{
+			"_id":         "card-foo.bar.1",
+			"type":        "card",
+			"model":       "theme-baz/2",
+			"created":     "2017-01-01T01:01:01Z",
+			"modified":    "2017-01-01T01:01:01Z",
+			"imported":    "2017-01-01T01:01:01Z",
+			"lastReview":  "2016-12-30T12:00:00Z",
+			"buriedUntil": "2017-03-01",
+			"due":         "2018-01-01",
+			"suspended":   true
+		}`)
 		result, err := json.Marshal(card)
 		checkErr(t, nil, err)
 		if d := diff.JSON(expected, result); d != "" {
@@ -160,6 +188,29 @@ func TestUnmarshalJSON(t *testing.T) {
 				Created:   parseTime("2017-01-01T01:01:01Z"),
 				Modified:  parseTime("2017-01-01T01:01:01Z"),
 				Suspended: true,
+			},
+		},
+		{
+			name: "test frozen card",
+			input: `
+		{
+			"type": "card",
+			"_id": "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+			"created": "2016-07-31T15:08:24.730156517Z",
+			"modified": "2016-07-31T15:08:24.730156517Z",
+			"imported": "2016-08-02T15:08:24.730156517Z",
+			"model": "theme-VGVzdCBUaGVtZQ/0",
+			"due": "2017-01-01",
+			"interval": 50
+		}`,
+			expected: &Card{
+				ID:       "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+				ModelID:  "theme-VGVzdCBUaGVtZQ/0",
+				Created:  parseTime("2016-07-31T15:08:24.730156517Z"),
+				Modified: parseTime("2016-07-31T15:08:24.730156517Z"),
+				Imported: parseTime("2016-08-02T15:08:24.730156517Z"),
+				Interval: parseInterval("50d"),
+				Due:      parseDue("2017-01-01"),
 			},
 		},
 	}
@@ -207,9 +258,9 @@ func TestDocID(t *testing.T) {
 
 func TestImportedTime(t *testing.T) {
 	ts := time.Now()
-	card := &Card{Imported: &ts}
+	card := &Card{Imported: ts}
 	if it := card.ImportedTime(); !it.Equal(ts) {
-		t.Errorf("Unexpected result: %v", *it)
+		t.Errorf("Unexpected result: %v", it)
 	}
 }
 
@@ -245,19 +296,19 @@ func TestMergeImport(t *testing.T) {
 		},
 		{
 			name: "different timestamps",
-			card: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			i:    &Card{ID: "card-foo.bar.1", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			card: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			i:    &Card{ID: "card-foo.bar.1", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:  "Created timestamps don't match",
 		},
 		{
 			name: "new not an import",
 			card: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z")},
-			i:    &Card{ID: "card-foo.bar.1", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			i:    &Card{ID: "card-foo.bar.1", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:  "not an import",
 		},
 		{
 			name: "existing not an import",
-			card: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			card: &Card{ID: "card-foo.bar.1", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			i:    &Card{ID: "card-foo.bar.1", Created: parseTime("2017-02-01T01:01:01Z")},
 			err:  "not an import",
 		},
@@ -266,31 +317,31 @@ func TestMergeImport(t *testing.T) {
 			card: &Card{ID: "card-foo.bar.1",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z")},
 			i: &Card{ID: "card-foo.bar.1",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-02T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z")},
 			expectedCard: &Card{ID: "card-foo.bar.1",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-02T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z")},
 		},
 		{
 			name: "new is newer",
 			card: &Card{ID: "card-foo.bar.1",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-02T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z")},
 			i: &Card{ID: "card-foo.bar.1",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z")},
 			expected: true,
 			expectedCard: &Card{ID: "card-foo.bar.1",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-02T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z")},
 		},
 	}
 	for _, test := range tests {

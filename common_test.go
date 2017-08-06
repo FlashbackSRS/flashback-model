@@ -48,3 +48,19 @@ func checkErr(t *testing.T, expected interface{}, err error) {
 		t.Errorf("Unexpected error: %s", errMsg)
 	}
 }
+
+func parseInterval(i string) Interval {
+	iv, err := ParseInterval(i)
+	if err != nil {
+		panic(err)
+	}
+	return iv
+}
+
+func parseDue(d string) Due {
+	du, err := ParseDue(d)
+	if err != nil {
+		panic(err)
+	}
+	return du
+}
