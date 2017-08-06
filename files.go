@@ -167,7 +167,7 @@ func (v *FileCollectionView) SetFile(name, ctype string, content []byte) {
 // AddFile adds the requested attachment. Returns an error if it already exists.
 func (v *FileCollectionView) AddFile(name, ctype string, content []byte) error {
 	if _, ok := v.col.files[name]; ok {
-		return errors.New("File of that name already exists in the collection")
+		return errors.Errorf("'%s' already exists in the collection", name)
 	}
 	v.SetFile(name, ctype, content)
 	return nil

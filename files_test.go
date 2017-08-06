@@ -150,3 +150,43 @@ func TestFCHasMemberView(t *testing.T) {
 		}
 	})
 }
+
+func TestAddFile(t *testing.T) {
+	type Test struct {
+		name     string
+		view     *FileCollectionView
+		filename string
+		err      string
+		expected interface{}
+	}
+	tests := []Test{
+		{
+			name:     "valid",
+			view:     NewFileCollection().NewView(),
+			filename: "foo.txt",
+			expected: []string{"foo.txt"},
+		},
+		{
+			name: "duplicate",
+			view: func() *FileCollectionView {
+				v := NewFileCollection().NewView()
+				_ = v.AddFile("foo.txt", "text/plain", []byte("foo"))
+				return v
+			}(),
+			filename: "foo.txt",
+			err:      "'foo.txt' already exists in the collection",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.view.AddFile(test.filename, "text/plain", []byte("foo"))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.AsJSON(test.expected, test.view); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
