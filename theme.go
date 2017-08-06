@@ -175,5 +175,6 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	t.Attachments = existing.Attachments
 	t.Files = existing.Files
 	t.modelSequence = existing.modelSequence
+	t.Modified = existing.Modified
 	return false, nil
 }

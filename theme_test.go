@@ -245,3 +245,118 @@ func TestThemeNewModel(t *testing.T) {
 		})
 	}
 }
+
+func TestThemeSetRev(t *testing.T) {
+	theme := &Theme{}
+	rev := "1-xxx"
+	theme.SetRev(rev)
+	if *theme.Rev != rev {
+		t.Errorf("failed to set rev")
+	}
+}
+
+func TestThemeDocID(t *testing.T) {
+	theme, _ := NewTheme([]byte("foo"))
+	expected := "theme-Zm9v"
+	if id := theme.DocID(); id != expected {
+		t.Errorf("unexpected id: %s", id)
+	}
+}
+
+func TestThemeImportedTime(t *testing.T) {
+	t.Run("Set", func(t *testing.T) {
+		theme := &Theme{}
+		ts := now()
+		theme.Imported = &ts
+		if it := theme.ImportedTime(); *it != ts {
+			t.Errorf("Unexpected result")
+		}
+	})
+	t.Run("Unset", func(t *testing.T) {
+		theme := &Theme{}
+		if it := theme.ImportedTime(); it != nil {
+			t.Errorf("unexpected result")
+		}
+	})
+}
+
+func TestThemeModifiedTime(t *testing.T) {
+	theme := &Theme{}
+	ts := now()
+	theme.Modified = ts
+	if mt := theme.ModifiedTime(); *mt != ts {
+		t.Errorf("Unexpected result")
+	}
+}
+
+func TestThemeMergeImport(t *testing.T) {
+	type Test struct {
+		name          string
+		new           *Theme
+		existing      *Theme
+		expected      bool
+		expectedTheme *Theme
+		err           string
+	}
+	tests := []Test{
+		{
+			name:     "different ids",
+			new:      &Theme{ID: DocID{docType: "theme", id: []byte("a")}},
+			existing: &Theme{ID: DocID{docType: "theme", id: []byte("b")}},
+			err:      "IDs don't match",
+		},
+		{
+			name:     "created timestamps don't match",
+			new:      &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-02-01T01:01:01Z")},
+			err:      "Created timestamps don't match",
+		},
+		{
+			name: "new is newer",
+			new: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
+				Name:     func() *string { x := "foo"; return &x }(),
+				Created:  parseTime("2017-01-01T01:01:01Z"),
+				Modified: parseTime("2017-02-01T01:01:01Z")},
+			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
+				Name:     func() *string { x := "bar"; return &x }(),
+				Created:  parseTime("2017-01-01T01:01:01Z"),
+				Modified: parseTime("2017-01-01T01:01:01Z")},
+			expected: true,
+			expectedTheme: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
+				Name:     func() *string { x := "foo"; return &x }(),
+				Created:  parseTime("2017-01-01T01:01:01Z"),
+				Modified: parseTime("2017-02-01T01:01:01Z")},
+		},
+		{
+			name: "existing is newer",
+			new: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
+				Name:     func() *string { x := "foo"; return &x }(),
+				Created:  parseTime("2017-01-01T01:01:01Z"),
+				Modified: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
+				Name:     func() *string { x := "bar"; return &x }(),
+				Created:  parseTime("2017-01-01T01:01:01Z"),
+				Modified: parseTime("2017-02-01T01:01:01Z")},
+			expected: false,
+			expectedTheme: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
+				Name:     func() *string { x := "bar"; return &x }(),
+				Created:  parseTime("2017-01-01T01:01:01Z"),
+				Modified: parseTime("2017-02-01T01:01:01Z")},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.new.MergeImport(test.existing)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if test.expected != result {
+				t.Errorf("Unexpected result: %t", result)
+			}
+			if d := diff.Interface(test.expectedTheme, test.new); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
