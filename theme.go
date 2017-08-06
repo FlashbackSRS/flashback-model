@@ -113,6 +113,13 @@ func (t *Theme) UnmarshalJSON(data []byte) error {
 	t.Files = doc.Files
 	t.modelSequence = doc.ModelSequence
 
+	if t.Attachments == nil {
+		return errors.New("invalid theme: no attachments")
+	}
+	if t.Files == nil {
+		return errors.New("invalid theme: no file list")
+	}
+
 	if err := t.Attachments.AddView(t.Files); err != nil {
 		return err
 	}
