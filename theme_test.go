@@ -378,3 +378,65 @@ func TestThemeMergeImport(t *testing.T) {
 		})
 	}
 }
+
+func TestThemeValidate(t *testing.T) {
+	att := NewFileCollection()
+	view := att.NewView()
+	tests := []validationTest{
+		{
+			name: "no ID",
+			v:    &themeDoc{},
+			err:  "id required",
+		},
+		{
+			name: "wrong doctype",
+			v:    &themeDoc{ID: DocID{docType: "chicken", id: []byte("a")}},
+			err:  "invalid doc type",
+		},
+		{
+			name: "no created time",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now()},
+			err:  "modified time required",
+		},
+		{
+			name: "nil attachments collection",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now()},
+			err:  "attachments collection must not be nil",
+		},
+		{
+			name: "nil file list",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: NewFileCollection()},
+			err:  "file list must not be nil",
+		},
+		{
+			name: "attachments and files don't match",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: NewFileCollection(), Files: NewFileCollection().NewView()},
+			err:  "file list must be a member of attachments collection",
+		},
+		{
+			name: "invalid model sequence",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 0, Models: []*Model{{ID: 0}}},
+			err:  "modelSequence must larger than existing model IDs",
+		},
+		{
+			name: "invalid model file list",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: NewFileCollection().NewView()}}},
+			err:  "model 0 file list must be a member of attachments collection",
+		},
+		{
+			name: "invalid model",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: view}}},
+			err:  "invalid model: theme is required",
+		},
+		{
+			name: "valid",
+			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view},
+		},
+	}
+	testValidation(t, tests)
+}

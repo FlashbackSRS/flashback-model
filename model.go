@@ -18,6 +18,24 @@ type Model struct {
 	Files     *FileCollectionView `json:"files,omitempty"`
 }
 
+// Validate validates that all of the data in the theme appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (m *Model) Validate() error {
+	if m.Theme == nil {
+		return errors.New("theme is required")
+	}
+	if m.Type == "" {
+		return errors.New("type is required")
+	}
+	if m.Files == nil {
+		return errors.New("file list must not be nil")
+	}
+	if m.Theme.Attachments == nil {
+		return errors.New("invalid theme")
+	}
+	return nil
+}
+
 const (
 	// AnkiStandardModel is a Basic Anki note
 	AnkiStandardModel = "anki-basic"
@@ -60,6 +78,12 @@ func (m *Model) Identity() string {
 
 // AddField adds a field of the specified type and name to the Model.
 func (m *Model) AddField(fType FieldType, name string) error {
+	if fType > AnkiField {
+		return errors.New("invalid field type")
+	}
+	if name == "" {
+		return errors.New("field name is required")
+	}
 	m.Fields = append(m.Fields, &Field{
 		Type: fType,
 		Name: name,

@@ -343,55 +343,45 @@ func TestNoteID(t *testing.T) {
 }
 
 func TestCardValidate(t *testing.T) {
-	type cvTest struct {
-		name string
-		card *Card
-		err  string
-	}
-	tests := []cvTest{
+	tests := []validationTest{
 		{
 			name: "empty card",
-			card: &Card{},
+			v:    &Card{},
 			err:  "id required",
 		},
 		{
 			name: "invalid id",
-			card: &Card{ID: "chicken"},
+			v:    &Card{ID: "chicken"},
 			err:  "invalid ID type",
 		},
 		{
 			name: "zero created time",
-			card: &Card{ID: "card-foo.bar.0"},
+			v:    &Card{ID: "card-foo.bar.0"},
 			err:  "created time required",
 		},
 		{
 			name: "zero modified time",
-			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z")},
+			v:    &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:  "modified time required",
 		},
 		{
 			name: "missing model id",
-			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
+			v:    &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z")},
 			err:  "invalid theme ID type",
 		},
 		{
 			name: "invalid model id",
-			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
+			v: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
 				ModelID: "chicken"},
 			err: "invalid theme ID type",
 		},
 		{
 			name: "valid",
-			card: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
+			v: &Card{ID: "card-foo.bar.0", Created: parseTime("2017-01-01T01:01:01Z"), Modified: parseTime("2017-01-01T01:01:01Z"),
 				ModelID: "theme-foo/2"},
 		},
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := test.card.Validate()
-			checkErr(t, test.err, err)
-		})
-	}
+	testValidation(t, tests)
 }
 
 func TestParseThemeID(t *testing.T) {
