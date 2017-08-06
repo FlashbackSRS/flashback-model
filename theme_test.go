@@ -1,6 +1,7 @@
 package fb
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/flimzy/diff"
@@ -60,6 +61,53 @@ func TestSetFile(t *testing.T) {
 	}
 	if d := diff.Interface(expected, theme); d != "" {
 		t.Error(d)
+	}
+}
+
+func TestThemeMarshalJSON(t *testing.T) {
+	type Test struct {
+		name     string
+		theme    *Theme
+		expected string
+		err      string
+	}
+	tests := []Test{
+		{
+			name: "valid",
+			theme: func() *Theme {
+				theme, _ := NewTheme([]byte("test theme id"))
+				theme.SetFile("file.txt", "text/plain", []byte("some text"))
+				theme.Created = now()
+				theme.Modified = now()
+				return theme
+			}(),
+			expected: `{
+                "_id":           "theme-dGVzdCB0aGVtZSBpZA",
+                "type":          "theme",
+                "created":       "2017-01-01T00:00:00Z",
+                "modified":      "2017-01-01T00:00:00Z",
+                "modelSequence": 0,
+                "files":         ["file.txt"],
+                "_attachments":  {
+                    "file.txt": {
+                        "content_type": "text/plain",
+                        "data":         "c29tZSB0ZXh0"
+                    }
+                }
+            }`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := json.Marshal(test.theme)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.JSON([]byte(test.expected), result); d != "" {
+				t.Error(d)
+			}
+		})
 	}
 }
 
