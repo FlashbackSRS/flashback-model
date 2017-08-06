@@ -1,6 +1,7 @@
 package fb
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/flimzy/diff"
@@ -176,6 +177,11 @@ func TestAddFile(t *testing.T) {
 			filename: "foo.txt",
 			err:      "'foo.txt' already exists in the collection",
 		},
+		{
+			name:     "no file name",
+			view:     NewFileCollection().NewView(),
+			expected: []string{""},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -185,6 +191,48 @@ func TestAddFile(t *testing.T) {
 				return
 			}
 			if d := diff.AsJSON(test.expected, test.view); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestFileCollectionMarshalJSON(t *testing.T) {
+	type Test struct {
+		name     string
+		fc       *FileCollection
+		expected string
+		err      string
+	}
+	tests := []Test{
+		{
+			name:     "empty collection",
+			fc:       NewFileCollection(),
+			expected: `{}`,
+		},
+		{
+			name: "two files",
+			fc: func() *FileCollection {
+				fc := NewFileCollection()
+				view := fc.NewView()
+				_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+				_ = view.AddFile("123.txt", "text/plain", []byte("123"))
+				return fc
+			}(),
+			expected: `{
+				"123.txt": {"content_type":"text/plain", "data":"MTIz"},
+				"abc.txt": {"content_type":"text/plain", "data":"YWJj"}
+			}`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := json.Marshal(test.fc)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.JSON([]byte(test.expected), result); d != "" {
 				t.Error(d)
 			}
 		})
