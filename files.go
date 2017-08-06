@@ -143,6 +143,16 @@ func (fc *FileCollection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// hasMemberView returns true if view is a member of fc.
+func (fc *FileCollection) hasMemberView(view *FileCollectionView) bool {
+	for _, v := range fc.views {
+		if view == v {
+			return true
+		}
+	}
+	return false
+}
+
 // SetFile sets the requested attachment, replacing it if it already exists.
 func (v *FileCollectionView) SetFile(name, ctype string, content []byte) {
 	att := &Attachment{

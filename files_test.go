@@ -133,3 +133,20 @@ func TestFileCollectionViewUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestFCHasMemberView(t *testing.T) {
+	t.Run("Member", func(t *testing.T) {
+		att := NewFileCollection()
+		view := att.NewView()
+		if !att.hasMemberView(view) {
+			t.Errorf("Expected success")
+		}
+	})
+	t.Run("Non-member", func(t *testing.T) {
+		att := NewFileCollection()
+		view := NewFileCollection().NewView()
+		if att.hasMemberView(view) {
+			t.Errorf("Expected failure")
+		}
+	})
+}

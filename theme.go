@@ -44,6 +44,38 @@ type themeDoc struct {
 	ModelSequence uint32              `json:"modelSequence"`
 }
 
+// Validate validates that all of the data in the theme appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (t *themeDoc) Validate() error {
+	if t.ID.id == nil || len(t.ID.id) == 0 {
+		return errors.New("id required")
+	}
+	if t.ID.docType != "theme" {
+		return errors.New("invalid doc type")
+	}
+	if t.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if t.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if t.Attachments == nil {
+		return errors.New("attachments collection must not be nil")
+	}
+	if t.Files == nil {
+		return errors.New("file list must not be nil")
+	}
+	if !t.Attachments.hasMemberView(t.Files) {
+		return errors.New("file list must be a member of attachments collection")
+	}
+	for _, m := range t.Models {
+		if m.ID <= t.ModelSequence {
+			return errors.New("modelSequence must larger than existing model IDs")
+		}
+	}
+	return nil
+}
+
 // NewTheme returns a new, bare-bones theme, with the specified ID.
 func NewTheme(id []byte) (*Theme, error) {
 	t := &Theme{}
