@@ -7,13 +7,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-var validDocIDTypes map[string]struct{}
-
-func init() {
-	validDocIDTypes = make(map[string]struct{})
-	for _, t := range []string{"theme", "model", "note", "deck", "card"} {
-		validDocIDTypes[t] = struct{}{}
-	}
+var validDocIDTypes = map[string]struct{}{
+	"theme": {},
+	"model": {},
+	"note":  {},
+	"deck":  {},
+	"card":  {},
 }
 
 func isValidDocIDType(t string) bool {
@@ -69,7 +68,10 @@ func (id *DocID) parse(parts ...string) error {
 // NewDocID returns a new ID with the provided docType and Identity.
 func NewDocID(docType string, id []byte) (DocID, error) {
 	if !isValidDocIDType(docType) {
-		return DocID{}, errors.New("Invalid document type:" + docType)
+		return DocID{}, errors.New("invalid document type: " + docType)
+	}
+	if id == nil || len(id) == 0 {
+		return DocID{}, errors.New("id is required")
 	}
 	return DocID{
 		docType: docType,
