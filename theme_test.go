@@ -6,6 +6,46 @@ import (
 	"github.com/flimzy/diff"
 )
 
+func TestNewTheme(t *testing.T) {
+	type Test struct {
+		name     string
+		id       []byte
+		expected interface{}
+		err      string
+	}
+	tests := []Test{
+		{
+			name: "no id",
+			err:  "failed to create DocID for Theme: id is required",
+		},
+		{
+			name: "valid",
+			id:   []byte("theme id"),
+			expected: func() *Theme {
+				t := &Theme{
+					ID:          DocID{docType: "theme", id: []byte("theme id")},
+					Models:      make([]*Model, 0, 1),
+					Attachments: NewFileCollection(),
+				}
+				t.Files = t.Attachments.NewView()
+				return t
+			}(),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := NewTheme(test.id)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
 func TestThemeUnmarshalJSON(t *testing.T) {
 	type Test struct {
 		name     string
