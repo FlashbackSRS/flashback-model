@@ -15,6 +15,20 @@ var validDocIDTypes = map[string]struct{}{
 	"card":  {},
 }
 
+func validateDocID(id string) error {
+	parts := strings.Split(id, "-")
+	if len(parts) != 2 {
+		return errors.New("invalid DocID format")
+	}
+	if _, ok := validDocIDTypes[parts[0]]; !ok {
+		return errors.Errorf("unsupported DocID type '%s'", parts[0])
+	}
+	if _, err := b64encoder.DecodeString(parts[1]); err != nil {
+		return errors.New("invalid DocID encoding")
+	}
+	return nil
+}
+
 func isValidDocIDType(t string) bool {
 	_, ok := validDocIDTypes[t]
 	return ok
