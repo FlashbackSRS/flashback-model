@@ -34,6 +34,10 @@ func TestEscapeFilename(t *testing.T) {
 			Filename: "영상.jpg",
 			Expected: "영상.jpg",
 		},
+		{
+			Filename: "",
+			Expected: "",
+		},
 	}
 	for _, test := range tests {
 		result := escapeFilename(test.Filename)

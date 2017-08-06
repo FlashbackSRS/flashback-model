@@ -108,6 +108,9 @@ const filenameEscapeChar = '^'
 // Any '_' characters found elsewhere in the filename are left alone, to
 // preserve a few bytes of space (woot!).
 func escapeFilename(filename string) string {
+	if len(filename) == 0 {
+		return filename
+	}
 	switch filename[0] {
 	case '_', filenameEscapeChar:
 		return string(filenameEscapeChar) + filename
