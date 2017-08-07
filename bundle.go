@@ -97,10 +97,10 @@ func (b *Bundle) SetRev(rev string) { b.Rev = &rev }
 func (b *Bundle) DocID() string { return b.ID.String() }
 
 // ImportedTime returns the time the Bundle was imported, or nil
-func (b *Bundle) ImportedTime() *time.Time { return b.Imported }
+func (b *Bundle) ImportedTime() time.Time { return *b.Imported }
 
 // ModifiedTime returns the time the Bundle was last modified
-func (b *Bundle) ModifiedTime() *time.Time { return &b.Modified }
+func (b *Bundle) ModifiedTime() time.Time { return b.Modified }
 
 // MergeImport attempts to merge i into b, returning true if a merge took place,
 // or false if no merge was necessary.
