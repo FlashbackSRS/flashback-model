@@ -305,7 +305,7 @@ func TestThemeImportedTime(t *testing.T) {
 		theme := &Theme{}
 		ts := now()
 		theme.Imported = ts
-		if it := theme.ImportedTime(); *it != ts {
+		if it := theme.ImportedTime(); it != ts {
 			t.Errorf("Unexpected result: %s", it)
 		}
 	})
@@ -321,7 +321,7 @@ func TestThemeModifiedTime(t *testing.T) {
 	theme := &Theme{}
 	ts := now()
 	theme.Modified = ts
-	if mt := theme.ModifiedTime(); *mt != ts {
+	if mt := theme.ModifiedTime(); mt != ts {
 		t.Errorf("Unexpected result")
 	}
 }

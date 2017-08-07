@@ -177,10 +177,10 @@ func (t *Theme) SetRev(rev string) { t.Rev = rev }
 func (t *Theme) DocID() string { return t.ID }
 
 // ImportedTime returns the time the Theme was imported, or nil
-func (t *Theme) ImportedTime() *time.Time { return &t.Imported }
+func (t *Theme) ImportedTime() time.Time { return t.Imported }
 
 // ModifiedTime returns the time the Theme was last modified
-func (t *Theme) ModifiedTime() *time.Time { return &t.Modified }
+func (t *Theme) ModifiedTime() time.Time { return t.Modified }
 
 // MergeImport attempts to merge i into t and returns true if a merge occurred,
 // or false if no merge was necessary.

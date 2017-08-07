@@ -202,10 +202,10 @@ func (n *Note) SetRev(rev string) { n.Rev = &rev }
 func (n *Note) DocID() string { return n.ID.String() }
 
 // ImportedTime returns the time the Note was imported, or nil.
-func (n *Note) ImportedTime() *time.Time { return n.Imported }
+func (n *Note) ImportedTime() time.Time { return *n.Imported }
 
 // ModifiedTime returns the time the Note was last modified.
-func (n *Note) ModifiedTime() *time.Time { return &n.Modified }
+func (n *Note) ModifiedTime() time.Time { return n.Modified }
 
 // MergeImport attempts to merge i into n, returning true if successful, or
 // false if no merge was necessary.
