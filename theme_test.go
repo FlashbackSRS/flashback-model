@@ -157,7 +157,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 		},
 		{
 			name:  "null fields",
-			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.txt"]}] }`,
+			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "modelType":"test", "files": ["foo.txt"]}], "modelSequence": 1 }`,
 			expected: map[string]interface{}{
 				"type":     "theme",
 				"_id":      "theme-abcd",
@@ -166,7 +166,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 				"models": []map[string]interface{}{
 					{
 						"id":        0,
-						"modelType": "",
+						"modelType": "test",
 						"templates": nil,
 						"fields":    nil,
 						"files":     []string{"foo.txt"},
@@ -179,12 +179,12 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 					},
 				},
 				"files":         []string{},
-				"modelSequence": 0,
+				"modelSequence": 1,
 			},
 		},
 		{
 			name:  "full fields",
-			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "imported":"2017-02-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.txt"]}], "name":"Theme name", "description":"Theme description" }`,
+			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "imported":"2017-02-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "modelType": "test", "files": ["foo.txt"]}], "name":"Theme name", "description":"Theme description", "modelSequence": 1 }`,
 			expected: map[string]interface{}{
 				"type":        "theme",
 				"_id":         "theme-abcd",
@@ -196,7 +196,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 				"models": []map[string]interface{}{
 					{
 						"id":        0,
-						"modelType": "",
+						"modelType": "test",
 						"templates": nil,
 						"fields":    nil,
 						"files":     []string{"foo.txt"},
@@ -209,7 +209,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 					},
 				},
 				"files":         []string{},
-				"modelSequence": 0,
+				"modelSequence": 1,
 			},
 		},
 	}

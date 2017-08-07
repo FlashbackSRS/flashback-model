@@ -159,8 +159,7 @@ func (t *Theme) UnmarshalJSON(data []byte) error {
 		}
 		m.Theme = t
 	}
-
-	return nil
+	return t.Validate()
 }
 
 // NextModelSequence returns the next available model sequence, while also
