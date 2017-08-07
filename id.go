@@ -2,6 +2,7 @@ package fb
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -13,6 +14,20 @@ var validDocIDTypes = map[string]struct{}{
 	"note":  {},
 	"deck":  {},
 	"card":  {},
+}
+
+func validateDocID(id string) error {
+	parts := strings.Split(id, "-")
+	if len(parts) != 2 {
+		return errors.New("invalid DocID format")
+	}
+	if _, ok := validDocIDTypes[parts[0]]; !ok {
+		return errors.Errorf("unsupported DocID type '%s'", parts[0])
+	}
+	if _, err := b64encoder.DecodeString(parts[1]); err != nil {
+		return errors.New("invalid DocID encoding")
+	}
+	return nil
 }
 
 func isValidDocIDType(t string) bool {
@@ -44,13 +59,6 @@ func parseParts(input ...string) (string, string) {
 	}
 }
 
-// ParseDocID parses a string reprsentation of a DocID, returning the DocID or an error.
-func ParseDocID(parts ...string) (DocID, error) {
-	id := DocID{}
-	err := id.parse(parts...)
-	return id, errors.Wrap(err, "failed to parse DocID")
-}
-
 func (id *DocID) parse(parts ...string) error {
 	docType, identity := parseParts(parts...)
 	data, err := b64encoder.DecodeString(identity)
@@ -63,6 +71,12 @@ func (id *DocID) parse(parts ...string) error {
 	id.docType = docType
 	id.id = data
 	return nil
+}
+
+// EncodeDocID generates a DocID by encoding the docType and Base64-encoding
+// the ID. No validation is done of the docType.
+func EncodeDocID(docType string, id []byte) string {
+	return fmt.Sprintf("%s-%s", docType, b64encoder.EncodeToString(id))
 }
 
 // NewDocID returns a new ID with the provided docType and Identity.

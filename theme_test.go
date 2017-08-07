@@ -10,21 +10,23 @@ import (
 func TestNewTheme(t *testing.T) {
 	type Test struct {
 		name     string
-		id       []byte
+		id       string
 		expected interface{}
 		err      string
 	}
 	tests := []Test{
 		{
 			name: "no id",
-			err:  "failed to create DocID for Theme: id is required",
+			err:  "id required",
 		},
 		{
 			name: "valid",
-			id:   []byte("theme id"),
+			id:   "theme-foo",
 			expected: func() *Theme {
 				t := &Theme{
-					ID:          DocID{docType: "theme", id: []byte("theme id")},
+					ID:          "theme-foo",
+					Created:     now(),
+					Modified:    now(),
 					Models:      make([]*Model, 0, 1),
 					Attachments: NewFileCollection(),
 				}
@@ -51,10 +53,12 @@ func TestSetFile(t *testing.T) {
 	att := NewFileCollection()
 	view := att.NewView()
 	_ = view.AddFile("foo.mp3", "audio/mpeg", []byte("foo"))
-	theme, _ := NewTheme([]byte("foo"))
+	theme, _ := NewTheme("theme-foo")
 	theme.SetFile("foo.mp3", "audio/mpeg", []byte("foo"))
 	expected := &Theme{
-		ID:          DocID{docType: "theme", id: []byte("foo")},
+		ID:          "theme-foo",
+		Created:     now(),
+		Modified:    now(),
 		Models:      []*Model{},
 		Attachments: att,
 		Files:       view,
@@ -73,16 +77,21 @@ func TestThemeMarshalJSON(t *testing.T) {
 	}
 	tests := []Test{
 		{
+			name:  "fails validation",
+			theme: &Theme{},
+			err:   "json: error calling MarshalJSON for type *fb.Theme: id required",
+		},
+		{
 			name: "valid",
 			theme: func() *Theme {
-				theme, _ := NewTheme([]byte("test theme id"))
+				theme, _ := NewTheme("theme-abcd")
 				theme.SetFile("file.txt", "text/plain", []byte("some text"))
 				theme.Created = now()
 				theme.Modified = now()
 				return theme
 			}(),
 			expected: `{
-                "_id":           "theme-dGVzdCB0aGVtZSBpZA",
+                "_id":           "theme-abcd",
                 "type":          "theme",
                 "created":       "2017-01-01T00:00:00Z",
                 "modified":      "2017-01-01T00:00:00Z",
@@ -126,7 +135,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 		},
 		{
 			name:  "wrong type",
-			input: `{"type":"chicken"}`,
+			input: `{"type":"chicken", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.txt"]}] }`,
 			err:   "Invalid document type for theme: chicken",
 		},
 		{
@@ -152,17 +161,17 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 			err:   "foo.mp3 not found in collection",
 		},
 		{
-			name:  "valid",
-			input: `{"type":"theme", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.txt"]}] }`,
+			name:  "null fields",
+			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "modelType":"test", "files": ["foo.txt"]}], "modelSequence": 1 }`,
 			expected: map[string]interface{}{
 				"type":     "theme",
-				"_id":      "theme-120",
+				"_id":      "theme-abcd",
 				"created":  "2017-01-01T01:01:01Z",
 				"modified": "2017-01-01T01:01:01Z",
 				"models": []map[string]interface{}{
 					{
 						"id":        0,
-						"modelType": "",
+						"modelType": "test",
 						"templates": nil,
 						"fields":    nil,
 						"files":     []string{"foo.txt"},
@@ -175,7 +184,37 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 					},
 				},
 				"files":         []string{},
-				"modelSequence": 0,
+				"modelSequence": 1,
+			},
+		},
+		{
+			name:  "full fields",
+			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "imported":"2017-02-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "modelType": "test", "files": ["foo.txt"]}], "name":"Theme name", "description":"Theme description", "modelSequence": 1 }`,
+			expected: map[string]interface{}{
+				"type":        "theme",
+				"_id":         "theme-abcd",
+				"name":        "Theme name",
+				"description": "Theme description",
+				"created":     "2017-01-01T01:01:01Z",
+				"modified":    "2017-01-01T01:01:01Z",
+				"imported":    "2017-02-01T01:01:01Z",
+				"models": []map[string]interface{}{
+					{
+						"id":        0,
+						"modelType": "test",
+						"templates": nil,
+						"fields":    nil,
+						"files":     []string{"foo.txt"},
+					},
+				},
+				"_attachments": map[string]interface{}{
+					"foo.txt": map[string]string{
+						"content_type": "text/plain",
+						"data":         "text",
+					},
+				},
+				"files":         []string{},
+				"modelSequence": 1,
 			},
 		},
 	}
@@ -211,15 +250,13 @@ func TestThemeNewModel(t *testing.T) {
 		{
 			name: "success",
 			theme: func() *Theme {
-				theme, _ := NewTheme([]byte("foo"))
+				theme, _ := NewTheme("theme-foo")
 				return theme
 			}(),
 			modelType: "chicken",
 			expected: func() *Model {
-				theme, _ := NewTheme([]byte("foo"))
-				// att := NewFileCollection()
-				// theme.Files = att.NewView()
-				theme.modelSequence = 1
+				theme, _ := NewTheme("theme-foo")
+				theme.ModelSequence = 1
 				model := &Model{
 					Type:      "chicken",
 					Templates: []string{},
@@ -250,13 +287,13 @@ func TestThemeSetRev(t *testing.T) {
 	theme := &Theme{}
 	rev := "1-xxx"
 	theme.SetRev(rev)
-	if *theme.Rev != rev {
+	if theme.Rev != rev {
 		t.Errorf("failed to set rev")
 	}
 }
 
-func TestThemeDocID(t *testing.T) {
-	theme, _ := NewTheme([]byte("foo"))
+func TestThemeID(t *testing.T) {
+	theme, _ := NewTheme("theme-Zm9v")
 	expected := "theme-Zm9v"
 	if id := theme.DocID(); id != expected {
 		t.Errorf("unexpected id: %s", id)
@@ -267,15 +304,15 @@ func TestThemeImportedTime(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		theme := &Theme{}
 		ts := now()
-		theme.Imported = &ts
+		theme.Imported = ts
 		if it := theme.ImportedTime(); *it != ts {
-			t.Errorf("Unexpected result")
+			t.Errorf("Unexpected result: %s", it)
 		}
 	})
 	t.Run("Unset", func(t *testing.T) {
 		theme := &Theme{}
-		if it := theme.ImportedTime(); it != nil {
-			t.Errorf("unexpected result")
+		if it := theme.ImportedTime(); !it.IsZero() {
+			t.Errorf("unexpected result: %v", it)
 		}
 	})
 }
@@ -301,65 +338,69 @@ func TestThemeMergeImport(t *testing.T) {
 	tests := []Test{
 		{
 			name:     "different ids",
-			new:      &Theme{ID: DocID{docType: "theme", id: []byte("a")}},
-			existing: &Theme{ID: DocID{docType: "theme", id: []byte("b")}},
+			new:      &Theme{ID: "theme-abcd"},
+			existing: &Theme{ID: "theme-b"},
 			err:      "IDs don't match",
 		},
 		{
 			name:     "created timestamps don't match",
-			new:      &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			new:      &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Created timestamps don't match",
 		},
 		{
 			name:     "new not an import",
-			new:      &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			new:      &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
-			new:      &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")}, Created: parseTime("2017-02-01T01:01:01Z")},
+			new:      &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-02-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
 			name: "new is newer",
-			new: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
-				Name:     func() *string { x := "foo"; return &x }(),
+			new: &Theme{
+				ID:       "theme-abcd",
+				Name:     "foo",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
-				Name:     func() *string { x := "bar"; return &x }(),
+				Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Theme{
+				ID:       "theme-abcd",
+				Name:     "bar",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z")},
 			expected: true,
-			expectedTheme: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
-				Name:     func() *string { x := "foo"; return &x }(),
+			expectedTheme: &Theme{
+				ID:       "theme-abcd",
+				Name:     "foo",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z")},
 		},
 		{
 			name: "existing is newer",
-			new: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
-				Name:     func() *string { x := "foo"; return &x }(),
+			new: &Theme{
+				ID:       "theme-abcd",
+				Name:     "foo",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
-				Name:     func() *string { x := "bar"; return &x }(),
+				Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Theme{ID: "theme-abcd",
+				Name:     "bar",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z")},
 			expected: false,
-			expectedTheme: &Theme{ID: DocID{docType: "theme", id: []byte("a")},
-				Name:     func() *string { x := "bar"; return &x }(),
+			expectedTheme: &Theme{ID: "theme-abcd",
+				Name:     "bar",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z")},
 		},
 	}
 	for _, test := range tests {
@@ -385,57 +426,62 @@ func TestThemeValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "no ID",
-			v:    &themeDoc{},
+			v:    &Theme{},
 			err:  "id required",
 		},
 		{
+			name: "invalid doctype",
+			v:    &Theme{ID: "chicken-a"},
+			err:  "unsupported DocID type 'chicken'",
+		},
+		{
 			name: "wrong doctype",
-			v:    &themeDoc{ID: DocID{docType: "chicken", id: []byte("a")}},
-			err:  "invalid doc type",
+			v:    &Theme{ID: "deck-abcd"},
+			err:  "incorrect doc type",
 		},
 		{
 			name: "no created time",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}},
+			v:    &Theme{ID: "theme-abcd"},
 			err:  "created time required",
 		},
 		{
 			name: "no modified time",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now()},
+			v:    &Theme{ID: "theme-abcd", Created: now()},
 			err:  "modified time required",
 		},
 		{
 			name: "nil attachments collection",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now()},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now()},
 			err:  "attachments collection must not be nil",
 		},
 		{
 			name: "nil file list",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: NewFileCollection()},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: NewFileCollection()},
 			err:  "file list must not be nil",
 		},
 		{
 			name: "attachments and files don't match",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: NewFileCollection(), Files: NewFileCollection().NewView()},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: NewFileCollection(), Files: NewFileCollection().NewView()},
 			err:  "file list must be a member of attachments collection",
 		},
 		{
 			name: "invalid model sequence",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 0, Models: []*Model{{ID: 0}}},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 0, Models: []*Model{{ID: 0}}},
 			err:  "modelSequence must larger than existing model IDs",
 		},
 		{
 			name: "invalid model file list",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: NewFileCollection().NewView()}}},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: NewFileCollection().NewView()}}},
 			err:  "model 0 file list must be a member of attachments collection",
 		},
 		{
 			name: "invalid model",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: view}}},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 1, Models: []*Model{{ID: 0, Files: view}}},
 			err:  "invalid model: theme is required",
 		},
 		{
 			name: "valid",
-			v:    &themeDoc{ID: DocID{docType: "theme", id: []byte("a")}, Created: now(), Modified: now(), Attachments: att, Files: view},
+			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: att, Files: view},
 		},
 	}
 	testValidation(t, tests)

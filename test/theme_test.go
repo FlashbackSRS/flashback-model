@@ -81,17 +81,14 @@ var frozenTheme = []byte(`
 
 func TestCreateTheme(t *testing.T) {
 	require := require.New(t)
-	th, err := fb.NewTheme([]byte("Test Theme"))
+	th, err := fb.NewTheme("theme-VGVzdCBUaGVtZQ")
 	require.Nil(err, "Error creating theme: %s", err)
 
-	name := "Test Theme"
-	th.Name = &name
-	descr := "Theme for testing"
-	th.Description = &descr
+	th.Name = "Test Theme"
+	th.Description = "Theme for testing"
 	th.Created = now
 	th.Modified = now
-	imp := now.AddDate(0, 0, 2)
-	th.Imported = &imp
+	th.Imported = now.AddDate(0, 0, 2)
 	th.SetFile("$main.css", "text/css", []byte("/* an empty CSS file */"))
 	m1, _ := th.NewModel("anki-basic")
 	m2, _ := th.NewModel("anki-cloze")

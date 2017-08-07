@@ -50,7 +50,7 @@ func NewNote(id []byte, model *Model) (*Note, error) {
 		return nil, errors.Wrap(err, "cannot create DocID")
 	}
 	n.ID = nid
-	n.ThemeID = model.Theme.ID.String()
+	n.ThemeID = model.Theme.ID
 	n.ModelID = model.ID
 	n.FieldValues = make([]*FieldValue, len(model.Fields))
 	n.Attachments = NewFileCollection()

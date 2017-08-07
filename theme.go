@@ -2,6 +2,7 @@ package fb
 
 import (
 	"encoding/json"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -16,28 +17,13 @@ import (
 // theme must exist one or more models, each of which represents a specific card
 // type, and which may additionally have its own attachments.
 type Theme struct {
-	ID            DocID
-	Rev           *string
-	Created       time.Time
-	Modified      time.Time
-	Imported      *time.Time
-	Name          *string
-	Description   *string
-	Models        []*Model
-	Attachments   *FileCollection
-	Files         *FileCollectionView
-	modelSequence uint32
-}
-
-type themeDoc struct {
-	Type          string              `json:"type"`
-	ID            DocID               `json:"_id"`
-	Rev           *string             `json:"_rev,omitempty"`
+	ID            string              `json:"_id"`
+	Rev           string              `json:"_rev,omitempty"`
 	Created       time.Time           `json:"created"`
 	Modified      time.Time           `json:"modified"`
-	Imported      *time.Time          `json:"imported,omitempty"`
-	Name          *string             `json:"name,omitempty"`
-	Description   *string             `json:"description,omitempty"`
+	Imported      time.Time           `json:"imported,omitempty"`
+	Name          string              `json:"name,omitempty"`
+	Description   string              `json:"description,omitempty"`
 	Models        []*Model            `json:"models,omitempty"`
 	Attachments   *FileCollection     `json:"_attachments,omitempty"`
 	Files         *FileCollectionView `json:"files,omitempty"`
@@ -47,12 +33,15 @@ type themeDoc struct {
 // Validate validates that all of the data in the theme, including its models,
 // appears valid and self consistent. A nil return value means no errors were
 // detected.
-func (t *themeDoc) Validate() error {
-	if t.ID.id == nil || len(t.ID.id) == 0 {
+func (t *Theme) Validate() error {
+	if t.ID == "" {
 		return errors.New("id required")
 	}
-	if t.ID.docType != "theme" {
-		return errors.New("invalid doc type")
+	if err := validateDocID(t.ID); err != nil {
+		return err
+	}
+	if !strings.HasPrefix(t.ID, "theme-") {
+		return errors.New("incorrect doc type")
 	}
 	if t.Created.IsZero() {
 		return errors.New("created time required")
@@ -84,16 +73,19 @@ func (t *themeDoc) Validate() error {
 }
 
 // NewTheme returns a new, bare-bones theme, with the specified ID.
-func NewTheme(id []byte) (*Theme, error) {
-	t := &Theme{}
-	tid, err := NewDocID("theme", id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create DocID for Theme")
+func NewTheme(id string) (*Theme, error) {
+	nowTime := now()
+	t := &Theme{
+		ID:       id,
+		Created:  nowTime,
+		Modified: nowTime,
 	}
-	t.ID = tid
 	t.Attachments = NewFileCollection()
 	t.Files = t.Attachments.NewView()
 	t.Models = make([]*Model, 0, 1)
+	if err := t.Validate(); err != nil {
+		return nil, err
+	}
 	return t, nil
 }
 
@@ -103,22 +95,31 @@ func (t *Theme) SetFile(name, ctype string, content []byte) {
 	t.Files.SetFile(name, ctype, content)
 }
 
+type themeAlias Theme
+
+type jsonTheme struct {
+	themeAlias
+	Type string `json:"type"`
+}
+
 // MarshalJSON implements the json.Marshaler interface for the Theme type.
 func (t *Theme) MarshalJSON() ([]byte, error) {
-	return json.Marshal(themeDoc{
-		Type:          "theme",
-		ID:            t.ID,
-		Rev:           t.Rev,
-		Created:       t.Created,
-		Modified:      t.Modified,
-		Imported:      t.Imported,
-		Name:          t.Name,
-		Description:   t.Description,
-		Models:        t.Models,
-		Attachments:   t.Attachments,
-		Files:         t.Files,
-		ModelSequence: t.modelSequence,
-	})
+	if err := t.Validate(); err != nil {
+		return nil, err
+	}
+	doc := struct {
+		jsonTheme
+		Imported *time.Time `json:"imported,omitempty"`
+	}{
+		jsonTheme: jsonTheme{
+			Type:       "theme",
+			themeAlias: themeAlias(*t),
+		},
+	}
+	if !t.Imported.IsZero() {
+		doc.Imported = &t.Imported
+	}
+	return json.Marshal(doc)
 }
 
 // NewModel returns a new model of the requested type.
@@ -133,24 +134,14 @@ func (t *Theme) NewModel(mType string) (*Model, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Theme type.
 func (t *Theme) UnmarshalJSON(data []byte) error {
-	doc := &themeDoc{}
+	doc := &jsonTheme{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal Theme")
 	}
 	if doc.Type != "theme" {
 		return errors.New("Invalid document type for theme: " + doc.Type)
 	}
-	t.ID = doc.ID
-	t.Rev = doc.Rev
-	t.Created = doc.Created
-	t.Modified = doc.Modified
-	t.Imported = doc.Imported
-	t.Name = doc.Name
-	t.Description = doc.Description
-	t.Models = doc.Models
-	t.Attachments = doc.Attachments
-	t.Files = doc.Files
-	t.modelSequence = doc.ModelSequence
+	*t = Theme(doc.themeAlias)
 
 	if t.Attachments == nil {
 		return errors.New("invalid theme: no attachments")
@@ -168,26 +159,25 @@ func (t *Theme) UnmarshalJSON(data []byte) error {
 		}
 		m.Theme = t
 	}
-
-	return nil
+	return t.Validate()
 }
 
 // NextModelSequence returns the next available model sequence, while also
 // updating the internal counter.
 func (t *Theme) NextModelSequence() uint32 {
-	id := t.modelSequence
-	atomic.AddUint32(&t.modelSequence, 1)
+	id := t.ModelSequence
+	atomic.AddUint32(&t.ModelSequence, 1)
 	return id
 }
 
 // SetRev sets the _rev attribute of the Theme.
-func (t *Theme) SetRev(rev string) { t.Rev = &rev }
+func (t *Theme) SetRev(rev string) { t.Rev = rev }
 
 // DocID returns the theme's _id
-func (t *Theme) DocID() string { return t.ID.String() }
+func (t *Theme) DocID() string { return t.ID }
 
 // ImportedTime returns the time the Theme was imported, or nil
-func (t *Theme) ImportedTime() *time.Time { return t.Imported }
+func (t *Theme) ImportedTime() *time.Time { return &t.Imported }
 
 // ModifiedTime returns the time the Theme was last modified
 func (t *Theme) ModifiedTime() *time.Time { return &t.Modified }
@@ -196,10 +186,10 @@ func (t *Theme) ModifiedTime() *time.Time { return &t.Modified }
 // or false if no merge was necessary.
 func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Theme)
-	if !t.ID.Equal(&existing.ID) {
+	if t.ID != existing.ID {
 		return false, errors.New("IDs don't match")
 	}
-	if t.Imported == nil || existing.Imported == nil {
+	if t.Imported.IsZero() || existing.Imported.IsZero() {
 		return false, errors.New("not an import")
 	}
 	if !t.Created.Equal(existing.Created) {
@@ -216,8 +206,13 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	t.Models = existing.Models
 	t.Attachments = existing.Attachments
 	t.Files = existing.Files
-	t.modelSequence = existing.modelSequence
+	t.ModelSequence = existing.ModelSequence
 	t.Modified = existing.Modified
 	t.Imported = existing.Imported
 	return false, nil
+}
+
+// Identity returns the identifying tag for the Theme.
+func (t *Theme) Identity() string {
+	return strings.TrimPrefix(t.ID, "theme-")
 }
