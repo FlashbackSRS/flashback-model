@@ -2,7 +2,6 @@ package fb
 
 import (
 	"testing"
-	"time"
 
 	"github.com/flimzy/diff"
 )
@@ -28,15 +27,15 @@ func TestNewModel(t *testing.T) {
 		{
 			name: "valid",
 			theme: func() *Theme {
-				theme, _ := NewTheme([]byte("foo"))
+				theme, _ := NewTheme("theme-foo")
 				return theme
 			}(),
 			modelType: "foo",
 			expected: func() *Model {
-				theme, _ := NewTheme([]byte("foo"))
+				theme, _ := NewTheme("theme-foo")
 				// att := NewFileCollection()
 				// theme.Files = att.NewView()
-				theme.modelSequence = 1
+				theme.ModelSequence = 1
 				model := &Model{
 					Type:      "foo",
 					Templates: []string{},
@@ -107,7 +106,7 @@ func TestModelAddfile(t *testing.T) {
 		{
 			name: "duplicate",
 			model: func() *Model {
-				theme, _ := NewTheme([]byte("foo"))
+				theme, _ := NewTheme("theme-foo")
 				model := &Model{
 					Theme: theme,
 					Files: theme.Attachments.NewView(),
@@ -122,7 +121,7 @@ func TestModelAddfile(t *testing.T) {
 		{
 			name: "success",
 			model: func() *Model {
-				theme, _ := NewTheme([]byte("foo"))
+				theme, _ := NewTheme("theme-Zm9v")
 				model := &Model{
 					Theme: theme,
 					Files: theme.Attachments.NewView(),
@@ -134,8 +133,8 @@ func TestModelAddfile(t *testing.T) {
 			expected: map[string]interface{}{
 				"type":     "theme",
 				"_id":      "theme-Zm9v",
-				"created":  time.Time{},
-				"modified": time.Time{},
+				"created":  now(),
+				"modified": now(),
 				"_attachments": map[string]interface{}{
 					"foo.txt": map[string]interface{}{
 						"content_type": "text/plain",
@@ -180,10 +179,10 @@ func TestModelIdentity(t *testing.T) {
 	})
 	t.Run("full id", func(t *testing.T) {
 		model := &Model{
-			Theme: &Theme{ID: DocID{docType: "theme", id: []byte("foo")}},
+			Theme: &Theme{ID: "theme-abcd"},
 			ID:    1,
 		}
-		expected := "Zm9v.1"
+		expected := "abcd.1"
 		if id := model.Identity(); id != expected {
 			t.Errorf("Unexpected result: %s", id)
 		}

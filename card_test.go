@@ -242,8 +242,8 @@ func TestSetRev(t *testing.T) {
 	card := &Card{}
 	rev := "1-xxx"
 	card.SetRev(rev)
-	if *card.Rev != rev {
-		t.Errorf("Unexpected rev: %s", *card.Rev)
+	if card.Rev != rev {
+		t.Errorf("Unexpected rev: %s", card.Rev)
 	}
 }
 

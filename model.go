@@ -71,7 +71,7 @@ func (m *Model) AddFile(name, ctype string, content []byte) error {
 // Identity returns the string representation of the model's identity.
 func (m *Model) Identity() string {
 	if m.Theme != nil {
-		return m.Theme.ID.Identity() + "." + strconv.FormatUint(uint64(m.ID), 16)
+		return m.Theme.Identity() + "." + strconv.FormatUint(uint64(m.ID), 16)
 	}
 	return ""
 }

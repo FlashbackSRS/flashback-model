@@ -26,7 +26,7 @@ type Card struct {
 	//
 	//    card-<bundle>.<note>.<template>
 	ID         string    `json:"_id"`
-	Rev        *string   `json:"_rev,omitempty"`
+	Rev        string    `json:"_rev,omitempty"`
 	Created    time.Time `json:"created"`
 	Modified   time.Time `json:"modified"`
 	Imported   time.Time `json:"imported,omitempty"`
@@ -90,9 +90,9 @@ func (c *Card) parseID() (bundleID string, noteID string, templateID uint32, err
 func NewCard(theme string, model uint32, id string) (*Card, error) {
 	nowTime := now()
 	c := &Card{
+		ID:       id,
 		Created:  nowTime,
 		Modified: nowTime,
-		ID:       id,
 		ModelID:  fmt.Sprintf("%s/%d", theme, model),
 	}
 	if err := c.Validate(); err != nil {
@@ -165,7 +165,7 @@ func (c *Card) Identity() string {
 }
 
 // SetRev sets the Card's _rev attribute
-func (c *Card) SetRev(rev string) { c.Rev = &rev }
+func (c *Card) SetRev(rev string) { c.Rev = rev }
 
 // DocID returns the Card's _id attribute
 func (c *Card) DocID() string { return c.ID }
