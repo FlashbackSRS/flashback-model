@@ -2,6 +2,7 @@ package fb
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -77,6 +78,12 @@ func (id *DocID) parse(parts ...string) error {
 	id.docType = docType
 	id.id = data
 	return nil
+}
+
+// EncodeDocID generates a DocID by encoding the docType and Base64-encoding
+// the ID. No validation is done of the docType.
+func EncodeDocID(docType string, id []byte) string {
+	return fmt.Sprintf("%s-%s", docType, b64encoder.EncodeToString(id))
 }
 
 // NewDocID returns a new ID with the provided docType and Identity.

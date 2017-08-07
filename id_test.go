@@ -107,3 +107,11 @@ func TestDbID(t *testing.T) {
 		t.Fatalf("user ID not as expected")
 	}
 }
+
+func TestEncodeDocID(t *testing.T) {
+	expected := "foo-dGVzdCBpZA"
+	result := EncodeDocID("foo", []byte("test id"))
+	if result != expected {
+		t.Errorf("Unexpected result: %s", result)
+	}
+}
