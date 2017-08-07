@@ -123,10 +123,12 @@ func TestModelAddfile(t *testing.T) {
 			model: func() *Model {
 				theme, _ := NewTheme("theme-Zm9v")
 				model := &Model{
+					Type:  "test",
 					Theme: theme,
 					Files: theme.Attachments.NewView(),
 				}
 				theme.Models = []*Model{model}
+				theme.ModelSequence = 1
 				return model
 			}(),
 			filename: "foo.txt",
@@ -142,11 +144,11 @@ func TestModelAddfile(t *testing.T) {
 					},
 				},
 				"files":         []string{},
-				"modelSequence": 0,
+				"modelSequence": 1,
 				"models": []map[string]interface{}{
 					{
 						"id":        0,
-						"modelType": "",
+						"modelType": "test",
 						"templates": nil,
 						"fields":    nil,
 						"files":     []string{"foo.txt"},

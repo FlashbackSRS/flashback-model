@@ -104,9 +104,9 @@ type jsonTheme struct {
 
 // MarshalJSON implements the json.Marshaler interface for the Theme type.
 func (t *Theme) MarshalJSON() ([]byte, error) {
-	// if err := t.Validate(); err != nil {
-	// 	return nil, err
-	// }
+	if err := t.Validate(); err != nil {
+		return nil, err
+	}
 	doc := struct {
 		jsonTheme
 		Imported *time.Time `json:"imported,omitempty"`
