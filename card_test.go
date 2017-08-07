@@ -268,7 +268,7 @@ func TestModifiedTime(t *testing.T) {
 	ts := time.Now()
 	card := &Card{Modified: ts}
 	if mt := card.ModifiedTime(); !mt.Equal(ts) {
-		t.Errorf("Unexpected result: %v", *mt)
+		t.Errorf("Unexpected result: %v", mt)
 	}
 }
 

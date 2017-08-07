@@ -174,7 +174,7 @@ func (c *Card) DocID() string { return c.ID }
 func (c *Card) ImportedTime() time.Time { return c.Imported }
 
 // ModifiedTime returns the Card's last modified time
-func (c *Card) ModifiedTime() *time.Time { return &c.Modified }
+func (c *Card) ModifiedTime() time.Time { return c.Modified }
 
 // MergeImport attempts to merge i into c, returning true on success, or false
 // if no merge was necessary.

@@ -177,10 +177,10 @@ func (d *Deck) SetRev(rev string) { d.Rev = &rev }
 func (d *Deck) DocID() string { return d.ID.String() }
 
 // ImportedTime returns the time the Deck was imported, or nil.
-func (d *Deck) ImportedTime() *time.Time { return d.Imported }
+func (d *Deck) ImportedTime() time.Time { return *d.Imported }
 
 // ModifiedTime returns the time the Deck was last modified.
-func (d *Deck) ModifiedTime() *time.Time { return &d.Modified }
+func (d *Deck) ModifiedTime() time.Time { return d.Modified }
 
 // MergeImport attempts to merge i into d, returning true on success, or false
 // if no merge was necessary.
