@@ -59,13 +59,6 @@ func parseParts(input ...string) (string, string) {
 	}
 }
 
-// ParseDocID parses a string reprsentation of a DocID, returning the DocID or an error.
-func ParseDocID(parts ...string) (DocID, error) {
-	id := DocID{}
-	err := id.parse(parts...)
-	return id, errors.Wrap(err, "failed to parse DocID")
-}
-
 func (id *DocID) parse(parts ...string) error {
 	docType, identity := parseParts(parts...)
 	data, err := b64encoder.DecodeString(identity)
