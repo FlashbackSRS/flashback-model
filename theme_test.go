@@ -77,6 +77,11 @@ func TestThemeMarshalJSON(t *testing.T) {
 	}
 	tests := []Test{
 		{
+			name:  "fails validation",
+			theme: &Theme{},
+			err:   "json: error calling MarshalJSON for type *fb.Theme: id required",
+		},
+		{
 			name: "valid",
 			theme: func() *Theme {
 				theme, _ := NewTheme("theme-abcd")
