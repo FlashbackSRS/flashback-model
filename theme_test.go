@@ -351,13 +351,13 @@ func TestThemeMergeImport(t *testing.T) {
 		{
 			name:     "new not an import",
 			new:      &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
 			new:      &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
-			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-02-01T01:01:01Z")},
+			existing: &Theme{ID: "theme-abcd", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
