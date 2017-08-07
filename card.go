@@ -71,11 +71,15 @@ func (c *Card) Validate() error {
 	return nil
 }
 
-func (c *Card) parseID() (bundleID string, noteID string, templateID uint32, err error) {
-	if !strings.HasPrefix(c.ID, "card-") {
+func (c *Card) parseID() (bundleID, noteID string, templateID uint32, err error) {
+	return parseCardID(c.ID)
+}
+
+func parseCardID(id string) (bundleID, noteID string, templateID uint32, err error) {
+	if !strings.HasPrefix(id, "card-") {
 		return "", "", 0, errors.New("invalid ID type")
 	}
-	parts := strings.Split(strings.TrimPrefix(c.ID, "card-"), ".")
+	parts := strings.Split(strings.TrimPrefix(id, "card-"), ".")
 	if len(parts) != 3 {
 		return "", "", 0, errors.New("invalid ID format")
 	}

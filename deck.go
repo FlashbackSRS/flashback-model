@@ -13,6 +13,17 @@ type CardCollection struct {
 	col map[string]struct{}
 }
 
+// Validate validates that all of the data in the card collection appears valid
+// and self consistent. A nil return value means no errors were detected.
+func (cc *CardCollection) Validate() error {
+	for cid := range cc.col {
+		if _, _, _, err := parseCardID(cid); err != nil {
+			return errors.Wrapf(err, "'%s'", cid)
+		}
+	}
+	return nil
+}
+
 // MarshalJSON fulfills the json.Marshaler interface for the CardCollection type.
 func (cc *CardCollection) MarshalJSON() ([]byte, error) {
 	ids := make([]string, 0, len(cc.col))
@@ -76,6 +87,27 @@ type deckDoc struct {
 	Name        *string         `json:"name,omitempty"`
 	Description *string         `json:"description,omitempty"`
 	Cards       *CardCollection `json:"cards,omitempty"`
+}
+
+// Validate validates that all of the data in the deck appears valid and
+// self consistent. A nil return value means no errors were detected.
+func (d *deckDoc) Validate() error {
+	if d.ID.id == nil || len(d.ID.id) == 0 {
+		return errors.New("id required")
+	}
+	if d.ID.docType != "deck" {
+		return errors.New("incorrect doc type")
+	}
+	if d.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if d.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if err := d.Cards.Validate(); err != nil {
+		return err
+	}
+	return nil
 }
 
 /*

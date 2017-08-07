@@ -417,3 +417,58 @@ func TestDeckMergeImport(t *testing.T) {
 		})
 	}
 }
+
+func TestCCValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no cards",
+			v:    &CardCollection{},
+		},
+		{
+			name: "invalid card ID",
+			v:    &CardCollection{col: map[string]struct{}{"foo": {}}},
+			err:  "'foo': invalid ID type",
+		},
+	}
+	testValidation(t, tests)
+}
+
+func TestDeckValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no id",
+			v:    &deckDoc{},
+			err:  "id required",
+		},
+		{
+			name: "invalid doctype",
+			v:    &deckDoc{ID: DocID{docType: "chicken", id: []byte("abcd")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "invalid doctype",
+			v:    &deckDoc{ID: DocID{docType: "theme", id: []byte("abcd")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "no created time",
+			v:    &deckDoc{ID: DocID{docType: "deck", id: []byte("abcd")}},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &deckDoc{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: now()},
+			err:  "modified time required",
+		},
+		{
+			name: "invalid card",
+			v:    &deckDoc{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"foo": {}}}},
+			err:  "'foo': invalid ID type",
+		},
+		{
+			name: "valid",
+			v:    &deckDoc{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"card-abcd.abcd.0": {}}}},
+		},
+	}
+	testValidation(t, tests)
+}
