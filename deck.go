@@ -35,7 +35,7 @@ func NewCardCollection() *CardCollection {
 func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 	var ids []string
 	if err := json.Unmarshal(data, &ids); err != nil {
-		return errors.Wrap(err, "failed to unmarshal CardCollection")
+		return err
 	}
 	cc.col = make(map[string]struct{})
 	for _, id := range ids {
@@ -50,6 +50,7 @@ func (cc *CardCollection) All() []string {
 	for id := range cc.col {
 		ids = append(ids, id)
 	}
+	sort.Strings(ids)
 	return ids
 }
 
