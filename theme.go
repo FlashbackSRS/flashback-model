@@ -41,7 +41,7 @@ func (t *Theme) Validate() error {
 		return err
 	}
 	if !strings.HasPrefix(t.ID, "theme-") {
-		return errors.New("invalid doc type")
+		return errors.New("incorrect doc type")
 	}
 	if t.Created.IsZero() {
 		return errors.New("created time required")

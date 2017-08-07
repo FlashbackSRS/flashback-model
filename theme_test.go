@@ -425,9 +425,14 @@ func TestThemeValidate(t *testing.T) {
 			err:  "id required",
 		},
 		{
-			name: "wrong doctype",
+			name: "invalid doctype",
 			v:    &Theme{ID: "chicken-a"},
 			err:  "unsupported DocID type 'chicken'",
+		},
+		{
+			name: "wrong doctype",
+			v:    &Theme{ID: "deck-abcd"},
+			err:  "incorrect doc type",
 		},
 		{
 			name: "no created time",
