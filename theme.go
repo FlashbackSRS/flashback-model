@@ -212,6 +212,7 @@ func (t *Theme) MergeImport(i interface{}) (bool, error) {
 	return false, nil
 }
 
+// Identity returns the identifying tag for the Theme.
 func (t *Theme) Identity() string {
 	return strings.TrimPrefix(t.ID, "theme-")
 }
