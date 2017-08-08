@@ -215,7 +215,12 @@ func (n *Note) SetRev(rev string) { n.Rev = &rev }
 func (n *Note) DocID() string { return n.ID.String() }
 
 // ImportedTime returns the time the Note was imported, or nil.
-func (n *Note) ImportedTime() time.Time { return *n.Imported }
+func (n *Note) ImportedTime() time.Time {
+	if n.Imported == nil {
+		return time.Time{}
+	}
+	return *n.Imported
+}
 
 // ModifiedTime returns the time the Note was last modified.
 func (n *Note) ModifiedTime() time.Time { return n.Modified }
@@ -226,6 +231,9 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Note)
 	if !n.ID.Equal(&existing.ID) {
 		return false, errors.New("IDs don't match")
+	}
+	if n.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
 	}
 	if !n.Created.Equal(existing.Created) {
 		return false, errors.New("Created timestamps don't match")

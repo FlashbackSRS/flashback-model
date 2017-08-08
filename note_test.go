@@ -563,3 +563,168 @@ func TestFieldViewAddFile(t *testing.T) {
 		})
 	}
 }
+
+func TestNoteSetRev(t *testing.T) {
+	note := &Note{}
+	rev := "1-xxx"
+	note.SetRev(rev)
+	if *note.Rev != rev {
+		t.Errorf("failed to set rev")
+	}
+}
+
+func TestNoteDocID(t *testing.T) {
+	note := &Note{ID: DocID{docType: "note", id: []byte("foo")}}
+	expected := "note-Zm9v"
+	if id := note.DocID(); id != expected {
+		t.Errorf("unexpected id: %s", id)
+	}
+}
+
+func TestNoteImportedTime(t *testing.T) {
+	t.Run("Set", func(t *testing.T) {
+		note := &Note{}
+		ts := now()
+		note.Imported = &ts
+		if it := note.ImportedTime(); it != ts {
+			t.Errorf("Unexpected result: %s", it)
+		}
+	})
+	t.Run("Unset", func(t *testing.T) {
+		note := &Note{}
+		if it := note.ImportedTime(); !it.IsZero() {
+			t.Errorf("unexpected result: %v", it)
+		}
+	})
+}
+
+func TestNoteModifiedTime(t *testing.T) {
+	note := &Note{}
+	ts := now()
+	note.Modified = ts
+	if mt := note.ModifiedTime(); mt != ts {
+		t.Errorf("Unexpected result")
+	}
+}
+
+func TestNoteMergeImport(t *testing.T) {
+	type Test struct {
+		name         string
+		new          *Note
+		existing     *Note
+		expected     bool
+		expectedNote *Note
+		err          string
+	}
+	tests := []Test{
+		{
+			name:     "different ids",
+			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}},
+			existing: &Note{ID: DocID{docType: "note", id: []byte("bar")}},
+			err:      "IDs don't match",
+		},
+		{
+			name:     "created timestamps don't match",
+			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			err:      "Created timestamps don't match",
+		},
+		{
+			name:     "new not an import",
+			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			err:      "not an import",
+		},
+		{
+			name:     "existing not an import",
+			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			err:      "not an import",
+		},
+		{
+			name: "new is newer",
+			new: &Note{
+				ID:          DocID{docType: "note", id: []byte("foo")},
+				ThemeID:     "theme-Zm9v",
+				ModelID:     1,
+				Created:     parseTime("2017-01-01T01:01:01Z"),
+				Modified:    parseTime("2017-02-01T01:01:01Z"),
+				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				FieldValues: []*FieldValue{},
+				Attachments: NewFileCollection(),
+				model:       &Model{ID: 1},
+			},
+			existing: &Note{
+				ID:          DocID{docType: "note", id: []byte("foo")},
+				ThemeID:     "theme-YmFy",
+				ModelID:     2,
+				Created:     parseTime("2017-01-01T01:01:01Z"),
+				Modified:    parseTime("2017-01-01T01:01:01Z"),
+				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				FieldValues: []*FieldValue{{}},
+				model:       &Model{ID: 2},
+			},
+			expected: true,
+			expectedNote: &Note{
+				ID:          DocID{docType: "note", id: []byte("foo")},
+				ThemeID:     "theme-Zm9v",
+				ModelID:     1,
+				Created:     parseTime("2017-01-01T01:01:01Z"),
+				Modified:    parseTime("2017-02-01T01:01:01Z"),
+				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				FieldValues: []*FieldValue{},
+				Attachments: NewFileCollection(),
+				model:       &Model{ID: 1},
+			},
+		},
+		{
+			name: "existing is newer",
+			new: &Note{
+				ID:          DocID{docType: "note", id: []byte("foo")},
+				ThemeID:     "theme-Zm9v",
+				ModelID:     1,
+				Created:     parseTime("2017-01-01T01:01:01Z"),
+				Modified:    parseTime("2017-01-01T01:01:01Z"),
+				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				FieldValues: []*FieldValue{},
+				Attachments: NewFileCollection(),
+				model:       &Model{ID: 1},
+			},
+			existing: &Note{
+				ID:          DocID{docType: "note", id: []byte("foo")},
+				ThemeID:     "theme-Zm9v",
+				ModelID:     2,
+				Created:     parseTime("2017-01-01T01:01:01Z"),
+				Modified:    parseTime("2017-02-01T01:01:01Z"),
+				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				FieldValues: []*FieldValue{{}},
+				model:       &Model{ID: 2},
+			},
+			expected: false,
+			expectedNote: &Note{ID: DocID{docType: "note", id: []byte("foo")},
+				ThemeID:     "theme-Zm9v",
+				ModelID:     2,
+				Created:     parseTime("2017-01-01T01:01:01Z"),
+				Modified:    parseTime("2017-02-01T01:01:01Z"),
+				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				FieldValues: []*FieldValue{{}},
+				model:       &Model{ID: 2},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.new.MergeImport(test.existing)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if test.expected != result {
+				t.Errorf("Unexpected result: %t", result)
+			}
+			if d := diff.Interface(test.expectedNote, test.new); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}

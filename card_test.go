@@ -385,7 +385,7 @@ func TestTemplateID(t *testing.T) {
 // 	}
 // }
 
-func TestNoteID(t *testing.T) {
+func TestCardNoteID(t *testing.T) {
 	card := &Card{ID: "card-foo.bar.1"}
 	expected := "note-bar"
 	if id := card.NoteID(); id != expected {
