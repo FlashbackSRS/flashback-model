@@ -24,17 +24,14 @@ var frozenDeck = []byte(`
 
 func TestDecks(t *testing.T) {
 	require := require.New(t)
-	d, err := fb.NewDeck([]byte("Test Deck"))
+	d, err := fb.NewDeck("deck-VGVzdCBEZWNr")
 	require.Nil(err, "Error creating deck: %s", err)
 
-	name := "Test Deck"
-	d.Name = &name
-	descr := "Deck for testing"
-	d.Description = &descr
+	d.Name = "Test Deck"
+	d.Description = "Deck for testing"
 	d.Created = now
 	d.Modified = now
-	imp := now.AddDate(0, 0, 2)
-	d.Imported = &imp
+	d.Imported = now.AddDate(0, 0, 2)
 	require.MarshalsToJSON(frozenDeck, d, "Create Deck")
 
 	d2 := &fb.Deck{}

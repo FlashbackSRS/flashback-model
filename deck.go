@@ -3,6 +3,7 @@ package fb
 import (
 	"encoding/json"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -11,6 +12,17 @@ import (
 // CardCollection represents a collection of cards, which make up a deck.
 type CardCollection struct {
 	col map[string]struct{}
+}
+
+// Validate validates that all of the data in the card collection appears valid
+// and self consistent. A nil return value means no errors were detected.
+func (cc *CardCollection) Validate() error {
+	for cid := range cc.col {
+		if _, _, _, err := parseCardID(cid); err != nil {
+			return errors.Wrapf(err, "'%s'", cid)
+		}
+	}
+	return nil
 }
 
 // MarshalJSON fulfills the json.Marshaler interface for the CardCollection type.
@@ -56,26 +68,38 @@ func (cc *CardCollection) All() []string {
 
 // Deck represents a Flashback Deck
 type Deck struct {
-	ID          DocID
-	Rev         *string
-	Created     time.Time
-	Modified    time.Time
-	Imported    *time.Time
-	Name        *string
-	Description *string
-	Cards       *CardCollection
-}
-
-type deckDoc struct {
-	Type        string          `json:"type"`
-	ID          DocID           `json:"_id"`
-	Rev         *string         `json:"_rev,omitempty"`
+	ID          string          `json:"_id"`
+	Rev         string          `json:"_rev,omitempty"`
 	Created     time.Time       `json:"created"`
 	Modified    time.Time       `json:"modified"`
-	Imported    *time.Time      `json:"imported,omitempty"`
-	Name        *string         `json:"name,omitempty"`
-	Description *string         `json:"description,omitempty"`
+	Imported    time.Time       `json:"imported,omitempty"`
+	Name        string          `json:"name,omitempty"`
+	Description string          `json:"description,omitempty"`
 	Cards       *CardCollection `json:"cards,omitempty"`
+}
+
+// Validate validates that all of the data in the deck appears valid and
+// self consistent. A nil return value means no errors were detected.
+func (d *Deck) Validate() error {
+	if d.ID == "" {
+		return errors.New("id required")
+	}
+	if err := validateDocID(d.ID); err != nil {
+		return err
+	}
+	if !strings.HasPrefix(d.ID, "deck-") {
+		return errors.New("incorrect doc type")
+	}
+	if d.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if d.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if err := d.Cards.Validate(); err != nil {
+		return err
+	}
+	return nil
 }
 
 /*
@@ -119,30 +143,44 @@ type DeckConfig struct {
 */
 
 // NewDeck creates a new Deck with the provided id.
-func NewDeck(id []byte) (*Deck, error) {
-	did, err := NewDocID("deck", id)
-	if err != nil {
+func NewDeck(id string) (*Deck, error) {
+	d := &Deck{
+		ID:       id,
+		Created:  now(),
+		Modified: now(),
+		Cards:    NewCardCollection(),
+	}
+	if err := d.Validate(); err != nil {
 		return nil, err
 	}
-	return &Deck{
-		ID:    did,
-		Cards: NewCardCollection(),
-	}, nil
+	return d, nil
+}
+
+type deckAlias Deck
+
+type jsonDeck struct {
+	deckAlias
+	Type string `json:"type"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the Deck type.
 func (d *Deck) MarshalJSON() ([]byte, error) {
-	return json.Marshal(deckDoc{
-		Type:        "deck",
-		ID:          d.ID,
-		Rev:         d.Rev,
-		Created:     d.Created,
-		Modified:    d.Modified,
-		Imported:    d.Imported,
-		Name:        d.Name,
-		Description: d.Description,
-		Cards:       d.Cards,
-	})
+	if err := d.Validate(); err != nil {
+		return nil, err
+	}
+	doc := struct {
+		jsonDeck
+		Imported *time.Time `json:"imported,omitempty"`
+	}{
+		jsonDeck: jsonDeck{
+			Type:      "deck",
+			deckAlias: deckAlias(*d),
+		},
+	}
+	if !d.Imported.IsZero() {
+		doc.Imported = &d.Imported
+	}
+	return json.Marshal(doc)
 }
 
 // AddCard adds the provided card to the deck.
@@ -152,38 +190,25 @@ func (d *Deck) AddCard(cardID string) {
 
 // UnmarshalJSON fulfills the json.Unmarshaler interface for the Deck type.
 func (d *Deck) UnmarshalJSON(data []byte) error {
-	doc := &deckDoc{}
+	doc := &jsonDeck{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return err
 	}
 	if doc.Type != "deck" {
 		return errors.New("Invalid document type for deck: " + doc.Type)
 	}
-	d.ID = doc.ID
-	d.Rev = doc.Rev
-	d.Created = doc.Created
-	d.Modified = doc.Modified
-	d.Imported = doc.Imported
-	d.Name = doc.Name
-	d.Description = doc.Description
-	d.Cards = doc.Cards
-
-	return nil
+	*d = Deck(doc.deckAlias)
+	return d.Validate()
 }
 
 // SetRev sets the Deck's _rev attribute.
-func (d *Deck) SetRev(rev string) { d.Rev = &rev }
+func (d *Deck) SetRev(rev string) { d.Rev = rev }
 
 // DocID returns the Deck's _id attribute.
-func (d *Deck) DocID() string { return d.ID.String() }
+func (d *Deck) DocID() string { return d.ID }
 
 // ImportedTime returns the time the Deck was imported, or nil.
-func (d *Deck) ImportedTime() time.Time {
-	if d.Imported == nil {
-		return time.Time{}
-	}
-	return *d.Imported
-}
+func (d *Deck) ImportedTime() time.Time { return d.Imported }
 
 // ModifiedTime returns the time the Deck was last modified.
 func (d *Deck) ModifiedTime() time.Time { return d.Modified }
@@ -192,10 +217,10 @@ func (d *Deck) ModifiedTime() time.Time { return d.Modified }
 // if no merge was necessary.
 func (d *Deck) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Deck)
-	if !d.ID.Equal(&existing.ID) {
+	if d.ID != existing.ID {
 		return false, errors.New("IDs don't match")
 	}
-	if d.Imported == nil || existing.Imported == nil {
+	if d.Imported.IsZero() || existing.Imported.IsZero() {
 		return false, errors.New("not an import")
 	}
 	if !d.Created.Equal(existing.Created) {

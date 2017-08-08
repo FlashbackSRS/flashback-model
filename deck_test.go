@@ -2,7 +2,6 @@ package fb
 
 import (
 	"testing"
-	"time"
 
 	"github.com/flimzy/diff"
 )
@@ -24,11 +23,11 @@ func TestCCMarshalJSON(t *testing.T) {
 			name: "some cards",
 			cc: &CardCollection{
 				col: map[string]struct{}{
-					"card-foo": {},
-					"card-bar": {},
+					"card-Zm9v.bmlsCg.0": {},
+					"card-YmFy.bmlsCg.0": {},
 				},
 			},
-			expected: `["card-bar","card-foo"]`,
+			expected: `["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]`,
 		},
 	}
 	for _, test := range tests {
@@ -70,10 +69,10 @@ func TestCCUnmarshalJSON(t *testing.T) {
 		},
 		{
 			name:  "valid",
-			input: `["card-foo","card-bar"]`,
+			input: `["card-Zm9v.bmlsCg.0","card-YmFy.bmlsCg.0"]`,
 			expected: &CardCollection{col: map[string]struct{}{
-				"card-foo": {},
-				"card-bar": {},
+				"card-Zm9v.bmlsCg.0": {},
+				"card-YmFy.bmlsCg.0": {},
 			}},
 		},
 	}
@@ -94,10 +93,10 @@ func TestCCUnmarshalJSON(t *testing.T) {
 
 func TestCCAll(t *testing.T) {
 	cc := &CardCollection{col: map[string]struct{}{
-		"card-foo": {},
-		"card-bar": {},
+		"card-Zm9v.bmlsCg.0": {},
+		"card-YmFy.bmlsCg.0": {},
 	}}
-	expected := []string{"card-bar", "card-foo"}
+	expected := []string{"card-YmFy.bmlsCg.0", "card-Zm9v.bmlsCg.0"}
 	result := cc.All()
 	if d := diff.Interface(expected, result); d != "" {
 		t.Error(d)
@@ -114,20 +113,22 @@ func TestNewDeck(t *testing.T) {
 	tests := []Test{
 		{
 			name: "no id",
-			err:  "id is required",
+			err:  "id required",
 		},
 		{
 			name: "valid",
-			id:   "foo id",
+			id:   "deck-Zm9vIGlkCg",
 			expected: &Deck{
-				ID:    DocID{docType: "deck", id: []byte("foo id")},
-				Cards: &CardCollection{col: map[string]struct{}{}},
+				ID:       "deck-Zm9vIGlkCg",
+				Created:  now(),
+				Modified: now(),
+				Cards:    &CardCollection{col: map[string]struct{}{}},
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewDeck([]byte(test.id))
+			result, err := NewDeck(test.id)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -148,16 +149,21 @@ func TestDeckMarshalJSON(t *testing.T) {
 	}
 	tests := []Test{
 		{
+			name: "invalid deck",
+			deck: &Deck{},
+			err:  "id required",
+		},
+		{
 			name: "full fields",
 			deck: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("deck")},
+				ID:          "deck-ZGVjaw",
 				Created:     now(),
 				Modified:    now(),
-				Imported:    func() *time.Time { x := now(); return &x }(),
-				Name:        func() *string { x := "test name"; return &x }(),
-				Description: func() *string { x := "test description"; return &x }(),
+				Imported:    now(),
+				Name:        "test name",
+				Description: "test description",
 				Cards: &CardCollection{col: map[string]struct{}{
-					"card-foo": {}, "card-bar": {},
+					"card-Zm9v.bmlsCg.0": {}, "card-YmFy.bmlsCg.0": {},
 				}},
 			},
 			expected: `{
@@ -168,7 +174,7 @@ func TestDeckMarshalJSON(t *testing.T) {
             "created":     "2017-01-01T00:00:00Z",
             "modified":    "2017-01-01T00:00:00Z",
             "imported":    "2017-01-01T00:00:00Z",
-            "cards":       ["card-bar","card-foo"]
+            "cards":       ["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]
             }`,
 		},
 	}
@@ -187,14 +193,16 @@ func TestDeckMarshalJSON(t *testing.T) {
 }
 
 func TestDeckAddCard(t *testing.T) {
-	deck, err := NewDeck([]byte("foo"))
+	deck, err := NewDeck("deck-Zm9v")
 	if err != nil {
 		t.Fatal(err)
 	}
 	deck.AddCard("card-jack")
 	deck.AddCard("card-jill")
 	expected := &Deck{
-		ID: DocID{docType: "deck", id: []byte("foo")},
+		ID:       "deck-Zm9v",
+		Created:  now(),
+		Modified: now(),
 		Cards: &CardCollection{col: map[string]struct{}{
 			"card-jack": {},
 			"card-jill": {},
@@ -224,6 +232,11 @@ func TestDeckUnmarshalJSON(t *testing.T) {
 			err:   "Invalid document type for deck: chicken",
 		},
 		{
+			name:  "invalid deck",
+			input: `{"type":"deck"}`,
+			err:   "id required",
+		},
+		{
 			name: "all fields",
 			input: `{
                 "type":        "deck",
@@ -233,16 +246,16 @@ func TestDeckUnmarshalJSON(t *testing.T) {
                 "created":     "2017-01-01T00:00:00Z",
                 "modified":    "2017-01-01T00:00:00Z",
                 "imported":    "2017-01-01T00:00:00Z",
-                "cards":       ["card-bar","card-foo"]
+                "cards":       ["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]
             }`,
 			expected: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("deck")},
+				ID:          "deck-ZGVjaw",
 				Created:     now(),
 				Modified:    now(),
-				Imported:    func() *time.Time { x := now(); return &x }(),
-				Name:        func() *string { x := "test name"; return &x }(),
-				Description: func() *string { x := "test description"; return &x }(),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-bar": {}, "card-foo": {}}},
+				Imported:    now(),
+				Name:        "test name",
+				Description: "test description",
+				Cards:       &CardCollection{col: map[string]struct{}{"card-YmFy.bmlsCg.0": {}, "card-Zm9v.bmlsCg.0": {}}},
 			},
 		},
 	}
@@ -265,13 +278,13 @@ func TestDeckSetRev(t *testing.T) {
 	deck := &Deck{}
 	rev := "1-xxx"
 	deck.SetRev(rev)
-	if *deck.Rev != rev {
-		t.Errorf("Unexpected result: %s", *deck.Rev)
+	if deck.Rev != rev {
+		t.Errorf("Unexpected result: %s", deck.Rev)
 	}
 }
 
 func TestDeckDocID(t *testing.T) {
-	deck := &Deck{ID: DocID{docType: "deck", id: []byte("foo")}}
+	deck := &Deck{ID: "deck-Zm9v"}
 	expected := "deck-Zm9v"
 	if id := deck.DocID(); id != expected {
 		t.Errorf("Unexpected result: %s", id)
@@ -280,9 +293,8 @@ func TestDeckDocID(t *testing.T) {
 
 func TestDeckImportedTime(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
-		deck := &Deck{}
 		ts := now()
-		deck.Imported = &ts
+		deck := &Deck{Imported: ts}
 		if it := deck.ImportedTime(); it != ts {
 			t.Errorf("Unexpected result: %s", it)
 		}
@@ -316,88 +328,88 @@ func TestDeckMergeImport(t *testing.T) {
 	tests := []Test{
 		{
 			name:     "different ids",
-			new:      &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}},
-			existing: &Deck{ID: DocID{docType: "deck", id: []byte("b")}},
+			new:      &Deck{ID: "deck-YWJjZAo"},
+			existing: &Deck{ID: "deck-YWJjZQo"},
 			err:      "IDs don't match",
 		},
 		{
 			name:     "created timestamps don't match",
-			new:      &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			new:      &Deck{ID: "deck-YWJjZAo", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Deck{ID: "deck-YWJjZAo", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Created timestamps don't match",
 		},
 		{
 			name:     "new not an import",
-			new:      &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			new:      &Deck{ID: "deck-YWJjZAo", Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Deck{ID: "deck-YWJjZAo", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
-			new:      &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Deck{ID: DocID{docType: "deck", id: []byte("abcd")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			new:      &Deck{ID: "deck-YWJjZAo", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Deck{ID: "deck-YWJjZAo", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
 			name: "new is newer",
 			new: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("abcd")},
-				Name:        func() *string { x := "foo"; return &x }(),
-				Description: func() *string { x := "FOO"; return &x }(),
+				ID:          "deck-YWJjZAo",
+				Name:        "foo",
+				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-foo": {}}},
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
+				Cards:       &CardCollection{col: map[string]struct{}{"card-Zm9v.bmlsCg.0": {}}},
 			},
 			existing: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("abcd")},
-				Name:        func() *string { x := "bar"; return &x }(),
-				Description: func() *string { x := "BAR"; return &x }(),
+				ID:          "deck-YWJjZAo",
+				Name:        "bar",
+				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-bar": {}}},
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
+				Cards:       &CardCollection{col: map[string]struct{}{"card-YmFy.bmlsCg.0": {}}},
 			},
 			expected: true,
 			expectedDeck: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("abcd")},
-				Name:        func() *string { x := "foo"; return &x }(),
-				Description: func() *string { x := "FOO"; return &x }(),
+				ID:          "deck-YWJjZAo",
+				Name:        "foo",
+				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-foo": {}}},
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
+				Cards:       &CardCollection{col: map[string]struct{}{"card-Zm9v.bmlsCg.0": {}}},
 			},
 		},
 		{
 			name: "existing is newer",
 			new: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("abcd")},
-				Name:        func() *string { x := "foo"; return &x }(),
-				Description: func() *string { x := "FOO"; return &x }(),
+				ID:          "deck-YWJjZAo",
+				Name:        "foo",
+				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-foo": {}}},
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
+				Cards:       &CardCollection{col: map[string]struct{}{"card-Zm9v.bmlsCg.0": {}}},
 			},
 			existing: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("abcd")},
-				Name:        func() *string { x := "bar"; return &x }(),
-				Description: func() *string { x := "BAR"; return &x }(),
+				ID:          "deck-YWJjZAo",
+				Name:        "bar",
+				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-bar": {}}},
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
+				Cards:       &CardCollection{col: map[string]struct{}{"card-YmFy.bmlsCg.0": {}}},
 			},
 			expected: false,
 			expectedDeck: &Deck{
-				ID:          DocID{docType: "deck", id: []byte("abcd")},
-				Name:        func() *string { x := "bar"; return &x }(),
-				Description: func() *string { x := "BAR"; return &x }(),
+				ID:          "deck-YWJjZAo",
+				Name:        "bar",
+				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
-				Cards:       &CardCollection{col: map[string]struct{}{"card-bar": {}}},
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
+				Cards:       &CardCollection{col: map[string]struct{}{"card-YmFy.bmlsCg.0": {}}},
 			},
 		},
 	}
@@ -416,4 +428,59 @@ func TestDeckMergeImport(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCCValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no cards",
+			v:    &CardCollection{},
+		},
+		{
+			name: "invalid card ID",
+			v:    &CardCollection{col: map[string]struct{}{"foo": {}}},
+			err:  "'foo': invalid ID type",
+		},
+	}
+	testValidation(t, tests)
+}
+
+func TestDeckValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no id",
+			v:    &Deck{},
+			err:  "id required",
+		},
+		{
+			name: "invalid doctype",
+			v:    &Deck{ID: "chicken-abcd"},
+			err:  "unsupported DocID type 'chicken'",
+		},
+		{
+			name: "invalid doctype",
+			v:    &Deck{ID: "theme-abcd"},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "no created time",
+			v:    &Deck{ID: "deck-YWJjZAo"},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &Deck{ID: "deck-YWJjZAo", Created: now()},
+			err:  "modified time required",
+		},
+		{
+			name: "invalid card",
+			v:    &Deck{ID: "deck-YWJjZAo", Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"foo": {}}}},
+			err:  "'foo': invalid ID type",
+		},
+		{
+			name: "valid",
+			v:    &Deck{ID: "deck-YWJjZAo", Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"card-abcd.abcd.0": {}}}},
+		},
+	}
+	testValidation(t, tests)
 }
