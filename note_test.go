@@ -152,3 +152,176 @@ func TestNoteSetModel(t *testing.T) {
 		})
 	}
 }
+
+func TestNoteModel(t *testing.T) {
+	m := &Model{}
+	n := &Note{model: m}
+	if n.Model() != m {
+		t.Error("Unexpected result")
+	}
+}
+
+func TestNoteMarshalJSON(t *testing.T) {
+	type Test struct {
+		name     string
+		note     *Note
+		expected string
+		err      string
+	}
+	tests := []Test{
+		{
+			name: "all fields",
+			note: func() *Note {
+				nowTime := now()
+				att := NewFileCollection()
+				view := att.NewView()
+				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
+				return &Note{
+					ID:       DocID{docType: "note", id: []byte("foo")},
+					ThemeID:  "theme-Zm9v",
+					ModelID:  3,
+					Created:  now(),
+					Modified: now(),
+					Imported: &nowTime,
+					FieldValues: []*FieldValue{
+						{text: "foo", files: view},
+					},
+					Attachments: att,
+				}
+			}(),
+			expected: `{
+                "_id":          "note-Zm9v",
+                "type":         "note",
+                "created":      "2017-01-01T00:00:00Z",
+                "modified":     "2017-01-01T00:00:00Z",
+                "imported":     "2017-01-01T00:00:00Z",
+                "fieldValues":  [{"text":"foo", "files":["foo.txt"]}],
+                "model":        3,
+                "theme":        "theme-Zm9v",
+                "_attachments": {
+                    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
+                }
+            }`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.note.MarshalJSON()
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.JSON([]byte(test.expected), result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestNoteUnmarshalJSON(t *testing.T) {
+	type Test struct {
+		name     string
+		input    string
+		expected *Note
+		err      string
+	}
+	tests := []Test{
+		{
+			name:  "invalid json",
+			input: "invalid json",
+			err:   "failed to unmarshal Note: invalid character 'i' looking for beginning of value",
+		},
+		{
+			name:  "invalid type",
+			input: `{"type":"chicken"}`,
+			err:   "Invalid document type for note: chicken",
+		},
+		{
+			name:  "wrong type",
+			input: `{"type":"theme"}`,
+			err:   "Invalid document type for note: theme",
+		},
+		{
+			name: "null fields",
+			input: `{
+                "_id":          "note-Zm9v",
+                "type":         "note",
+                "created":      "2017-01-01T00:00:00Z",
+                "modified":     "2017-01-01T00:00:00Z",
+                "model":        3,
+                "theme":        "theme-Zm9v"
+            }`,
+			expected: &Note{
+				ID:       DocID{docType: "note", id: []byte("foo")},
+				Created:  now(),
+				Modified: now(),
+				ModelID:  3,
+				ThemeID:  "theme-Zm9v",
+			},
+		},
+		{
+			name: "all fields",
+			input: `{
+                "_id":          "note-Zm9v",
+                "type":         "note",
+                "created":      "2017-01-01T00:00:00Z",
+                "modified":     "2017-01-01T00:00:00Z",
+                "imported":     "2017-01-01T00:00:00Z",
+                "fieldValues":  [{"text":"foo", "files":["foo.txt"]}],
+                "model":        3,
+                "theme":        "theme-Zm9v",
+                "_attachments": {
+                    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
+                }
+            }`,
+			expected: func() *Note {
+				nowTime := now()
+				att := NewFileCollection()
+				view := att.NewView()
+				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
+				return &Note{
+					ID:       DocID{docType: "note", id: []byte("foo")},
+					ThemeID:  "theme-Zm9v",
+					ModelID:  3,
+					Created:  now(),
+					Modified: now(),
+					Imported: &nowTime,
+					FieldValues: []*FieldValue{
+						{text: "foo", files: view},
+					},
+					Attachments: att,
+				}
+			}(),
+		},
+		{
+			name: "invalid file view",
+			input: `{
+                "_id":          "note-Zm9v",
+                "type":         "note",
+                "created":      "2017-01-01T00:00:00Z",
+                "modified":     "2017-01-01T00:00:00Z",
+                "imported":     "2017-01-01T00:00:00Z",
+                "fieldValues":  [{"text":"foo", "files":["foo.html"]}],
+                "model":        3,
+                "theme":        "theme-Zm9v",
+                "_attachments": {
+                    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
+                }
+            }`,
+			err: "foo.html not found in collection",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := &Note{}
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
