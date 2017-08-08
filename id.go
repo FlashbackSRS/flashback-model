@@ -16,7 +16,7 @@ var validDocIDTypes = map[string]struct{}{
 }
 
 func validateDocID(id string) error {
-	parts := strings.Split(id, "-")
+	parts := strings.SplitN(id, "-", 2)
 	if len(parts) != 2 {
 		return errors.New("invalid DocID format")
 	}

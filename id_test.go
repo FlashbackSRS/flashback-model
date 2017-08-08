@@ -33,6 +33,10 @@ func TestValidateDocID(t *testing.T) {
 			name: "valid",
 			id:   "deck-0123456789",
 		},
+		{
+			name: "multiple dashes",
+			id:   "deck--v4-v4",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
