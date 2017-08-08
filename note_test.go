@@ -728,3 +728,52 @@ func TestNoteMergeImport(t *testing.T) {
 		})
 	}
 }
+
+func TestNoteValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no ID",
+			v:    &noteDoc{},
+			err:  "id required",
+		},
+		{
+			name: "invalid doctype",
+			v:    &noteDoc{ID: DocID{docType: "chicken", id: []byte("foo")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "wrong doctype",
+			v:    &noteDoc{ID: DocID{docType: "deck", id: []byte("foo")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "no created time",
+			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now()},
+			err:  "modified time required",
+		},
+		{
+			name: "nil attachments collection",
+			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now()},
+			err:  "attachments collection must not be nil",
+		},
+		{
+			name: "invalid field file list",
+			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}},
+			err:  "field 0 file list must be member of attachments collection",
+		},
+		{
+			name: "valid",
+			v: func() *noteDoc {
+				att := NewFileCollection()
+				view := att.NewView()
+				return &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}}
+			}(),
+		},
+	}
+	testValidation(t, tests)
+}

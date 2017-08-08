@@ -42,6 +42,32 @@ type noteDoc struct {
 	Attachments *FileCollection `json:"_attachments,omitempty"`
 }
 
+// Validate validates that all of the data in the note  appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (n *noteDoc) Validate() error {
+	if len(n.ID.id) == 0 {
+		return errors.New("id required")
+	}
+	if n.ID.docType != "note" {
+		return errors.New("incorrect doc type")
+	}
+	if n.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if n.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if n.Attachments == nil {
+		return errors.New("attachments collection must not be nil")
+	}
+	for i, fv := range n.FieldValues {
+		if fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
+			return errors.Errorf("field %d file list must be member of attachments collection", i)
+		}
+	}
+	return nil
+}
+
 // NewNote creates a new, empty note with the provided ID and Model.
 func NewNote(id []byte, model *Model) (*Note, error) {
 	if model == nil {
