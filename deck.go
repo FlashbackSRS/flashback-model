@@ -35,7 +35,7 @@ func NewCardCollection() *CardCollection {
 func (cc *CardCollection) UnmarshalJSON(data []byte) error {
 	var ids []string
 	if err := json.Unmarshal(data, &ids); err != nil {
-		return errors.Wrap(err, "failed to unmarshal CardCollection")
+		return err
 	}
 	cc.col = make(map[string]struct{})
 	for _, id := range ids {
@@ -50,6 +50,7 @@ func (cc *CardCollection) All() []string {
 	for id := range cc.col {
 		ids = append(ids, id)
 	}
+	sort.Strings(ids)
 	return ids
 }
 
@@ -153,7 +154,7 @@ func (d *Deck) AddCard(cardID string) {
 func (d *Deck) UnmarshalJSON(data []byte) error {
 	doc := &deckDoc{}
 	if err := json.Unmarshal(data, doc); err != nil {
-		return errors.Wrap(err, "failed to unmarshal Deck")
+		return err
 	}
 	if doc.Type != "deck" {
 		return errors.New("Invalid document type for deck: " + doc.Type)
@@ -177,7 +178,12 @@ func (d *Deck) SetRev(rev string) { d.Rev = &rev }
 func (d *Deck) DocID() string { return d.ID.String() }
 
 // ImportedTime returns the time the Deck was imported, or nil.
-func (d *Deck) ImportedTime() time.Time { return *d.Imported }
+func (d *Deck) ImportedTime() time.Time {
+	if d.Imported == nil {
+		return time.Time{}
+	}
+	return *d.Imported
+}
 
 // ModifiedTime returns the time the Deck was last modified.
 func (d *Deck) ModifiedTime() time.Time { return d.Modified }
@@ -188,6 +194,9 @@ func (d *Deck) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Deck)
 	if !d.ID.Equal(&existing.ID) {
 		return false, errors.New("IDs don't match")
+	}
+	if d.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
 	}
 	if !d.Created.Equal(existing.Created) {
 		return false, errors.New("Created timestamps don't match")

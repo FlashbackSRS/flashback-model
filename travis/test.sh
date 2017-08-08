@@ -5,7 +5,7 @@ diff -u <(echo -n) <(gofmt -e -d $(find . -type f -name '*.go' -not -path "./ven
 gometalinter.v1 --config .linter_test.json
 gometalinter.v1 --config .linter.json
 
-echo "" > coverage.txt
+echo "" >| coverage.txt
 
 for d in $(go list ./... | grep -v /vendor/); do
     gopherjs test $d
@@ -16,4 +16,6 @@ for d in $(go list ./... | grep -v /vendor/); do
     fi
 done
 
-bash <(curl -s https://codecov.io/bash)
+if [ "${CI:-}" == "true" ]; then
+    bash <(curl -s https://codecov.io/bash)
+fi
