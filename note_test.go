@@ -22,19 +22,21 @@ func TestNewNote(t *testing.T) {
 		},
 		{
 			name:  "no id",
-			model: &Model{},
-			err:   "id is required",
+			model: &Model{ID: 3, Theme: &Theme{ID: "theme-Zm9v"}},
+			err:   "id required",
 		},
 		{
 			name:  "valid",
-			id:    "foo",
+			id:    "note-Zm9v",
 			model: &Model{ID: 3, Theme: &Theme{ID: "theme-Zm9v"}},
 			expected: func() *Note {
 				att := NewFileCollection()
 				return &Note{
-					ID:          DocID{docType: "note", id: []byte("foo")},
+					ID:          "note-Zm9v",
 					ThemeID:     "theme-Zm9v",
 					ModelID:     3,
+					Created:     now(),
+					Modified:    now(),
 					FieldValues: []*FieldValue{},
 					Attachments: att,
 					model: &Model{
@@ -49,7 +51,7 @@ func TestNewNote(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewNote([]byte(test.id), test.model)
+			result, err := NewNote(test.id, test.model)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -172,17 +174,16 @@ func TestNoteMarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			note: func() *Note {
-				nowTime := now()
 				att := NewFileCollection()
 				view := att.NewView()
 				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
 				return &Note{
-					ID:       DocID{docType: "note", id: []byte("foo")},
+					ID:       "note-Zm9v",
 					ThemeID:  "theme-Zm9v",
 					ModelID:  3,
 					Created:  now(),
 					Modified: now(),
-					Imported: &nowTime,
+					Imported: now(),
 					FieldValues: []*FieldValue{
 						{text: "foo", files: view},
 					},
@@ -252,7 +253,7 @@ func TestNoteUnmarshalJSON(t *testing.T) {
                 "theme":        "theme-Zm9v"
             }`,
 			expected: &Note{
-				ID:       DocID{docType: "note", id: []byte("foo")},
+				ID:       "note-Zm9v",
 				Created:  now(),
 				Modified: now(),
 				ModelID:  3,
@@ -275,17 +276,16 @@ func TestNoteUnmarshalJSON(t *testing.T) {
                 }
             }`,
 			expected: func() *Note {
-				nowTime := now()
 				att := NewFileCollection()
 				view := att.NewView()
 				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
 				return &Note{
-					ID:       DocID{docType: "note", id: []byte("foo")},
+					ID:       "note-Zm9v",
 					ThemeID:  "theme-Zm9v",
 					ModelID:  3,
 					Created:  now(),
 					Modified: now(),
-					Imported: &nowTime,
+					Imported: now(),
 					FieldValues: []*FieldValue{
 						{text: "foo", files: view},
 					},
@@ -568,13 +568,13 @@ func TestNoteSetRev(t *testing.T) {
 	note := &Note{}
 	rev := "1-xxx"
 	note.SetRev(rev)
-	if *note.Rev != rev {
+	if note.Rev != rev {
 		t.Errorf("failed to set rev")
 	}
 }
 
 func TestNoteDocID(t *testing.T) {
-	note := &Note{ID: DocID{docType: "note", id: []byte("foo")}}
+	note := &Note{ID: "note-Zm9v"}
 	expected := "note-Zm9v"
 	if id := note.DocID(); id != expected {
 		t.Errorf("unexpected id: %s", id)
@@ -585,7 +585,7 @@ func TestNoteImportedTime(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		note := &Note{}
 		ts := now()
-		note.Imported = &ts
+		note.Imported = ts
 		if it := note.ImportedTime(); it != ts {
 			t.Errorf("Unexpected result: %s", it)
 		}
@@ -619,59 +619,59 @@ func TestNoteMergeImport(t *testing.T) {
 	tests := []Test{
 		{
 			name:     "different ids",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("bar")}},
+			new:      &Note{ID: "note-Zm9v"},
+			existing: &Note{ID: "note-YmFy"},
 			err:      "IDs don't match",
 		},
 		{
 			name:     "created timestamps don't match",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			new:      &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Note{ID: "note-Zm9v", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Created timestamps don't match",
 		},
 		{
 			name:     "new not an import",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			new:      &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			new:      &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
 			name: "new is newer",
 			new: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     1,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 				FieldValues: []*FieldValue{},
 				Attachments: NewFileCollection(),
 				model:       &Model{ID: 1},
 			},
 			existing: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-YmFy",
 				ModelID:     2,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 				FieldValues: []*FieldValue{{}},
 				model:       &Model{ID: 2},
 			},
 			expected: true,
 			expectedNote: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     1,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 				FieldValues: []*FieldValue{},
 				Attachments: NewFileCollection(),
 				model:       &Model{ID: 1},
@@ -680,33 +680,33 @@ func TestNoteMergeImport(t *testing.T) {
 		{
 			name: "existing is newer",
 			new: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     1,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 				FieldValues: []*FieldValue{},
 				Attachments: NewFileCollection(),
 				model:       &Model{ID: 1},
 			},
 			existing: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     2,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 				FieldValues: []*FieldValue{{}},
 				model:       &Model{ID: 2},
 			},
 			expected: false,
-			expectedNote: &Note{ID: DocID{docType: "note", id: []byte("foo")},
+			expectedNote: &Note{ID: "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     2,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 				FieldValues: []*FieldValue{{}},
 				model:       &Model{ID: 2},
 			},
@@ -733,45 +733,45 @@ func TestNoteValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "no ID",
-			v:    &noteDoc{},
+			v:    &Note{},
 			err:  "id required",
 		},
 		{
 			name: "invalid doctype",
-			v:    &noteDoc{ID: DocID{docType: "chicken", id: []byte("foo")}},
+			v:    &Note{ID: "chicken-foo"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "wrong doctype",
-			v:    &noteDoc{ID: DocID{docType: "deck", id: []byte("foo")}},
+			v:    &Note{ID: "deck-foo"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "no created time",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}},
+			v:    &Note{ID: "note-Zm9v"},
 			err:  "created time required",
 		},
 		{
 			name: "no modified time",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now()},
+			v:    &Note{ID: "note-Zm9v", Created: now()},
 			err:  "modified time required",
 		},
 		{
 			name: "nil attachments collection",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now()},
+			v:    &Note{ID: "note-Zm9v", Created: now(), Modified: now()},
 			err:  "attachments collection must not be nil",
 		},
 		{
 			name: "invalid field file list",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}},
+			v:    &Note{ID: "note-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}},
 			err:  "field 0 file list must be member of attachments collection",
 		},
 		{
 			name: "valid",
-			v: func() *noteDoc {
+			v: func() *Note {
 				att := NewFileCollection()
 				view := att.NewView()
-				return &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}}
+				return &Note{ID: "note-Zm9v", Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}}
 			}(),
 		},
 	}
