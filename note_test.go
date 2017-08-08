@@ -325,3 +325,68 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestNoteGetFieldValue(t *testing.T) {
+	type Test struct {
+		name     string
+		note     *Note
+		ord      int
+		expected *FieldValue
+	}
+	tests := []Test{
+		{
+			name: "new text field",
+			note: &Note{
+				FieldValues: make([]*FieldValue, 1),
+				model:       &Model{Fields: []*Field{{Type: TextField, Name: "text"}}},
+			},
+			ord: 0,
+			expected: &FieldValue{
+				field: &Field{
+					Type: TextField,
+					Name: "text",
+				},
+			},
+		},
+		{
+			name: "new audio field",
+			note: &Note{
+				FieldValues: make([]*FieldValue, 1),
+				model:       &Model{Fields: []*Field{{Type: AudioField, Name: "text"}}},
+				Attachments: NewFileCollection(),
+			},
+			ord: 0,
+			expected: func() *FieldValue {
+				return &FieldValue{
+					field: &Field{
+						Type: AudioField,
+						Name: "text",
+					},
+					files: NewFileCollection().NewView(),
+				}
+			}(),
+		},
+		{
+			name: "existing field",
+			note: &Note{
+				FieldValues: []*FieldValue{{
+					field: &Field{Type: TextField, Name: "foo"},
+					text:  "foo text",
+				}},
+			},
+			ord: 0,
+			expected: &FieldValue{
+				field: &Field{Type: TextField, Name: "foo"},
+				text:  "foo text",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := test.note.GetFieldValue(test.ord)
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
