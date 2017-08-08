@@ -30,9 +30,8 @@ func TestPkgValidate(t *testing.T) {
 			pkg: &Package{
 				Decks: []*Deck{
 					func() *Deck {
-						id, _ := NewDocID("deck", []byte{1, 2, 3})
 						return &Deck{
-							ID:    id,
+							ID:    "deck-AQID",
 							Cards: &CardCollection{map[string]struct{}{"card-12345": {}}},
 						}
 					}(),
