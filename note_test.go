@@ -193,6 +193,7 @@ func TestNoteMarshalJSON(t *testing.T) {
 						{Text: "foo", files: view},
 					},
 					Attachments: att,
+					model:       &Model{Fields: []*Field{{Type: AnkiField}}},
 				}
 			}(),
 			expected: `{
@@ -702,6 +703,21 @@ func TestNoteValidate(t *testing.T) {
 			name: "invalid field file list",
 			v:    &Note{ID: "note-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}},
 			err:  "field 0 file list must be member of attachments collection",
+		},
+		{
+			name: "text field with file list",
+			v:    &Note{ID: "note-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}, model: &Model{Fields: []*Field{{Type: TextField}}}},
+			err:  "text field 0 must not have file list",
+		},
+		{
+			name: "audio field field with text",
+			v:    &Note{ID: "note-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{Text: "foo", files: NewFileCollection().NewView()}}, model: &Model{Fields: []*Field{{Type: AudioField}}}},
+			err:  "audio field 0 must not have text",
+		},
+		{
+			name: "image field field with text",
+			v:    &Note{ID: "note-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{Text: "foo", files: NewFileCollection().NewView()}}, model: &Model{Fields: []*Field{{Type: ImageField}}}},
+			err:  "image field 0 must not have text",
 		},
 		{
 			name: "valid",

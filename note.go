@@ -49,6 +49,22 @@ func (n *Note) Validate() error {
 		return errors.New("attachments collection must not be nil")
 	}
 	for i, fv := range n.FieldValues {
+		if n.model != nil { // model is nil if loaded from the db
+			switch n.model.Fields[i].Type {
+			case TextField:
+				if fv.files != nil {
+					return errors.Errorf("text field %d must not have file list", i)
+				}
+			case AudioField:
+				if fv.Text != "" {
+					return errors.Errorf("audio field %d must not have text", i)
+				}
+			case ImageField:
+				if fv.Text != "" {
+					return errors.Errorf("image field %d must not have text", i)
+				}
+			}
+		}
 		if fv != nil && fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
 			return errors.Errorf("field %d file list must be member of attachments collection", i)
 		}
