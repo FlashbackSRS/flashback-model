@@ -390,3 +390,176 @@ func TestNoteGetFieldValue(t *testing.T) {
 		})
 	}
 }
+
+func TestFieldValueType(t *testing.T) {
+	expected := AudioField
+	fv := &FieldValue{field: &Field{Type: expected}}
+	if ft := fv.Type(); ft != expected {
+		t.Errorf("Unexpected result: %v", ft)
+	}
+}
+
+func TestFieldValueUnmarshalJSON(t *testing.T) {
+	type Test struct {
+		name     string
+		input    string
+		expected *FieldValue
+		err      string
+	}
+	tests := []Test{
+		{
+			name:  "invalid json",
+			input: "invalid json",
+			err:   "failed to unmarshal FieldValue: invalid character 'i' looking for beginning of value",
+		},
+		{
+			name:     "empty field",
+			input:    `{}`,
+			expected: &FieldValue{},
+		},
+		{
+			name:     "text field",
+			input:    `{"text":"foo"}`,
+			expected: &FieldValue{text: "foo"},
+		},
+		{
+			name:  "files field",
+			input: `{"text":"foo","files":["foo.txt","main.css"]}`,
+			expected: &FieldValue{text: "foo", files: &FileCollectionView{
+				members: map[string]*Attachment{"foo.txt": nil, "main.css": nil},
+			}},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := &FieldValue{}
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestFieldValueSetText(t *testing.T) {
+	type Test struct {
+		name     string
+		fv       *FieldValue
+		text     string
+		err      string
+		expected *FieldValue
+	}
+	tests := []Test{
+		{
+			name: "Audio field",
+			fv:   &FieldValue{field: &Field{Type: AudioField}},
+			text: "foo",
+			err:  "Text field not permitted",
+		},
+		{
+			name:     "Text field",
+			fv:       &FieldValue{field: &Field{Type: TextField}},
+			text:     "foo",
+			expected: &FieldValue{field: &Field{Type: TextField}, text: "foo"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.fv.SetText(test.text)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, test.fv); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestFieldViewText(t *testing.T) {
+	type Test struct {
+		name     string
+		fv       *FieldValue
+		expected string
+		err      string
+	}
+	tests := []Test{
+		{
+			name: "Audio field",
+			fv:   &FieldValue{field: &Field{Type: AudioField}},
+			err:  "FieldValue has no text field",
+		},
+		{
+			name:     "Text field",
+			fv:       &FieldValue{field: &Field{Type: TextField}, text: "foo"},
+			expected: "foo",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.fv.Text()
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if test.expected != result {
+				t.Errorf("Unexpected result: %s", result)
+			}
+		})
+	}
+}
+
+func TestFieldViewAddFile(t *testing.T) {
+	type Test struct {
+		name     string
+		fv       *FieldValue
+		filename string
+		expected *FieldValue
+		err      string
+	}
+	tests := []Test{
+		{
+			name:     "text field",
+			fv:       &FieldValue{field: &Field{Type: TextField}},
+			filename: "foo.txt",
+			err:      "Text fields do not support attachments",
+		},
+		{
+			name:     "anki field",
+			fv:       &FieldValue{field: &Field{Type: AnkiField}, files: NewFileCollection().NewView()},
+			filename: "foo.txt",
+			expected: func() *FieldValue {
+				view := NewFileCollection().NewView()
+				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
+				return &FieldValue{field: &Field{Type: AnkiField}, files: view}
+			}(),
+		},
+		{
+			name: "duplicate file",
+			fv: func() *FieldValue {
+				view := NewFileCollection().NewView()
+				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
+				return &FieldValue{field: &Field{Type: AnkiField}, files: view}
+			}(),
+			filename: "foo.txt",
+			err:      "'foo.txt' already exists in the collection",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.fv.AddFile(test.filename, "text/plain", []byte("some text"))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, test.fv); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}
