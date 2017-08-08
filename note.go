@@ -63,11 +63,21 @@ func NewNote(id []byte, model *Model) (*Note, error) {
 
 // SetModel assigns the provided model to the Note. This is useful after retrieving
 // a note.
-func (n *Note) SetModel(m *Model) {
+func (n *Note) SetModel(m *Model) error {
+	if m == nil {
+		return errors.New("model required")
+	}
+	if m.Theme.ID != n.ThemeID {
+		return errors.New("Theme IDs must match")
+	}
+	if len(n.FieldValues) != len(m.Fields) {
+		return errors.New("model.Fields and node.FieldValues lengths must match")
+	}
 	n.model = m
 	for i := 0; i < len(n.FieldValues); i++ {
 		n.FieldValues[i].field = m.Fields[i]
 	}
+	return nil
 }
 
 // Model returns the Note's associated Model.
@@ -142,12 +152,12 @@ func (fv *FieldValue) Type() FieldType {
 // FieldValue stores the value of a given field.
 type FieldValue struct {
 	field *Field
-	text  *string
+	text  string
 	files *FileCollectionView
 }
 
 type fieldValueDoc struct {
-	Text  *string             `json:"text,omitempty"`
+	Text  string              `json:"text,omitempty"`
 	Files *FileCollectionView `json:"files,omitempty"`
 }
 
@@ -176,7 +186,7 @@ func (fv *FieldValue) SetText(text string) error {
 	if fv.field.Type != TextField && fv.field.Type != AnkiField {
 		return errors.New("Text field not permitted")
 	}
-	fv.text = &text
+	fv.text = text
 	return nil
 }
 
@@ -186,7 +196,7 @@ func (fv *FieldValue) Text() (string, error) {
 	if fv.field.Type != TextField && fv.field.Type != AnkiField {
 		return "", errors.New("FieldValue has no text field")
 	}
-	return *fv.text, nil
+	return fv.text, nil
 }
 
 // AddFile adds a file of the specified name, type, and content, as an attachment
