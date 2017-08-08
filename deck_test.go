@@ -149,6 +149,11 @@ func TestDeckMarshalJSON(t *testing.T) {
 	}
 	tests := []Test{
 		{
+			name: "invalid deck",
+			deck: &Deck{},
+			err:  "id required",
+		},
+		{
 			name: "full fields",
 			deck: &Deck{
 				ID:          "deck-ZGVjaw",
@@ -225,6 +230,11 @@ func TestDeckUnmarshalJSON(t *testing.T) {
 			name:  "wrong type",
 			input: `{"type":"chicken"}`,
 			err:   "Invalid document type for deck: chicken",
+		},
+		{
+			name:  "invalid deck",
+			input: `{"type":"deck"}`,
+			err:   "id required",
 		},
 		{
 			name: "all fields",
