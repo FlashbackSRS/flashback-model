@@ -174,51 +174,35 @@ func (fv *FieldValue) Type() FieldType {
 // FieldValue stores the value of a given field.
 type FieldValue struct {
 	field *Field
-	text  string
+	Text  string `json:"text,omitempty"`
 	files *FileCollectionView
 }
 
-type fieldValueDoc struct {
-	Text  string              `json:"text,omitempty"`
+type fieldValueAlias FieldValue
+
+type jsonFieldValue struct {
+	fieldValueAlias
 	Files *FileCollectionView `json:"files,omitempty"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the FieldValue type.
 func (fv *FieldValue) MarshalJSON() ([]byte, error) {
-	return json.Marshal(fieldValueDoc{
-		Text:  fv.text,
-		Files: fv.files,
-	})
+	doc := jsonFieldValue{
+		fieldValueAlias: fieldValueAlias(*fv),
+		Files:           fv.files,
+	}
+	return json.Marshal(doc)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the FieldValue type.
 func (fv *FieldValue) UnmarshalJSON(data []byte) error {
-	doc := &fieldValueDoc{}
+	doc := &jsonFieldValue{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal FieldValue")
 	}
-	fv.text = doc.Text
+	*fv = FieldValue(doc.fieldValueAlias)
 	fv.files = doc.Files
 	return nil
-}
-
-// SetText sets the text attribute of the FieldValue, or returns an error if the
-// FieldValue's type does not permit text attributes.
-func (fv *FieldValue) SetText(text string) error {
-	if fv.field.Type != TextField && fv.field.Type != AnkiField {
-		return errors.New("Text field not permitted")
-	}
-	fv.text = text
-	return nil
-}
-
-// Text retrieves the text of the field value, or an error if no text field
-// is permitted for the field type.
-func (fv *FieldValue) Text() (string, error) {
-	if fv.field.Type != TextField && fv.field.Type != AnkiField {
-		return "", errors.New("FieldValue has no text field")
-	}
-	return fv.text, nil
 }
 
 // AddFile adds a file of the specified name, type, and content, as an attachment

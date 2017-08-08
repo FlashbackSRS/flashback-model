@@ -114,8 +114,8 @@ func TestNoteSetModel(t *testing.T) {
 			note: &Note{
 				ThemeID: "theme-Zm9v",
 				FieldValues: []*FieldValue{
-					{text: "one"},
-					{text: "two"},
+					{Text: "one"},
+					{Text: "two"},
 				},
 			},
 			model: &Model{
@@ -128,8 +128,8 @@ func TestNoteSetModel(t *testing.T) {
 			expected: &Note{
 				ThemeID: "theme-Zm9v",
 				FieldValues: []*FieldValue{
-					{text: "one", field: &Field{Name: "foo"}},
-					{text: "two", field: &Field{Name: "bar"}},
+					{Text: "one", field: &Field{Name: "foo"}},
+					{Text: "two", field: &Field{Name: "bar"}},
 				},
 				model: &Model{
 					Theme: &Theme{ID: "theme-Zm9v"},
@@ -190,7 +190,7 @@ func TestNoteMarshalJSON(t *testing.T) {
 					Modified: now(),
 					Imported: now(),
 					FieldValues: []*FieldValue{
-						{text: "foo", files: view},
+						{Text: "foo", files: view},
 					},
 					Attachments: att,
 				}
@@ -293,7 +293,7 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 					Modified: now(),
 					Imported: now(),
 					FieldValues: []*FieldValue{
-						{text: "foo", files: view},
+						{Text: "foo", files: view},
 					},
 					Attachments: att,
 				}
@@ -377,13 +377,13 @@ func TestNoteGetFieldValue(t *testing.T) {
 			note: &Note{
 				FieldValues: []*FieldValue{{
 					field: &Field{Type: TextField, Name: "foo"},
-					text:  "foo text",
+					Text:  "foo text",
 				}},
 			},
 			ord: 0,
 			expected: &FieldValue{
 				field: &Field{Type: TextField, Name: "foo"},
-				text:  "foo text",
+				Text:  "foo text",
 			},
 		},
 	}
@@ -426,12 +426,12 @@ func TestFieldValueUnmarshalJSON(t *testing.T) {
 		{
 			name:     "text field",
 			input:    `{"text":"foo"}`,
-			expected: &FieldValue{text: "foo"},
+			expected: &FieldValue{Text: "foo"},
 		},
 		{
 			name:  "files field",
 			input: `{"text":"foo","files":["foo.txt","main.css"]}`,
-			expected: &FieldValue{text: "foo", files: &FileCollectionView{
+			expected: &FieldValue{Text: "foo", files: &FileCollectionView{
 				members: map[string]*Attachment{"foo.txt": nil, "main.css": nil},
 			}},
 		},
@@ -446,75 +446,6 @@ func TestFieldValueUnmarshalJSON(t *testing.T) {
 			}
 			if d := diff.Interface(test.expected, result); d != "" {
 				t.Error(d)
-			}
-		})
-	}
-}
-
-func TestFieldValueSetText(t *testing.T) {
-	type Test struct {
-		name     string
-		fv       *FieldValue
-		text     string
-		err      string
-		expected *FieldValue
-	}
-	tests := []Test{
-		{
-			name: "Audio field",
-			fv:   &FieldValue{field: &Field{Type: AudioField}},
-			text: "foo",
-			err:  "Text field not permitted",
-		},
-		{
-			name:     "Text field",
-			fv:       &FieldValue{field: &Field{Type: TextField}},
-			text:     "foo",
-			expected: &FieldValue{field: &Field{Type: TextField}, text: "foo"},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := test.fv.SetText(test.text)
-			checkErr(t, test.err, err)
-			if err != nil {
-				return
-			}
-			if d := diff.Interface(test.expected, test.fv); d != "" {
-				t.Error(d)
-			}
-		})
-	}
-}
-
-func TestFieldViewText(t *testing.T) {
-	type Test struct {
-		name     string
-		fv       *FieldValue
-		expected string
-		err      string
-	}
-	tests := []Test{
-		{
-			name: "Audio field",
-			fv:   &FieldValue{field: &Field{Type: AudioField}},
-			err:  "FieldValue has no text field",
-		},
-		{
-			name:     "Text field",
-			fv:       &FieldValue{field: &Field{Type: TextField}, text: "foo"},
-			expected: "foo",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			result, err := test.fv.Text()
-			checkErr(t, test.err, err)
-			if err != nil {
-				return
-			}
-			if test.expected != result {
-				t.Errorf("Unexpected result: %s", result)
 			}
 		})
 	}
