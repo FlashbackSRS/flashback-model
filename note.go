@@ -44,18 +44,21 @@ type noteDoc struct {
 
 // NewNote creates a new, empty note with the provided ID and Model.
 func NewNote(id []byte, model *Model) (*Note, error) {
-	n := &Note{}
+	if model == nil {
+		return nil, errors.New("model required")
+	}
 	nid, err := NewDocID("note", id)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot create DocID")
+		return nil, err
 	}
-	n.ID = nid
-	n.ThemeID = model.Theme.ID
-	n.ModelID = model.ID
-	n.FieldValues = make([]*FieldValue, len(model.Fields))
-	n.Attachments = NewFileCollection()
-	n.model = model
-	return n, nil
+	return &Note{
+		ID:          nid,
+		ThemeID:     model.Theme.ID,
+		ModelID:     model.ID,
+		FieldValues: make([]*FieldValue, len(model.Fields)),
+		Attachments: NewFileCollection(),
+		model:       model,
+	}, nil
 }
 
 // SetModel assigns the provided model to the Note. This is useful after retrieving

@@ -10,7 +10,6 @@ import (
 
 var validDocIDTypes = map[string]struct{}{
 	"theme": {},
-	"model": {},
 	"note":  {},
 	"deck":  {},
 	"card":  {},
