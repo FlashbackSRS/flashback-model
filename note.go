@@ -42,29 +42,68 @@ type noteDoc struct {
 	Attachments *FileCollection `json:"_attachments,omitempty"`
 }
 
+// Validate validates that all of the data in the note  appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (n *noteDoc) Validate() error {
+	if len(n.ID.id) == 0 {
+		return errors.New("id required")
+	}
+	if n.ID.docType != "note" {
+		return errors.New("incorrect doc type")
+	}
+	if n.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if n.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if n.Attachments == nil {
+		return errors.New("attachments collection must not be nil")
+	}
+	for i, fv := range n.FieldValues {
+		if fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
+			return errors.Errorf("field %d file list must be member of attachments collection", i)
+		}
+	}
+	return nil
+}
+
 // NewNote creates a new, empty note with the provided ID and Model.
 func NewNote(id []byte, model *Model) (*Note, error) {
-	n := &Note{}
+	if model == nil {
+		return nil, errors.New("model required")
+	}
 	nid, err := NewDocID("note", id)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot create DocID")
+		return nil, err
 	}
-	n.ID = nid
-	n.ThemeID = model.Theme.ID
-	n.ModelID = model.ID
-	n.FieldValues = make([]*FieldValue, len(model.Fields))
-	n.Attachments = NewFileCollection()
-	n.model = model
-	return n, nil
+	return &Note{
+		ID:          nid,
+		ThemeID:     model.Theme.ID,
+		ModelID:     model.ID,
+		FieldValues: make([]*FieldValue, len(model.Fields)),
+		Attachments: NewFileCollection(),
+		model:       model,
+	}, nil
 }
 
 // SetModel assigns the provided model to the Note. This is useful after retrieving
 // a note.
-func (n *Note) SetModel(m *Model) {
+func (n *Note) SetModel(m *Model) error {
+	if m == nil {
+		return errors.New("model required")
+	}
+	if m.Theme.ID != n.ThemeID {
+		return errors.New("Theme IDs must match")
+	}
+	if len(n.FieldValues) != len(m.Fields) {
+		return errors.New("model.Fields and node.FieldValues lengths must match")
+	}
 	n.model = m
 	for i := 0; i < len(n.FieldValues); i++ {
 		n.FieldValues[i].field = m.Fields[i]
 	}
+	return nil
 }
 
 // Model returns the Note's associated Model.
@@ -139,12 +178,12 @@ func (fv *FieldValue) Type() FieldType {
 // FieldValue stores the value of a given field.
 type FieldValue struct {
 	field *Field
-	text  *string
+	text  string
 	files *FileCollectionView
 }
 
 type fieldValueDoc struct {
-	Text  *string             `json:"text,omitempty"`
+	Text  string              `json:"text,omitempty"`
 	Files *FileCollectionView `json:"files,omitempty"`
 }
 
@@ -173,7 +212,7 @@ func (fv *FieldValue) SetText(text string) error {
 	if fv.field.Type != TextField && fv.field.Type != AnkiField {
 		return errors.New("Text field not permitted")
 	}
-	fv.text = &text
+	fv.text = text
 	return nil
 }
 
@@ -183,7 +222,7 @@ func (fv *FieldValue) Text() (string, error) {
 	if fv.field.Type != TextField && fv.field.Type != AnkiField {
 		return "", errors.New("FieldValue has no text field")
 	}
-	return *fv.text, nil
+	return fv.text, nil
 }
 
 // AddFile adds a file of the specified name, type, and content, as an attachment
@@ -202,7 +241,12 @@ func (n *Note) SetRev(rev string) { n.Rev = &rev }
 func (n *Note) DocID() string { return n.ID.String() }
 
 // ImportedTime returns the time the Note was imported, or nil.
-func (n *Note) ImportedTime() time.Time { return *n.Imported }
+func (n *Note) ImportedTime() time.Time {
+	if n.Imported == nil {
+		return time.Time{}
+	}
+	return *n.Imported
+}
 
 // ModifiedTime returns the time the Note was last modified.
 func (n *Note) ModifiedTime() time.Time { return n.Modified }
@@ -213,6 +257,9 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Note)
 	if !n.ID.Equal(&existing.ID) {
 		return false, errors.New("IDs don't match")
+	}
+	if n.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
 	}
 	if !n.Created.Equal(existing.Created) {
 		return false, errors.New("Created timestamps don't match")

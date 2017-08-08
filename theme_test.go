@@ -293,8 +293,8 @@ func TestThemeSetRev(t *testing.T) {
 }
 
 func TestThemeID(t *testing.T) {
-	theme, _ := NewTheme("theme-Zm9v")
 	expected := "theme-Zm9v"
+	theme := &Theme{ID: expected}
 	if id := theme.DocID(); id != expected {
 		t.Errorf("unexpected id: %s", id)
 	}
@@ -367,20 +367,23 @@ func TestThemeMergeImport(t *testing.T) {
 				Name:     "foo",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTime("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z"),
+			},
 			existing: &Theme{
 				ID:       "theme-abcd",
 				Name:     "bar",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-01T01:01:01Z"),
-				Imported: parseTime("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z"),
+			},
 			expected: true,
 			expectedTheme: &Theme{
 				ID:       "theme-abcd",
 				Name:     "foo",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTime("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z"),
+			},
 		},
 		{
 			name: "existing is newer",
@@ -389,18 +392,21 @@ func TestThemeMergeImport(t *testing.T) {
 				Name:     "foo",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-01-01T01:01:01Z"),
-				Imported: parseTime("2017-01-15T00:00:00Z")},
+				Imported: parseTime("2017-01-15T00:00:00Z"),
+			},
 			existing: &Theme{ID: "theme-abcd",
 				Name:     "bar",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTime("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z"),
+			},
 			expected: false,
 			expectedTheme: &Theme{ID: "theme-abcd",
 				Name:     "bar",
 				Created:  parseTime("2017-01-01T01:01:01Z"),
 				Modified: parseTime("2017-02-01T01:01:01Z"),
-				Imported: parseTime("2017-01-20T00:00:00Z")},
+				Imported: parseTime("2017-01-20T00:00:00Z"),
+			},
 		},
 	}
 	for _, test := range tests {
