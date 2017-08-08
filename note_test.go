@@ -172,6 +172,11 @@ func TestNoteMarshalJSON(t *testing.T) {
 	}
 	tests := []Test{
 		{
+			name: "invalid",
+			note: &Note{},
+			err:  "id required",
+		},
+		{
 			name: "all fields",
 			note: func() *Note {
 				att := NewFileCollection()
@@ -253,11 +258,12 @@ func TestNoteUnmarshalJSON(t *testing.T) {
                 "theme":        "theme-Zm9v"
             }`,
 			expected: &Note{
-				ID:       "note-Zm9v",
-				Created:  now(),
-				Modified: now(),
-				ModelID:  3,
-				ThemeID:  "theme-Zm9v",
+				ID:          "note-Zm9v",
+				Created:     now(),
+				Modified:    now(),
+				ModelID:     3,
+				ThemeID:     "theme-Zm9v",
+				Attachments: NewFileCollection(),
 			},
 		},
 		{

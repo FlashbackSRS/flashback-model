@@ -52,13 +52,12 @@ func TestNote(t *testing.T) {
 	th := &fb.Theme{}
 	json.Unmarshal(frozenTheme, th)
 	m := th.Models[1]
-	n, err := fb.NewNote([]byte("Test Note"), m)
+	n, err := fb.NewNote("note-VGVzdCBOb3Rl", m)
 	require.Nil(err, "Unable to create Note: %s", err)
 
 	n.Created = now
 	n.Modified = now
-	imp := now.AddDate(0, 0, 2)
-	n.Imported = &imp
+	n.Imported = now.AddDate(0, 0, 2)
 	fv1 := n.GetFieldValue(0)
 	fv1.SetText("cat")
 	fv2 := n.GetFieldValue(1)

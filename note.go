@@ -49,7 +49,7 @@ func (n *Note) Validate() error {
 		return errors.New("attachments collection must not be nil")
 	}
 	for i, fv := range n.FieldValues {
-		if fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
+		if fv != nil && fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
 			return errors.Errorf("field %d file list must be member of attachments collection", i)
 		}
 	}
@@ -110,6 +110,9 @@ type jsonNote struct {
 
 // MarshalJSON implements the json.Marshaler interface for the Note type.
 func (n *Note) MarshalJSON() ([]byte, error) {
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
 	doc := struct {
 		jsonNote
 		Imported *time.Time `json:"imported,omitempty"`
@@ -135,6 +138,9 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 		return errors.New("Invalid document type for note: " + doc.Type)
 	}
 	*n = Note(doc.noteAlias)
+	if n.Attachments == nil {
+		n.Attachments = NewFileCollection()
+	}
 	for _, fv := range n.FieldValues {
 		if fv.files != nil {
 			if err := n.Attachments.AddView(fv.files); err != nil {
@@ -142,7 +148,7 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-	return nil
+	return n.Validate()
 }
 
 // GetFieldValue returns the requested FieldValue by index.
