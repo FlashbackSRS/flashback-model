@@ -91,6 +91,9 @@ func NewDbID(docType string, id []byte) (DbID, error) {
 	if !isValidDbIDType(docType) {
 		return DbID{}, errors.New("Invalid document type:" + docType)
 	}
+	if len(id) == 0 {
+		return DbID{}, errors.New("id required")
+	}
 	return DbID{
 		docType: docType,
 		id:      id,
