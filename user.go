@@ -9,10 +9,6 @@ import (
 
 var nilUser = uuid.UUID([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 
-func isValidID(id string) bool {
-	return uuid.Parse(id) != nil
-}
-
 // User repressents a user of Flashback
 type User struct {
 	ID       DbID
@@ -38,12 +34,6 @@ type userDoc struct {
 	Email    *string `json:"email,omitempty"`
 }
 
-// func CreateUser(username string) (*User, error) {
-// 	u := &User{}
-// 	u.ID = NewID("user", uuid.NewRandom())
-// 	return u, nil
-// }
-
 // NewUser returns a new User object, based on the provided UUID and username.
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	uid, err := NewDbID("user", id)
@@ -58,16 +48,6 @@ func NewUser(id uuid.UUID, username string) (*User, error) {
 		uuid:     id,
 		Username: username,
 	}, nil
-}
-
-// NewUserStub returns a new stub (bare bones) User object.
-func NewUserStub(id string) (*User, error) {
-	userID, err := ParseDbID("user", id)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid DbID")
-	}
-	userUUID := uuid.UUID(userID.RawID())
-	return NewUser(userUUID, "")
 }
 
 // NilUser returns a special user, whose UUID bits are all set to zero, to be
@@ -115,14 +95,4 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	u.Email = doc.Email
 
 	return nil
-}
-
-// Fleshened returns true if the user object has been fleshened
-func (u *User) Fleshened() bool {
-	return u.Username != ""
-}
-
-// Equal returns true if the two users are equal.
-func (u *User) Equal(id uuid.UUID) bool {
-	return uuid.Equal(u.uuid, id)
 }
