@@ -16,7 +16,7 @@ var frozenBundle = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "owner": "tui5ajfbabaeljnxt4om7fwmt4",
+    "owner": "user-tui5ajfbabaeljnxt4om7fwmt4",
     "name": "Test Bundle",
     "description": "A bundle for testing"
 }
@@ -24,19 +24,15 @@ var frozenBundle = []byte(`
 
 func TestNewBundle(t *testing.T) {
 	require := require.New(t)
-	u, _ := testUser()
-	b, err := fb.NewBundle([]byte("Test Bundle"), u)
+	b, err := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "user-tui5ajfbabaeljnxt4om7fwmt4")
 	require.Nil(err, "Error creating new bundle: %s", err)
 
-	name := "Test Bundle"
-	b.Name = &name
+	b.Name = "Test Bundle"
 	b.Created = now
 	b.Modified = now
-	imp := now.AddDate(0, 0, 2)
-	b.Imported = &imp
-	descr := "A bundle for testing"
-	b.Description = &descr
-	require.Equal("bundle-krsxg5baij2w4zdmmu", b.ID.String(), "Bundle ID")
+	b.Imported = now.AddDate(0, 0, 2)
+	b.Description = "A bundle for testing"
+	require.Equal("bundle-krsxg5baij2w4zdmmu", b.ID, "Bundle ID")
 	require.MarshalsToJSON(frozenBundle, b, "New Bundle")
 
 	b2 := &fb.Bundle{}
@@ -46,6 +42,5 @@ func TestNewBundle(t *testing.T) {
 
 	// We have to set the username explicitly for the next test to pass, as a simple unmarshaling
 	// of a bundle doesn't know user details (nor should it)
-	b2.Owner.Username = "mrsmith"
 	require.DeepEqual(b, b2, "Thawed vs Created bundle")
 }

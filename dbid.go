@@ -9,6 +9,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+var validDBIDTypes = map[string]struct{}{
+	"user":   {},
+	"bundle": {},
+}
+
 var validDbIDTypes map[string]struct{}
 
 // Same as standard Base32 encoding, only lowercase to work with CouchDB database
@@ -129,4 +134,18 @@ func (id *DbID) Equal(id2 *DbID) bool {
 // RawID returns the byte representation of the internal identity.
 func (id *DbID) RawID() []byte {
 	return id.id
+}
+
+func validateDBID(id string) error {
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		return errors.New("invalid DBID format")
+	}
+	if _, ok := validDBIDTypes[parts[0]]; !ok {
+		return errors.Errorf("unsupported DBID type '%s'", parts[0])
+	}
+	if _, err := b32dec(parts[1]); err != nil {
+		return errors.New("invalid DBID encoding")
+	}
+	return nil
 }
