@@ -42,7 +42,9 @@ func TestNewUser(t *testing.T) {
 func TestNilUser(t *testing.T) {
 	u := NilUser()
 	expected := &User{
-		ID: "user-aaaaaaaaabaabaaaaaaaaaaaaa",
+		ID:       "user-aaaaaaaaabaabaaaaaaaaaaaaa",
+		Created:  now(),
+		Modified: now(),
 	}
 	if d := diff.Interface(expected, u); d != "" {
 		t.Error(d)
@@ -67,30 +69,40 @@ func TestUserMarshalJSON(t *testing.T) {
 				ID:       "user-mjxwe",
 				Salt:     "salty",
 				Password: "abc123",
-			},
-			expected: `{
-                "_id":      "user-mjxwe",
-                "type":     "user",
-                "salt":     "salty",
-                "password": "abc123"
-            }`,
-		},
-		{
-			name: "all fields",
-			user: &User{
-				ID:       "user-mjxwe",
-				Salt:     "salty",
-				Password: "abc123",
-				FullName: "Bob",
-				Email:    "bob@bob.com",
+				Created:  now(),
+				Modified: now(),
 			},
 			expected: `{
                 "_id":      "user-mjxwe",
                 "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
-                "email":    "bob@bob.com",
-                "fullname": "Bob"
+                "created":  "2017-01-01T00:00:00Z",
+                "modified": "2017-01-01T00:00:00Z"
+            }`,
+		},
+		{
+			name: "all fields",
+			user: &User{
+				ID:        "user-mjxwe",
+				Salt:      "salty",
+				Password:  "abc123",
+				FullName:  "Bob",
+				Email:     "bob@bob.com",
+				Created:   now(),
+				Modified:  now(),
+				LastLogin: now(),
+			},
+			expected: `{
+                "_id":       "user-mjxwe",
+                "type":      "user",
+                "salt":      "salty",
+                "password":  "abc123",
+                "email":     "bob@bob.com",
+                "fullname":  "Bob",
+                "created":   "2017-01-01T00:00:00Z",
+                "modified":  "2017-01-01T00:00:00Z",
+                "lastLogin": "2017-01-01T00:00:00Z"
             }`,
 		},
 	}
@@ -136,30 +148,40 @@ func TestUserUnmarshalJSON(t *testing.T) {
                 "_id":      "user-mjxwe",
                 "type":     "user",
                 "salt":     "salty",
-                "password": "abc123"
+                "password": "abc123",
+                "created":  "2017-01-01T00:00:00Z",
+                "modified": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
 				ID:       "user-mjxwe",
 				Salt:     "salty",
 				Password: "abc123",
+				Created:  now(),
+				Modified: now(),
 			},
 		},
 		{
 			name: "all fields",
 			input: `{
-                "_id":      "user-mjxwe",
-                "type":     "user",
-                "salt":     "salty",
-                "password": "abc123",
-                "email":    "bob@bob.com",
-                "fullname": "Bob"
+                "_id":       "user-mjxwe",
+                "type":      "user",
+                "salt":      "salty",
+                "password":  "abc123",
+                "email":     "bob@bob.com",
+                "fullname":  "Bob",
+                "created":   "2017-01-01T00:00:00Z",
+                "modified":  "2017-01-01T00:00:00Z",
+                "lastLogin": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
-				ID:       "user-mjxwe",
-				Salt:     "salty",
-				Password: "abc123",
-				Email:    "bob@bob.com",
-				FullName: "Bob",
+				ID:        "user-mjxwe",
+				Salt:      "salty",
+				Password:  "abc123",
+				Email:     "bob@bob.com",
+				FullName:  "Bob",
+				Created:   now(),
+				Modified:  now(),
+				LastLogin: now(),
 			},
 		},
 	}
@@ -196,8 +218,18 @@ func TestUserValidate(t *testing.T) {
 			err:  "incorrect doc type",
 		},
 		{
+			name: "no created time",
+			v:    &User{ID: "user-mzxw6"},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &User{ID: "user-mzxw6", Created: now()},
+			err:  "modified time required",
+		},
+		{
 			name: "valid",
-			v:    &User{ID: "user-mjxwe"},
+			v:    &User{ID: "user-mjxwe", Created: now(), Modified: now()},
 		},
 	}
 	testValidation(t, tests)

@@ -3,6 +3,7 @@ package fb
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
@@ -12,12 +13,15 @@ var nilUser = uuid.UUID([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0
 
 // User repressents a user of Flashback
 type User struct {
-	ID       string `json:"_id"`
-	Rev      string `json:"_rev,omitempty"`
-	Password string `json:"password"`
-	Salt     string `json:"salt"`
-	FullName string `json:"fullname,omitempty"`
-	Email    string `json:"email,omitempty"`
+	ID        string    `json:"_id"`
+	Rev       string    `json:"_rev,omitempty"`
+	Password  string    `json:"password"`
+	Salt      string    `json:"salt"`
+	FullName  string    `json:"fullname,omitempty"`
+	Email     string    `json:"email,omitempty"`
+	Created   time.Time `json:"created"`
+	Modified  time.Time `json:"modified"`
+	LastLogin time.Time `json:"lastLogin,omitempty"`
 }
 
 // Validate validates that all of the data in the user appears valid and self
@@ -29,13 +33,21 @@ func (u *User) Validate() error {
 	if !strings.HasPrefix(u.ID, "user-") {
 		return errors.New("incorrect doc type")
 	}
+	if u.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if u.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
 	return nil
 }
 
 // NewUser returns a new User object, based on the provided UUID and username.
 func NewUser(id string) (*User, error) {
 	u := &User{
-		ID: id,
+		ID:       id,
+		Created:  now(),
+		Modified: now(),
 	}
 	if err := u.Validate(); err != nil {
 		return nil, err
@@ -64,11 +76,15 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		jsonUser
+		LastLogin *time.Time `json:"lastLogin,omitempty"`
 	}{
 		jsonUser: jsonUser{
 			Type:      "user",
 			userAlias: userAlias(*u),
 		},
+	}
+	if !u.LastLogin.IsZero() {
+		doc.LastLogin = &u.LastLogin
 	}
 	return json.Marshal(doc)
 }
