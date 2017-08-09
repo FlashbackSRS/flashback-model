@@ -50,7 +50,7 @@ func NewUser(id, username string) (*User, error) {
 // NilUser returns a special user, whose UUID bits are all set to zero, to be
 // used as a placeholder when the actual user isn't known.
 func NilUser() *User {
-	u, _ := NewUser("user-aaaaaaaaabaabaaaaaaaaaaaaa", "niluser")
+	u, _ := NewUser(EncodeDBID("user", nilUser), "niluser")
 	return u
 }
 
