@@ -19,7 +19,7 @@ var frozenPackage = []byte(`
         "_id": "bundle-krsxg5baij2w4zdmmu",
         "created": "2016-07-31T15:08:24.730156517Z",
         "modified": "2016-07-31T15:08:24.730156517Z",
-        "owner": "tui5ajfbabaeljnxt4om7fwmt4"
+        "owner": "user-tui5ajfbabaeljnxt4om7fwmt4"
     },
     "cards": [
         {
@@ -173,7 +173,7 @@ var frozenPackage = []byte(`
 
 func TestPackage(t *testing.T) {
 	require := require.New(t)
-	b, err := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "tui5ajfbabaeljnxt4om7fwmt4")
+	b, err := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "user-tui5ajfbabaeljnxt4om7fwmt4")
 	require.Nil(err, "Error creating bundle: %s", err)
 
 	b.Created = now

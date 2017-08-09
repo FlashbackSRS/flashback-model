@@ -16,7 +16,7 @@ func TestNewBundle(t *testing.T) {
 	}{
 		{
 			name:  "no id",
-			owner: "mjxwe",
+			owner: "user-mjxwe",
 			err:   "id required",
 		},
 		{
@@ -27,10 +27,10 @@ func TestNewBundle(t *testing.T) {
 		{
 			name:  "valid",
 			id:    "bundle-mzxw6",
-			owner: "mjxwe",
+			owner: "user-mjxwe",
 			expected: &Bundle{
 				ID:       "bundle-mzxw6",
-				Owner:    "mjxwe",
+				Owner:    "user-mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
@@ -77,7 +77,7 @@ func TestBundleMarshalJSON(t *testing.T) {
 			name: "all fields",
 			bundle: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Created:     now(),
 				Modified:    now(),
 				Imported:    now(),
@@ -87,7 +87,7 @@ func TestBundleMarshalJSON(t *testing.T) {
 			expected: `{
                 "_id":         "bundle-mzxw6",
                 "type":        "bundle",
-                "owner":       "mjxwe",
+                "owner":       "user-mjxwe",
                 "name":        "foo name",
                 "description": "foo description",
                 "created":     "2017-01-01T00:00:00Z",
@@ -128,22 +128,28 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			err:   "Invalid document type for bundle: chicken",
 		},
 		{
-			name:  "invalid user",
-			input: `{"type":"bundle","owner":"unf"}`,
-			err:   "invalid user for bundle: invalid DbID: illegal base32 data at input byte 3",
+			name: "invalid user",
+			input: `{
+                "_id":      "bundle-mzxw6",
+                "type":     "bundle",
+                "owner":    "unf",
+                "created":  "2017-01-01T00:00:00Z",
+                "modified": "2017-01-01T00:00:00Z"
+            }`,
+			err: "invalid owner: invalid DBID format",
 		},
 		{
 			name: "null fiels",
 			input: `{
                 "_id":      "bundle-mzxw6",
                 "type":     "bundle",
-                "owner":    "mjxwe",
+                "owner":    "user-mjxwe",
                 "created":  "2017-01-01T00:00:00Z",
                 "modified": "2017-01-01T00:00:00Z"
             }`,
 			expected: &Bundle{
 				ID:       "bundle-mzxw6",
-				Owner:    "mjxwe",
+				Owner:    "user-mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
@@ -153,7 +159,7 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			input: `{
                 "_id":         "bundle-mzxw6",
                 "type":        "bundle",
-                "owner":       "mjxwe",
+                "owner":       "user-mjxwe",
                 "name":        "foo name",
                 "description": "foo description",
                 "created":     "2017-01-01T00:00:00Z",
@@ -162,7 +168,7 @@ func TestBundleUnmarshalJSON(t *testing.T) {
             }`,
 			expected: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Created:     now(),
 				Modified:    now(),
 				Imported:    now(),
@@ -253,27 +259,27 @@ func TestBundleMergeImport(t *testing.T) {
 		},
 		{
 			name:     "owners don't match",
-			new:      &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			existing: &Bundle{ID: "bundle-mzxw6", Owner: "mfwgsy3fbi", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Cannot change bundle ownership",
 		},
 		{
 			name:     "new not an import",
-			new:      &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
-			new:      &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
-			existing: &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
 			name: "new is newer",
 			new: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Name:        "foo",
 				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
@@ -282,7 +288,7 @@ func TestBundleMergeImport(t *testing.T) {
 			},
 			existing: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Name:        "bar",
 				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
@@ -292,7 +298,7 @@ func TestBundleMergeImport(t *testing.T) {
 			expected: true,
 			expectedBundle: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Name:        "foo",
 				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
@@ -304,7 +310,7 @@ func TestBundleMergeImport(t *testing.T) {
 			name: "existing is newer",
 			new: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Name:        "foo",
 				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
@@ -313,7 +319,7 @@ func TestBundleMergeImport(t *testing.T) {
 			},
 			existing: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Name:        "bar",
 				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
@@ -323,7 +329,7 @@ func TestBundleMergeImport(t *testing.T) {
 			expected: false,
 			expectedBundle: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "mjxwe",
+				Owner:       "user-mjxwe",
 				Name:        "bar",
 				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
@@ -359,11 +365,11 @@ func TestBundleValidate(t *testing.T) {
 		{
 			name: "invalid doctype",
 			v:    &Bundle{ID: "chicken-mzxw6"},
-			err:  "incorrect doc type",
+			err:  "unsupported DBID type 'chicken'",
 		},
 		{
 			name: "wrong doctype",
-			v:    &Bundle{ID: "deck-mzxw6"},
+			v:    &Bundle{ID: "user-mzxw6"},
 			err:  "incorrect doc type",
 		},
 		{
@@ -384,11 +390,11 @@ func TestBundleValidate(t *testing.T) {
 		{
 			name: "invalid user",
 			v:    &Bundle{ID: "bundle-mzxw6", Owner: "foo-bar", Created: now(), Modified: now()},
-			err:  "invalid DbID: illegal base32 data at input byte 3",
+			err:  "invalid owner: unsupported DBID type 'foo'",
 		},
 		{
 			name: "valid",
-			v:    &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: now(), Modified: now()},
+			v:    &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: now(), Modified: now()},
 		},
 	}
 	testValidation(t, tests)

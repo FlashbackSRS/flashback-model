@@ -16,7 +16,7 @@ var frozenBundle = []byte(`
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
-    "owner": "tui5ajfbabaeljnxt4om7fwmt4",
+    "owner": "user-tui5ajfbabaeljnxt4om7fwmt4",
     "name": "Test Bundle",
     "description": "A bundle for testing"
 }
@@ -24,7 +24,7 @@ var frozenBundle = []byte(`
 
 func TestNewBundle(t *testing.T) {
 	require := require.New(t)
-	b, err := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "tui5ajfbabaeljnxt4om7fwmt4")
+	b, err := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "user-tui5ajfbabaeljnxt4om7fwmt4")
 	require.Nil(err, "Error creating new bundle: %s", err)
 
 	b.Name = "Test Bundle"

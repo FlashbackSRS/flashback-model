@@ -33,6 +33,9 @@ func (b *Bundle) Validate() error {
 	if b.ID == "" {
 		return errors.New("id required")
 	}
+	if err := validateDBID(b.ID); err != nil {
+		return err
+	}
 	if !strings.HasPrefix(b.ID, "bundle-") {
 		return errors.New("incorrect doc type")
 	}
@@ -45,8 +48,8 @@ func (b *Bundle) Validate() error {
 	if b.Owner == "" {
 		return errors.New("owner required")
 	}
-	if _, err := NewUserStub(b.Owner); err != nil {
-		return err
+	if err := validateDBID(b.Owner); err != nil {
+		return errors.Wrap(err, "invalid owner")
 	}
 	return nil
 }
@@ -98,11 +101,8 @@ func (b *Bundle) UnmarshalJSON(data []byte) error {
 	if doc.Type != "bundle" {
 		return errors.New("Invalid document type for bundle: " + doc.Type)
 	}
-	if _, err := NewUserStub(doc.Owner); err != nil {
-		return errors.Wrap(err, "invalid user for bundle")
-	}
 	*b = Bundle(doc.bundleAlias)
-	return nil
+	return b.Validate()
 }
 
 // SetRev sets the internal _rev attribute of the Bundle
