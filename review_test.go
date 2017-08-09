@@ -19,9 +19,9 @@ func TestNewReview(t *testing.T) {
 		},
 		{
 			name:   "valid",
-			cardID: "card-Zm9v",
+			cardID: "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
 			expected: &Review{
-				CardID:    "card-Zm9v",
+				CardID:    "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
 				Timestamp: now(),
 			},
 		},
@@ -50,21 +50,21 @@ func TestReviewValidate(t *testing.T) {
 		{
 			name: "invalid card id",
 			v:    &Review{CardID: "oink"},
-			err:  "invalid DocID format",
+			err:  "invalid ID type",
 		},
 		{
 			name: "wrong card id type",
 			v:    &Review{CardID: "note-Zm9v"},
-			err:  "incorrect doc type for card ID",
+			err:  "invalid ID type",
 		},
 		{
 			name: "no timestamp",
-			v:    &Review{CardID: "card-Zm9v"},
+			v:    &Review{CardID: "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0"},
 			err:  "timestamp required",
 		},
 		{
 			name: "valid",
-			v:    &Review{CardID: "card-Zm9v", Timestamp: now()},
+			v:    &Review{CardID: "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0", Timestamp: now()},
 		},
 	}
 	testValidation(t, tests)

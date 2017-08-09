@@ -2,7 +2,6 @@ package fb
 
 import (
 	"errors"
-	"strings"
 	"time"
 )
 
@@ -24,11 +23,8 @@ func (r *Review) Validate() error {
 	if r.CardID == "" {
 		return errors.New("card id required")
 	}
-	if err := validateDocID(r.CardID); err != nil {
+	if _, _, _, err := parseCardID(r.CardID); err != nil {
 		return err
-	}
-	if !strings.HasPrefix(r.CardID, "card-") {
-		return errors.New("incorrect doc type for card ID")
 	}
 	if r.Timestamp.IsZero() {
 		return errors.New("timestamp required")
