@@ -12,22 +12,6 @@ import (
 var frozenDocID = []byte(`"note-VGVzdCBOb3Rl"`)
 var frozenDbID = []byte(`"user-krsxg5bakvzwk4q"`)
 
-func TestDocID(t *testing.T) {
-	require := require.New(t)
-	id, err := fb.NewDocID("note", []byte("Test Note"))
-	require.Nil(err, "Error creating DocID: %s", err)
-	require.Equal("note-VGVzdCBOb3Rl", id.String(), "Stringified DocID not as expected")
-	require.Equal("VGVzdCBOb3Rl", id.Identity(), "DocID identity not as expected")
-	require.MarshalsToJSON(frozenDocID, id, "Create DocID")
-
-	id2 := fb.DocID{}
-	err = json.Unmarshal(frozenDocID, &id2)
-	require.Nil(err, "Error thawing DocID: %s", err)
-	require.MarshalsToJSON(frozenDocID, id2, "Thawed DocID")
-
-	require.DeepEqual(id, id2, "Thawed vs Created DocID")
-}
-
 func TestDbID(t *testing.T) {
 	require := require.New(t)
 	id, err := fb.NewDbID("user", []byte("Test User"))

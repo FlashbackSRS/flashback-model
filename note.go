@@ -2,24 +2,11 @@ package fb
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 )
-
-// Note represents a Flashback note.
-type Note struct {
-	ID          DocID
-	Rev         *string
-	Created     time.Time
-	Modified    time.Time
-	Imported    *time.Time
-	ThemeID     string
-	ModelID     uint32
-	FieldValues []*FieldValue
-	Attachments *FileCollection
-	model       *Model
-}
 
 /*
 type Note struct {
@@ -29,27 +16,64 @@ type Note struct {
 }
 */
 
-type noteDoc struct {
-	Type        string          `json:"type"`
-	ID          DocID           `json:"_id"`
-	Rev         *string         `json:"_rev,omitempty"`
+// Note represents a Flashback note.
+type Note struct {
+	ID          string          `json:"_id"`
+	Rev         string          `json:"_rev,omitempty"`
 	Created     time.Time       `json:"created"`
 	Modified    time.Time       `json:"modified"`
-	Imported    *time.Time      `json:"imported,omitempty"`
+	Imported    time.Time       `json:"imported,omitempty"`
 	ThemeID     string          `json:"theme"`
 	ModelID     uint32          `json:"model"`
 	FieldValues []*FieldValue   `json:"fieldValues"`
 	Attachments *FileCollection `json:"_attachments,omitempty"`
+	Model       *Model          `json:"-"`
+	// Set to true by UnmarshalJSON, to skip certain validation checks
+	unmarshaling bool
+}
+
+// SetModel assigns the provided model to the Note. This is useful after retrieving
+// a note.
+func (n *Note) SetModel(m *Model) error {
+	if err := n.validateModel(m); err != nil {
+		return err
+	}
+	n.Model = m
+	for i := 0; i < len(n.FieldValues); i++ {
+		n.FieldValues[i].field = m.Fields[i]
+	}
+	return nil
+}
+
+func (n *Note) validateModel(m *Model) error {
+	if m == nil {
+		return errors.New("model required")
+	}
+	if m.Theme == nil {
+		return errors.New("model theme required")
+	}
+	if m.Theme.ID != n.ThemeID {
+		return errors.New("theme IDs must match")
+	}
+	if len(n.FieldValues) != len(m.Fields) {
+		return errors.New("model.Fields and node.FieldValues lengths must match")
+	}
+	return nil
 }
 
 // Validate validates that all of the data in the note  appears valid and self
 // consistent. A nil return value means no errors were detected.
-func (n *noteDoc) Validate() error {
-	if len(n.ID.id) == 0 {
+func (n *Note) Validate() error {
+	if n.ID == "" {
 		return errors.New("id required")
 	}
-	if n.ID.docType != "note" {
+	if !strings.HasPrefix(n.ID, "note-") {
 		return errors.New("incorrect doc type")
+	}
+	if !n.unmarshaling {
+		if err := n.validateModel(n.Model); err != nil {
+			return err
+		}
 	}
 	if n.Created.IsZero() {
 		return errors.New("created time required")
@@ -61,7 +85,23 @@ func (n *noteDoc) Validate() error {
 		return errors.New("attachments collection must not be nil")
 	}
 	for i, fv := range n.FieldValues {
-		if fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
+		if !n.unmarshaling {
+			switch n.Model.Fields[i].Type {
+			case TextField:
+				if fv.files != nil {
+					return errors.Errorf("text field %d must not have file list", i)
+				}
+			case AudioField:
+				if fv.Text != "" {
+					return errors.Errorf("audio field %d must not have text", i)
+				}
+			case ImageField:
+				if fv.Text != "" {
+					return errors.Errorf("image field %d must not have text", i)
+				}
+			}
+		}
+		if fv != nil && fv.files != nil && !n.Attachments.hasMemberView(fv.files) {
 			return errors.Errorf("field %d file list must be member of attachments collection", i)
 		}
 	}
@@ -69,82 +109,66 @@ func (n *noteDoc) Validate() error {
 }
 
 // NewNote creates a new, empty note with the provided ID and Model.
-func NewNote(id []byte, model *Model) (*Note, error) {
+func NewNote(id string, model *Model) (*Note, error) {
 	if model == nil {
 		return nil, errors.New("model required")
 	}
-	nid, err := NewDocID("note", id)
-	if err != nil {
-		return nil, err
-	}
-	return &Note{
-		ID:          nid,
+	n := &Note{
+		ID:          id,
 		ThemeID:     model.Theme.ID,
 		ModelID:     model.ID,
+		Created:     now(),
+		Modified:    now(),
 		FieldValues: make([]*FieldValue, len(model.Fields)),
 		Attachments: NewFileCollection(),
-		model:       model,
-	}, nil
+		Model:       model,
+	}
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	return n, nil
 }
 
-// SetModel assigns the provided model to the Note. This is useful after retrieving
-// a note.
-func (n *Note) SetModel(m *Model) error {
-	if m == nil {
-		return errors.New("model required")
-	}
-	if m.Theme.ID != n.ThemeID {
-		return errors.New("Theme IDs must match")
-	}
-	if len(n.FieldValues) != len(m.Fields) {
-		return errors.New("model.Fields and node.FieldValues lengths must match")
-	}
-	n.model = m
-	for i := 0; i < len(n.FieldValues); i++ {
-		n.FieldValues[i].field = m.Fields[i]
-	}
-	return nil
-}
+type noteAlias Note
 
-// Model returns the Note's associated Model.
-func (n *Note) Model() *Model {
-	return n.model
+type jsonNote struct {
+	noteAlias
+	Type string `json:"type"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the Note type.
 func (n *Note) MarshalJSON() ([]byte, error) {
-	return json.Marshal(noteDoc{
-		Type:        "note",
-		ID:          n.ID,
-		Rev:         n.Rev,
-		Created:     n.Created,
-		Modified:    n.Modified,
-		Imported:    n.Imported,
-		ThemeID:     n.ThemeID,
-		ModelID:     n.ModelID,
-		FieldValues: n.FieldValues,
-		Attachments: n.Attachments,
-	})
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+	doc := struct {
+		jsonNote
+		Imported *time.Time `json:"imported,omitempty"`
+	}{
+		jsonNote: jsonNote{
+			Type:      "note",
+			noteAlias: noteAlias(*n),
+		},
+	}
+	if !n.Imported.IsZero() {
+		doc.Imported = &n.Imported
+	}
+	return json.Marshal(doc)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Note type.
 func (n *Note) UnmarshalJSON(data []byte) error {
-	doc := &noteDoc{}
+	doc := &jsonNote{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal Note")
 	}
 	if doc.Type != "note" {
 		return errors.New("Invalid document type for note: " + doc.Type)
 	}
-	n.ID = doc.ID
-	n.Rev = doc.Rev
-	n.Created = doc.Created
-	n.Modified = doc.Modified
-	n.Imported = doc.Imported
-	n.ThemeID = doc.ThemeID
-	n.ModelID = doc.ModelID
-	n.FieldValues = doc.FieldValues
-	n.Attachments = doc.Attachments
+	*n = Note(doc.noteAlias)
+	if n.Attachments == nil {
+		n.Attachments = NewFileCollection()
+	}
 	for _, fv := range n.FieldValues {
 		if fv.files != nil {
 			if err := n.Attachments.AddView(fv.files); err != nil {
@@ -152,6 +176,11 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
+	n.unmarshaling = true
+	if err := n.Validate(); err != nil {
+		return err
+	}
+	n.unmarshaling = false
 	return nil
 }
 
@@ -160,7 +189,7 @@ func (n *Note) GetFieldValue(ord int) *FieldValue {
 	fv := n.FieldValues[ord]
 	if fv == nil {
 		fv = &FieldValue{
-			field: n.model.Fields[ord],
+			field: n.Model.Fields[ord],
 		}
 		n.FieldValues[ord] = fv
 	}
@@ -178,51 +207,35 @@ func (fv *FieldValue) Type() FieldType {
 // FieldValue stores the value of a given field.
 type FieldValue struct {
 	field *Field
-	text  string
+	Text  string `json:"text,omitempty"`
 	files *FileCollectionView
 }
 
-type fieldValueDoc struct {
-	Text  string              `json:"text,omitempty"`
+type fieldValueAlias FieldValue
+
+type jsonFieldValue struct {
+	fieldValueAlias
 	Files *FileCollectionView `json:"files,omitempty"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the FieldValue type.
 func (fv *FieldValue) MarshalJSON() ([]byte, error) {
-	return json.Marshal(fieldValueDoc{
-		Text:  fv.text,
-		Files: fv.files,
-	})
+	doc := jsonFieldValue{
+		fieldValueAlias: fieldValueAlias(*fv),
+		Files:           fv.files,
+	}
+	return json.Marshal(doc)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the FieldValue type.
 func (fv *FieldValue) UnmarshalJSON(data []byte) error {
-	doc := &fieldValueDoc{}
+	doc := &jsonFieldValue{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal FieldValue")
 	}
-	fv.text = doc.Text
+	*fv = FieldValue(doc.fieldValueAlias)
 	fv.files = doc.Files
 	return nil
-}
-
-// SetText sets the text attribute of the FieldValue, or returns an error if the
-// FieldValue's type does not permit text attributes.
-func (fv *FieldValue) SetText(text string) error {
-	if fv.field.Type != TextField && fv.field.Type != AnkiField {
-		return errors.New("Text field not permitted")
-	}
-	fv.text = text
-	return nil
-}
-
-// Text retrieves the text of the field value, or an error if no text field
-// is permitted for the field type.
-func (fv *FieldValue) Text() (string, error) {
-	if fv.field.Type != TextField && fv.field.Type != AnkiField {
-		return "", errors.New("FieldValue has no text field")
-	}
-	return fv.text, nil
 }
 
 // AddFile adds a file of the specified name, type, and content, as an attachment
@@ -235,18 +248,13 @@ func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
 }
 
 // SetRev sets the Note's _rev attribute.
-func (n *Note) SetRev(rev string) { n.Rev = &rev }
+func (n *Note) SetRev(rev string) { n.Rev = rev }
 
 // DocID returns the Note's _id attribute.
-func (n *Note) DocID() string { return n.ID.String() }
+func (n *Note) DocID() string { return n.ID }
 
 // ImportedTime returns the time the Note was imported, or nil.
-func (n *Note) ImportedTime() time.Time {
-	if n.Imported == nil {
-		return time.Time{}
-	}
-	return *n.Imported
-}
+func (n *Note) ImportedTime() time.Time { return n.Imported }
 
 // ModifiedTime returns the time the Note was last modified.
 func (n *Note) ModifiedTime() time.Time { return n.Modified }
@@ -255,10 +263,10 @@ func (n *Note) ModifiedTime() time.Time { return n.Modified }
 // false if no merge was necessary.
 func (n *Note) MergeImport(i interface{}) (bool, error) {
 	existing := i.(*Note)
-	if !n.ID.Equal(&existing.ID) {
+	if n.ID != existing.ID {
 		return false, errors.New("IDs don't match")
 	}
-	if n.Imported == nil || existing.Imported == nil {
+	if n.Imported.IsZero() || existing.Imported.IsZero() {
 		return false, errors.New("not an import")
 	}
 	if !n.Created.Equal(existing.Created) {
@@ -275,6 +283,6 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 	n.ModelID = existing.ModelID
 	n.FieldValues = existing.FieldValues
 	n.Attachments = existing.Attachments
-	n.model = existing.model
+	n.Model = existing.Model
 	return false, nil
 }

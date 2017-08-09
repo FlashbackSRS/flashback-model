@@ -22,22 +22,24 @@ func TestNewNote(t *testing.T) {
 		},
 		{
 			name:  "no id",
-			model: &Model{},
-			err:   "id is required",
+			model: &Model{ID: 3, Theme: &Theme{ID: "theme-Zm9v"}},
+			err:   "id required",
 		},
 		{
 			name:  "valid",
-			id:    "foo",
+			id:    "note-Zm9v",
 			model: &Model{ID: 3, Theme: &Theme{ID: "theme-Zm9v"}},
 			expected: func() *Note {
 				att := NewFileCollection()
 				return &Note{
-					ID:          DocID{docType: "note", id: []byte("foo")},
+					ID:          "note-Zm9v",
 					ThemeID:     "theme-Zm9v",
 					ModelID:     3,
+					Created:     now(),
+					Modified:    now(),
 					FieldValues: []*FieldValue{},
 					Attachments: att,
-					model: &Model{
+					Model: &Model{
 						ID: 3,
 						Theme: &Theme{
 							ID: "theme-Zm9v",
@@ -49,7 +51,7 @@ func TestNewNote(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewNote([]byte(test.id), test.model)
+			result, err := NewNote(test.id, test.model)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -81,7 +83,13 @@ func TestNoteSetModel(t *testing.T) {
 			model: &Model{
 				Theme: &Theme{ID: "theme-YmFy"},
 			},
-			err: "Theme IDs must match",
+			err: "theme IDs must match",
+		},
+		{
+			name:  "invalid theme",
+			note:  &Note{ThemeID: "theme-Zm9v"},
+			model: &Model{},
+			err:   "model theme required",
 		},
 		{
 			name: "fields and field values don't match",
@@ -102,7 +110,7 @@ func TestNoteSetModel(t *testing.T) {
 			},
 			expected: &Note{
 				ThemeID: "theme-Zm9v",
-				model: &Model{
+				Model: &Model{
 					Theme: &Theme{ID: "theme-Zm9v"},
 				},
 			},
@@ -112,8 +120,8 @@ func TestNoteSetModel(t *testing.T) {
 			note: &Note{
 				ThemeID: "theme-Zm9v",
 				FieldValues: []*FieldValue{
-					{text: "one"},
-					{text: "two"},
+					{Text: "one"},
+					{Text: "two"},
 				},
 			},
 			model: &Model{
@@ -126,10 +134,10 @@ func TestNoteSetModel(t *testing.T) {
 			expected: &Note{
 				ThemeID: "theme-Zm9v",
 				FieldValues: []*FieldValue{
-					{text: "one", field: &Field{Name: "foo"}},
-					{text: "two", field: &Field{Name: "bar"}},
+					{Text: "one", field: &Field{Name: "foo"}},
+					{Text: "two", field: &Field{Name: "bar"}},
 				},
-				model: &Model{
+				Model: &Model{
 					Theme: &Theme{ID: "theme-Zm9v"},
 					Fields: []*Field{
 						{Name: "foo"},
@@ -153,14 +161,6 @@ func TestNoteSetModel(t *testing.T) {
 	}
 }
 
-func TestNoteModel(t *testing.T) {
-	m := &Model{}
-	n := &Note{model: m}
-	if n.Model() != m {
-		t.Error("Unexpected result")
-	}
-}
-
 func TestNoteMarshalJSON(t *testing.T) {
 	type Test struct {
 		name     string
@@ -170,23 +170,31 @@ func TestNoteMarshalJSON(t *testing.T) {
 	}
 	tests := []Test{
 		{
+			name: "invalid",
+			note: &Note{},
+			err:  "id required",
+		},
+		{
 			name: "all fields",
 			note: func() *Note {
-				nowTime := now()
 				att := NewFileCollection()
 				view := att.NewView()
 				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
 				return &Note{
-					ID:       DocID{docType: "note", id: []byte("foo")},
+					ID:       "note-Zm9v",
 					ThemeID:  "theme-Zm9v",
 					ModelID:  3,
 					Created:  now(),
 					Modified: now(),
-					Imported: &nowTime,
+					Imported: now(),
 					FieldValues: []*FieldValue{
-						{text: "foo", files: view},
+						{Text: "foo", files: view},
 					},
 					Attachments: att,
+					Model: &Model{
+						Fields: []*Field{{Type: AnkiField}},
+						Theme:  &Theme{ID: "theme-Zm9v"},
+					},
 				}
 			}(),
 			expected: `{
@@ -242,6 +250,11 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 			err:   "Invalid document type for note: theme",
 		},
 		{
+			name:  "invalid note",
+			input: `{"type":"note","_id":"chicken"}`,
+			err:   "incorrect doc type",
+		},
+		{
 			name: "null fields",
 			input: `{
                 "_id":          "note-Zm9v",
@@ -252,11 +265,12 @@ func TestNoteUnmarshalJSON(t *testing.T) {
                 "theme":        "theme-Zm9v"
             }`,
 			expected: &Note{
-				ID:       DocID{docType: "note", id: []byte("foo")},
-				Created:  now(),
-				Modified: now(),
-				ModelID:  3,
-				ThemeID:  "theme-Zm9v",
+				ID:          "note-Zm9v",
+				Created:     now(),
+				Modified:    now(),
+				ModelID:     3,
+				ThemeID:     "theme-Zm9v",
+				Attachments: NewFileCollection(),
 			},
 		},
 		{
@@ -275,19 +289,18 @@ func TestNoteUnmarshalJSON(t *testing.T) {
                 }
             }`,
 			expected: func() *Note {
-				nowTime := now()
 				att := NewFileCollection()
 				view := att.NewView()
 				_ = view.AddFile("foo.txt", "text/plain", []byte("some text"))
 				return &Note{
-					ID:       DocID{docType: "note", id: []byte("foo")},
+					ID:       "note-Zm9v",
 					ThemeID:  "theme-Zm9v",
 					ModelID:  3,
 					Created:  now(),
 					Modified: now(),
-					Imported: &nowTime,
+					Imported: now(),
 					FieldValues: []*FieldValue{
-						{text: "foo", files: view},
+						{Text: "foo", files: view},
 					},
 					Attachments: att,
 				}
@@ -338,7 +351,7 @@ func TestNoteGetFieldValue(t *testing.T) {
 			name: "new text field",
 			note: &Note{
 				FieldValues: make([]*FieldValue, 1),
-				model:       &Model{Fields: []*Field{{Type: TextField, Name: "text"}}},
+				Model:       &Model{Fields: []*Field{{Type: TextField, Name: "text"}}},
 			},
 			ord: 0,
 			expected: &FieldValue{
@@ -352,7 +365,7 @@ func TestNoteGetFieldValue(t *testing.T) {
 			name: "new audio field",
 			note: &Note{
 				FieldValues: make([]*FieldValue, 1),
-				model:       &Model{Fields: []*Field{{Type: AudioField, Name: "text"}}},
+				Model:       &Model{Fields: []*Field{{Type: AudioField, Name: "text"}}},
 				Attachments: NewFileCollection(),
 			},
 			ord: 0,
@@ -371,13 +384,13 @@ func TestNoteGetFieldValue(t *testing.T) {
 			note: &Note{
 				FieldValues: []*FieldValue{{
 					field: &Field{Type: TextField, Name: "foo"},
-					text:  "foo text",
+					Text:  "foo text",
 				}},
 			},
 			ord: 0,
 			expected: &FieldValue{
 				field: &Field{Type: TextField, Name: "foo"},
-				text:  "foo text",
+				Text:  "foo text",
 			},
 		},
 	}
@@ -420,12 +433,12 @@ func TestFieldValueUnmarshalJSON(t *testing.T) {
 		{
 			name:     "text field",
 			input:    `{"text":"foo"}`,
-			expected: &FieldValue{text: "foo"},
+			expected: &FieldValue{Text: "foo"},
 		},
 		{
 			name:  "files field",
 			input: `{"text":"foo","files":["foo.txt","main.css"]}`,
-			expected: &FieldValue{text: "foo", files: &FileCollectionView{
+			expected: &FieldValue{Text: "foo", files: &FileCollectionView{
 				members: map[string]*Attachment{"foo.txt": nil, "main.css": nil},
 			}},
 		},
@@ -440,75 +453,6 @@ func TestFieldValueUnmarshalJSON(t *testing.T) {
 			}
 			if d := diff.Interface(test.expected, result); d != "" {
 				t.Error(d)
-			}
-		})
-	}
-}
-
-func TestFieldValueSetText(t *testing.T) {
-	type Test struct {
-		name     string
-		fv       *FieldValue
-		text     string
-		err      string
-		expected *FieldValue
-	}
-	tests := []Test{
-		{
-			name: "Audio field",
-			fv:   &FieldValue{field: &Field{Type: AudioField}},
-			text: "foo",
-			err:  "Text field not permitted",
-		},
-		{
-			name:     "Text field",
-			fv:       &FieldValue{field: &Field{Type: TextField}},
-			text:     "foo",
-			expected: &FieldValue{field: &Field{Type: TextField}, text: "foo"},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := test.fv.SetText(test.text)
-			checkErr(t, test.err, err)
-			if err != nil {
-				return
-			}
-			if d := diff.Interface(test.expected, test.fv); d != "" {
-				t.Error(d)
-			}
-		})
-	}
-}
-
-func TestFieldViewText(t *testing.T) {
-	type Test struct {
-		name     string
-		fv       *FieldValue
-		expected string
-		err      string
-	}
-	tests := []Test{
-		{
-			name: "Audio field",
-			fv:   &FieldValue{field: &Field{Type: AudioField}},
-			err:  "FieldValue has no text field",
-		},
-		{
-			name:     "Text field",
-			fv:       &FieldValue{field: &Field{Type: TextField}, text: "foo"},
-			expected: "foo",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			result, err := test.fv.Text()
-			checkErr(t, test.err, err)
-			if err != nil {
-				return
-			}
-			if test.expected != result {
-				t.Errorf("Unexpected result: %s", result)
 			}
 		})
 	}
@@ -568,13 +512,13 @@ func TestNoteSetRev(t *testing.T) {
 	note := &Note{}
 	rev := "1-xxx"
 	note.SetRev(rev)
-	if *note.Rev != rev {
+	if note.Rev != rev {
 		t.Errorf("failed to set rev")
 	}
 }
 
 func TestNoteDocID(t *testing.T) {
-	note := &Note{ID: DocID{docType: "note", id: []byte("foo")}}
+	note := &Note{ID: "note-Zm9v"}
 	expected := "note-Zm9v"
 	if id := note.DocID(); id != expected {
 		t.Errorf("unexpected id: %s", id)
@@ -585,7 +529,7 @@ func TestNoteImportedTime(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		note := &Note{}
 		ts := now()
-		note.Imported = &ts
+		note.Imported = ts
 		if it := note.ImportedTime(); it != ts {
 			t.Errorf("Unexpected result: %s", it)
 		}
@@ -619,96 +563,96 @@ func TestNoteMergeImport(t *testing.T) {
 	tests := []Test{
 		{
 			name:     "different ids",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("bar")}},
+			new:      &Note{ID: "note-Zm9v"},
+			existing: &Note{ID: "note-YmFy"},
 			err:      "IDs don't match",
 		},
 		{
 			name:     "created timestamps don't match",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			new:      &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Note{ID: "note-Zm9v", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Created timestamps don't match",
 		},
 		{
 			name:     "new not an import",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			new:      &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
-			new:      &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Note{ID: DocID{docType: "note", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			new:      &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Note{ID: "note-Zm9v", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
 			name: "new is newer",
 			new: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     1,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 				FieldValues: []*FieldValue{},
 				Attachments: NewFileCollection(),
-				model:       &Model{ID: 1},
+				Model:       &Model{ID: 1},
 			},
 			existing: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-YmFy",
 				ModelID:     2,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 				FieldValues: []*FieldValue{{}},
-				model:       &Model{ID: 2},
+				Model:       &Model{ID: 2},
 			},
 			expected: true,
 			expectedNote: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     1,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 				FieldValues: []*FieldValue{},
 				Attachments: NewFileCollection(),
-				model:       &Model{ID: 1},
+				Model:       &Model{ID: 1},
 			},
 		},
 		{
 			name: "existing is newer",
 			new: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     1,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 				FieldValues: []*FieldValue{},
 				Attachments: NewFileCollection(),
-				model:       &Model{ID: 1},
+				Model:       &Model{ID: 1},
 			},
 			existing: &Note{
-				ID:          DocID{docType: "note", id: []byte("foo")},
+				ID:          "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     2,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 				FieldValues: []*FieldValue{{}},
-				model:       &Model{ID: 2},
+				Model:       &Model{ID: 2},
 			},
 			expected: false,
-			expectedNote: &Note{ID: DocID{docType: "note", id: []byte("foo")},
+			expectedNote: &Note{ID: "note-Zm9v",
 				ThemeID:     "theme-Zm9v",
 				ModelID:     2,
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 				FieldValues: []*FieldValue{{}},
-				model:       &Model{ID: 2},
+				Model:       &Model{ID: 2},
 			},
 		},
 	}
@@ -733,45 +677,73 @@ func TestNoteValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "no ID",
-			v:    &noteDoc{},
+			v:    &Note{},
 			err:  "id required",
 		},
 		{
 			name: "invalid doctype",
-			v:    &noteDoc{ID: DocID{docType: "chicken", id: []byte("foo")}},
+			v:    &Note{ID: "chicken-foo"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "wrong doctype",
-			v:    &noteDoc{ID: DocID{docType: "deck", id: []byte("foo")}},
+			v:    &Note{ID: "deck-foo"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "no created time",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}},
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}}},
 			err:  "created time required",
 		},
 		{
 			name: "no modified time",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now()},
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}}, Created: now()},
 			err:  "modified time required",
 		},
 		{
 			name: "nil attachments collection",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now()},
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}}, Created: now(), Modified: now()},
 			err:  "attachments collection must not be nil",
 		},
 		{
 			name: "invalid field file list",
-			v:    &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}},
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}, Fields: []*Field{{Type: AnkiField}}}, Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}},
 			err:  "field 0 file list must be member of attachments collection",
 		},
 		{
-			name: "valid",
-			v: func() *noteDoc {
+			name: "text field with file list",
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{files: NewFileCollection().NewView()}}, Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}, Fields: []*Field{{Type: TextField}}}},
+			err:  "text field 0 must not have file list",
+		},
+		{
+			name: "audio field field with text",
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{Text: "foo", files: NewFileCollection().NewView()}}, Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}, Fields: []*Field{{Type: AudioField}}}},
+			err:  "audio field 0 must not have text",
+		},
+		{
+			name: "image field field with text",
+			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{Text: "foo", files: NewFileCollection().NewView()}}, Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}, Fields: []*Field{{Type: ImageField}}}},
+			err:  "image field 0 must not have text",
+		},
+		{
+			name: "no model",
+			v:    &Note{ID: "note-Zm9v"},
+			err:  "model required",
+		},
+		{
+			name: "no model, unmarshaling",
+			v: func() *Note {
 				att := NewFileCollection()
 				view := att.NewView()
-				return &noteDoc{ID: DocID{docType: "note", id: []byte("foo")}, Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}}
+				return &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}, unmarshaling: true}
+			}(),
+		},
+		{
+			name: "valid",
+			v: func() *Note {
+				att := NewFileCollection()
+				view := att.NewView()
+				return &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}, Fields: []*Field{{Type: AnkiField}}}, Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}}
 			}(),
 		},
 	}

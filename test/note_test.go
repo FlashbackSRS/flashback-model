@@ -47,50 +47,6 @@ var frozenNote = []byte(`
 }
 `)
 
-func TestNote(t *testing.T) {
-	require := require.New(t)
-	th := &fb.Theme{}
-	json.Unmarshal(frozenTheme, th)
-	m := th.Models[1]
-	n, err := fb.NewNote([]byte("Test Note"), m)
-	require.Nil(err, "Unable to create Note: %s", err)
-
-	n.Created = now
-	n.Modified = now
-	imp := now.AddDate(0, 0, 2)
-	n.Imported = &imp
-	fv1 := n.GetFieldValue(0)
-	fv1.SetText("cat")
-	fv2 := n.GetFieldValue(1)
-
-	err = fv2.SetText("A vicious beast")
-	require.NotNil(err, "Should not be permitted to add text to an audio field")
-
-	err = fv1.AddFile("foo.jpg", "image/jpeg", []byte("not really an image"))
-	require.NotNil(err, "Should not be permitted to add an attachment to a text field")
-
-	err = fv2.AddFile("foo.mp3", "audio/mpeg", []byte("not a real MP3"))
-	require.Nil(err, "Error attaching audio file: %s", err)
-
-	err = fv2.AddFile("_weirdname.txt", "audio/mpeg", []byte("a file with a strange name"))
-	require.Nil(err, "Error attaching strangely named file: %s", err)
-
-	err = fv2.AddFile("영상.jpg", "audio/mpeg", []byte("a Korean filename"))
-	require.Nil(err, "Error attaching strangely named file: %s", err)
-
-	require.MarshalsToJSON(frozenNote, n, "Create Note")
-
-	n2 := &fb.Note{}
-	if err := json.Unmarshal(frozenNote, n2); err != nil {
-		t.Fatalf("Error thawing note: %s", err)
-	}
-	// We have to set the model explicitly for the next test to pass
-	n2.SetModel(m)
-	require.MarshalsToJSON(frozenNote, n2, "Thaed Note")
-
-	require.DeepEqual(n, n2, "Thawed vs. Created Notes")
-}
-
 var frozenExistingNote = []byte(`
 {
     "type": "note",

@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/flimzy/testify/require"
@@ -184,6 +185,7 @@ func TestPackage(t *testing.T) {
 	json.Unmarshal(frozenDeck, d)
 	n := &fb.Note{}
 	json.Unmarshal(frozenNote, n)
+	n.Model = th.Models[1]
 	r := &fb.Review{}
 	json.Unmarshal(frozenReview, r)
 	p := &fb.Package{
@@ -196,7 +198,7 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, e := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, fmt.Sprintf("card-%s.%s.%d", b.ID.Identity(), n.ID.Identity(), i))
+		c, e := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, fmt.Sprintf("card-%s.%s.%d", b.ID.Identity(), strings.TrimPrefix(n.ID, "note-"), i))
 		require.Nil(e, "Error creating new card: %s", err)
 		c.Created = now
 		c.Modified = now
