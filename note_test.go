@@ -250,6 +250,11 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 			err:   "Invalid document type for note: theme",
 		},
 		{
+			name:  "invalid note",
+			input: `{"type":"note","_id":"chicken"}`,
+			err:   "incorrect doc type",
+		},
+		{
 			name: "null fields",
 			input: `{
                 "_id":          "note-Zm9v",
@@ -719,6 +724,19 @@ func TestNoteValidate(t *testing.T) {
 			name: "image field field with text",
 			v:    &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Created: now(), Modified: now(), Attachments: NewFileCollection(), FieldValues: []*FieldValue{{Text: "foo", files: NewFileCollection().NewView()}}, Model: &Model{Theme: &Theme{ID: "theme-Zm9v"}, Fields: []*Field{{Type: ImageField}}}},
 			err:  "image field 0 must not have text",
+		},
+		{
+			name: "no model",
+			v:    &Note{ID: "note-Zm9v"},
+			err:  "model required",
+		},
+		{
+			name: "no model, unmarshaling",
+			v: func() *Note {
+				att := NewFileCollection()
+				view := att.NewView()
+				return &Note{ID: "note-Zm9v", ThemeID: "theme-Zm9v", Created: now(), Modified: now(), Attachments: att, FieldValues: []*FieldValue{{files: view}}, unmarshaling: true}
+			}(),
 		},
 		{
 			name: "valid",
