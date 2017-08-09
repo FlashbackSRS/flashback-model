@@ -185,6 +185,7 @@ func TestPackage(t *testing.T) {
 	json.Unmarshal(frozenDeck, d)
 	n := &fb.Note{}
 	json.Unmarshal(frozenNote, n)
+	n.Model = th.Models[1]
 	r := &fb.Review{}
 	json.Unmarshal(frozenReview, r)
 	p := &fb.Package{
