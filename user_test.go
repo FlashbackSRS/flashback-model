@@ -66,6 +66,11 @@ func TestUserMarshalJSON(t *testing.T) {
 		err      string
 	}{
 		{
+			name: "no id",
+			user: &User{},
+			err:  "id required",
+		},
+		{
 			name: "null fields",
 			user: &User{
 				ID:       "user-mjxwe",
@@ -132,6 +137,11 @@ func TestUserUnmarshalJSON(t *testing.T) {
 			name:  "wrong type",
 			input: `{"type":"chicken"}`,
 			err:   "Invalid document type for user",
+		},
+		{
+			name:  "fails validation",
+			input: `{"_id":"deck-mjxwe", "type":"user"}`,
+			err:   "incorrect doc type",
 		},
 		{
 			name: "null fields",

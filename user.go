@@ -63,6 +63,9 @@ type jsonUser struct {
 
 // MarshalJSON implements the json.Marshaler interface for the User type.
 func (u *User) MarshalJSON() ([]byte, error) {
+	if err := u.Validate(); err != nil {
+		return nil, err
+	}
 	doc := struct {
 		jsonUser
 	}{
@@ -84,6 +87,5 @@ func (u *User) UnmarshalJSON(data []byte) error {
 		return errors.New("Invalid document type for user")
 	}
 	*u = User(doc.userAlias)
-
-	return nil
+	return u.Validate()
 }
