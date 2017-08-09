@@ -27,7 +27,38 @@ type Note struct {
 	ModelID     uint32          `json:"model"`
 	FieldValues []*FieldValue   `json:"fieldValues"`
 	Attachments *FileCollection `json:"_attachments,omitempty"`
-	model       *Model
+	Model       *Model          `json:"-"`
+	// Set to true by UnmarshalJSON, to skip certain validation checks
+	unmarshaling bool
+}
+
+// SetModel assigns the provided model to the Note. This is useful after retrieving
+// a note.
+func (n *Note) SetModel(m *Model) error {
+	if err := n.validateModel(m); err != nil {
+		return err
+	}
+	n.Model = m
+	for i := 0; i < len(n.FieldValues); i++ {
+		n.FieldValues[i].field = m.Fields[i]
+	}
+	return nil
+}
+
+func (n *Note) validateModel(m *Model) error {
+	if m == nil {
+		return errors.New("model required")
+	}
+	if m.Theme == nil {
+		return errors.New("model theme required")
+	}
+	if m.Theme.ID != n.ThemeID {
+		return errors.New("theme IDs must match")
+	}
+	if len(n.FieldValues) != len(m.Fields) {
+		return errors.New("model.Fields and node.FieldValues lengths must match")
+	}
+	return nil
 }
 
 // Validate validates that all of the data in the note  appears valid and self
@@ -39,6 +70,11 @@ func (n *Note) Validate() error {
 	if !strings.HasPrefix(n.ID, "note-") {
 		return errors.New("incorrect doc type")
 	}
+	if !n.unmarshaling {
+		if err := n.validateModel(n.Model); err != nil {
+			return err
+		}
+	}
 	if n.Created.IsZero() {
 		return errors.New("created time required")
 	}
@@ -49,8 +85,8 @@ func (n *Note) Validate() error {
 		return errors.New("attachments collection must not be nil")
 	}
 	for i, fv := range n.FieldValues {
-		if n.model != nil { // model is nil if loaded from the db
-			switch n.model.Fields[i].Type {
+		if !n.unmarshaling {
+			switch n.Model.Fields[i].Type {
 			case TextField:
 				if fv.files != nil {
 					return errors.Errorf("text field %d must not have file list", i)
@@ -85,36 +121,12 @@ func NewNote(id string, model *Model) (*Note, error) {
 		Modified:    now(),
 		FieldValues: make([]*FieldValue, len(model.Fields)),
 		Attachments: NewFileCollection(),
-		model:       model,
+		Model:       model,
 	}
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	return n, nil
-}
-
-// SetModel assigns the provided model to the Note. This is useful after retrieving
-// a note.
-func (n *Note) SetModel(m *Model) error {
-	if m == nil {
-		return errors.New("model required")
-	}
-	if m.Theme.ID != n.ThemeID {
-		return errors.New("Theme IDs must match")
-	}
-	if len(n.FieldValues) != len(m.Fields) {
-		return errors.New("model.Fields and node.FieldValues lengths must match")
-	}
-	n.model = m
-	for i := 0; i < len(n.FieldValues); i++ {
-		n.FieldValues[i].field = m.Fields[i]
-	}
-	return nil
-}
-
-// Model returns the Note's associated Model.
-func (n *Note) Model() *Model {
-	return n.model
 }
 
 type noteAlias Note
@@ -164,7 +176,12 @@ func (n *Note) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-	return n.Validate()
+	n.unmarshaling = true
+	if err := n.Validate(); err != nil {
+		return err
+	}
+	n.unmarshaling = false
+	return nil
 }
 
 // GetFieldValue returns the requested FieldValue by index.
@@ -172,7 +189,7 @@ func (n *Note) GetFieldValue(ord int) *FieldValue {
 	fv := n.FieldValues[ord]
 	if fv == nil {
 		fv = &FieldValue{
-			field: n.model.Fields[ord],
+			field: n.Model.Fields[ord],
 		}
 		n.FieldValues[ord] = fv
 	}
@@ -266,6 +283,6 @@ func (n *Note) MergeImport(i interface{}) (bool, error) {
 	n.ModelID = existing.ModelID
 	n.FieldValues = existing.FieldValues
 	n.Attachments = existing.Attachments
-	n.model = existing.model
+	n.Model = existing.Model
 	return false, nil
 }
