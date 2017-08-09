@@ -1,7 +1,6 @@
 package fb
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -41,19 +40,6 @@ func TestValidateDocID(t *testing.T) {
 			err := validateDocID(test.id)
 			checkErr(t, test.err, err)
 		})
-	}
-}
-
-func TestDbID(t *testing.T) {
-	id, err := NewDbID("user", []byte("Test User"))
-	if err != nil {
-		t.Fatalf("Error creating user ID: %s", err)
-	}
-	if id.docType != "user" {
-		t.Fatalf("Unexpected doctype in user id: %s", id.docType)
-	}
-	if !bytes.Equal([]byte("Test User"), id.id) {
-		t.Fatalf("user ID not as expected")
 	}
 }
 

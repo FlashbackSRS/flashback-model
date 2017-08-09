@@ -36,3 +36,11 @@ func TestValidateDBID(t *testing.T) {
 		})
 	}
 }
+
+func TestEncodeDBID(t *testing.T) {
+	expected := "foo-orsxg5banfsa"
+	result := EncodeDBID("foo", []byte("test id"))
+	if result != expected {
+		t.Errorf("Unexpected result: %s", result)
+	}
+}

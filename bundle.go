@@ -77,6 +77,9 @@ type jsonBundle struct {
 
 // MarshalJSON implements the json.Marshaler interface for urnthe Bundle type.
 func (b *Bundle) MarshalJSON() ([]byte, error) {
+	if err := b.Validate(); err != nil {
+		return nil, err
+	}
 	doc := struct {
 		jsonBundle
 		Imported *time.Time `json:"imported,omitempty"`

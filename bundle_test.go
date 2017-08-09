@@ -58,6 +58,11 @@ func TestBundleMarshalJSON(t *testing.T) {
 		err      string
 	}{
 		{
+			name:   "fails validation",
+			bundle: &Bundle{},
+			err:    "id required",
+		},
+		{
 			name: "null fields",
 			bundle: &Bundle{
 				ID:       "bundle-mzxw6",

@@ -1,44 +1,33 @@
 package fb
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/flimzy/diff"
-	"github.com/pborman/uuid"
 )
 
 func TestNewUser(t *testing.T) {
 	tests := []struct {
 		name     string
-		uuid     uuid.UUID
-		username string
+		id       string
 		expected *User
 		err      string
 	}{
 		{
-			name: "no UUID",
-			err:  "invalid user id: id required",
+			name: "no id",
+			err:  "id required",
 		},
 		{
-			name: "no username",
-			uuid: []byte("bob"),
-			err:  "username required",
-		},
-		{
-			name:     "valid",
-			uuid:     []byte("bob"),
-			username: "bob",
+			name: "valid",
+			id:   "user-mjxwe",
 			expected: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				uuid:     []byte("bob"),
-				Username: "bob",
+				ID: "user-mjxwe",
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewUser(test.uuid, test.username)
+			result, err := NewUser(test.id)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -53,20 +42,12 @@ func TestNewUser(t *testing.T) {
 func TestNilUser(t *testing.T) {
 	u := NilUser()
 	expected := &User{
-		ID:       DbID{docType: "user", id: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
-		uuid:     []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-		Username: "niluser",
+		ID:       "user-aaaaaaaaabaabaaaaaaaaaaaaa",
+		Created:  now(),
+		Modified: now(),
 	}
 	if d := diff.Interface(expected, u); d != "" {
 		t.Error(d)
-	}
-}
-
-func TestUserUUID(t *testing.T) {
-	expected := []byte("foo")
-	u := &User{uuid: expected}
-	if id := u.UUID(); !bytes.Equal(id, expected) {
-		t.Errorf("Unexpected result: %v", id)
 	}
 }
 
@@ -78,39 +59,50 @@ func TestUserMarshalJSON(t *testing.T) {
 		err      string
 	}{
 		{
+			name: "no id",
+			user: &User{},
+			err:  "id required",
+		},
+		{
 			name: "null fields",
 			user: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				Username: "bob",
+				ID:       "user-mjxwe",
 				Salt:     "salty",
 				Password: "abc123",
+				Created:  now(),
+				Modified: now(),
 			},
 			expected: `{
                 "_id":      "user-mjxwe",
                 "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
-                "username": "bob"
+                "created":  "2017-01-01T00:00:00Z",
+                "modified": "2017-01-01T00:00:00Z"
             }`,
 		},
 		{
 			name: "all fields",
 			user: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				Username: "bob",
-				Salt:     "salty",
-				Password: "abc123",
-				FullName: func() *string { x := "Bob"; return &x }(),
-				Email:    func() *string { x := "bob@bob.com"; return &x }(),
+				ID:        "user-mjxwe",
+				Salt:      "salty",
+				Password:  "abc123",
+				FullName:  "Bob",
+				Email:     "bob@bob.com",
+				Created:   now(),
+				Modified:  now(),
+				LastLogin: now(),
 			},
 			expected: `{
-                "_id":      "user-mjxwe",
-                "type":     "user",
-                "salt":     "salty",
-                "password": "abc123",
-                "username": "bob",
-                "email":    "bob@bob.com",
-                "fullname": "Bob"
+                "_id":       "user-mjxwe",
+                "type":      "user",
+                "salt":      "salty",
+                "password":  "abc123",
+                "email":     "bob@bob.com",
+                "fullname":  "Bob",
+                "created":   "2017-01-01T00:00:00Z",
+                "modified":  "2017-01-01T00:00:00Z",
+                "lastLogin": "2017-01-01T00:00:00Z"
             }`,
 		},
 	}
@@ -146,41 +138,50 @@ func TestUserUnmarshalJSON(t *testing.T) {
 			err:   "Invalid document type for user",
 		},
 		{
+			name:  "fails validation",
+			input: `{"_id":"deck-mjxwe", "type":"user"}`,
+			err:   "incorrect doc type",
+		},
+		{
 			name: "null fields",
 			input: `{
                 "_id":      "user-mjxwe",
                 "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
-                "username": "bob"
+                "created":  "2017-01-01T00:00:00Z",
+                "modified": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				uuid:     []byte("bob"),
-				Username: "bob",
+				ID:       "user-mjxwe",
 				Salt:     "salty",
 				Password: "abc123",
+				Created:  now(),
+				Modified: now(),
 			},
 		},
 		{
 			name: "all fields",
 			input: `{
-                "_id":      "user-mjxwe",
-                "type":     "user",
-                "salt":     "salty",
-                "password": "abc123",
-                "username": "bob",
-                "email":    "bob@bob.com",
-                "fullname": "Bob"
+                "_id":       "user-mjxwe",
+                "type":      "user",
+                "salt":      "salty",
+                "password":  "abc123",
+                "email":     "bob@bob.com",
+                "fullname":  "Bob",
+                "created":   "2017-01-01T00:00:00Z",
+                "modified":  "2017-01-01T00:00:00Z",
+                "lastLogin": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				uuid:     []byte("bob"),
-				Username: "bob",
-				Salt:     "salty",
-				Password: "abc123",
-				Email:    func() *string { x := "bob@bob.com"; return &x }(),
-				FullName: func() *string { x := "Bob"; return &x }(),
+				ID:        "user-mjxwe",
+				Salt:      "salty",
+				Password:  "abc123",
+				Email:     "bob@bob.com",
+				FullName:  "Bob",
+				Created:   now(),
+				Modified:  now(),
+				LastLogin: now(),
 			},
 		},
 	}
@@ -203,22 +204,32 @@ func TestUserValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "no ID",
-			v:    &userDoc{},
+			v:    &User{},
 			err:  "id required",
 		},
 		{
 			name: "invalid doctype",
-			v:    &userDoc{ID: DbID{docType: "chicken", id: []byte("a")}},
+			v:    &User{ID: "chicken-mjxwe"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "wrong doctype",
-			v:    &userDoc{ID: DbID{docType: "bundle", id: []byte("a")}},
+			v:    &User{ID: "bundle-mjxwe"},
 			err:  "incorrect doc type",
 		},
 		{
+			name: "no created time",
+			v:    &User{ID: "user-mzxw6"},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &User{ID: "user-mzxw6", Created: now()},
+			err:  "modified time required",
+		},
+		{
 			name: "valid",
-			v:    &userDoc{ID: DbID{docType: "user", id: []byte("a")}},
+			v:    &User{ID: "user-mjxwe", Created: now(), Modified: now()},
 		},
 	}
 	testValidation(t, tests)
