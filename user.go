@@ -17,7 +17,6 @@ type User struct {
 	Username string
 	Password string
 	Salt     string
-	UserType string
 	FullName *string
 	Email    *string
 }
@@ -29,7 +28,6 @@ type userDoc struct {
 	Username string  `json:"username"`
 	Password string  `json:"password"`
 	Salt     string  `json:"salt"`
-	UserType string  `json:"userType"`
 	FullName *string `json:"fullname,omitempty"`
 	Email    *string `json:"email,omitempty"`
 }
@@ -71,7 +69,6 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		Username: u.Username,
 		Password: u.Password,
 		Salt:     u.Salt,
-		UserType: u.UserType,
 		FullName: u.FullName,
 		Email:    u.Email,
 	})

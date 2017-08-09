@@ -16,8 +16,7 @@ var frozenUser = []byte(`
     "_id": "user-tui5ajfbabaeljnxt4om7fwmt4",
     "username": "mrsmith",
     "password": "",
-    "salt": "",
-    "userType": ""
+    "salt": ""
 }
 `)
 
