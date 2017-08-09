@@ -2,7 +2,6 @@ package fb
 
 import (
 	"testing"
-	"time"
 
 	"github.com/flimzy/diff"
 )
@@ -11,32 +10,35 @@ func TestNewBundle(t *testing.T) {
 	tests := []struct {
 		name     string
 		id       string
-		owner    *User
+		owner    string
 		expected *Bundle
 		err      string
 	}{
 		{
-			name: "no id",
-			err:  "id required",
+			name:  "no id",
+			owner: "mjxwe",
+			err:   "id required",
 		},
 		{
 			name: "no owner",
-			id:   "foo",
+			id:   "bundle-mzxw6",
 			err:  "owner required",
 		},
 		{
 			name:  "valid",
-			id:    "foo",
-			owner: &User{},
+			id:    "bundle-mzxw6",
+			owner: "mjxwe",
 			expected: &Bundle{
-				ID:    DbID{docType: "bundle", id: []byte("foo")},
-				Owner: &User{},
+				ID:       "bundle-mzxw6",
+				Owner:    "mjxwe",
+				Created:  now(),
+				Modified: now(),
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewBundle([]byte(test.id), test.owner)
+			result, err := NewBundle(test.id, test.owner)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -58,17 +60,15 @@ func TestBundleMarshalJSON(t *testing.T) {
 		{
 			name: "null fields",
 			bundle: &Bundle{
-				ID: DbID{docType: "bundle", id: []byte("foo")},
-				Owner: &User{
-					ID: DbID{docType: "user", id: []byte("bob")},
-				},
+				ID:       "bundle-mzxw6",
+				Owner:    "user-mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
 			expected: `{
                 "_id":      "bundle-mzxw6",
                 "type":     "bundle",
-                "owner":    "mjxwe",
+                "owner":    "user-mjxwe",
                 "created":  "2017-01-01T00:00:00Z",
                 "modified": "2017-01-01T00:00:00Z"
             }`,
@@ -76,15 +76,13 @@ func TestBundleMarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			bundle: &Bundle{
-				ID: DbID{docType: "bundle", id: []byte("foo")},
-				Owner: &User{
-					ID: DbID{docType: "user", id: []byte("bob")},
-				},
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
 				Created:     now(),
 				Modified:    now(),
-				Imported:    func() *time.Time { x := now(); return &x }(),
-				Name:        func() *string { x := "foo name"; return &x }(),
-				Description: func() *string { x := "foo description"; return &x }(),
+				Imported:    now(),
+				Name:        "foo name",
+				Description: "foo description",
 			},
 			expected: `{
                 "_id":         "bundle-mzxw6",
@@ -144,11 +142,8 @@ func TestBundleUnmarshalJSON(t *testing.T) {
                 "modified": "2017-01-01T00:00:00Z"
             }`,
 			expected: &Bundle{
-				ID: DbID{docType: "bundle", id: []byte("foo")},
-				Owner: &User{
-					ID:   DbID{docType: "user", id: []byte("bob")},
-					uuid: []byte("bob"),
-				},
+				ID:       "bundle-mzxw6",
+				Owner:    "mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
@@ -166,16 +161,13 @@ func TestBundleUnmarshalJSON(t *testing.T) {
                 "imported":    "2017-01-01T00:00:00Z"
             }`,
 			expected: &Bundle{
-				ID: DbID{docType: "bundle", id: []byte("foo")},
-				Owner: &User{
-					ID:   DbID{docType: "user", id: []byte("bob")},
-					uuid: []byte("bob"),
-				},
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
 				Created:     now(),
 				Modified:    now(),
-				Imported:    func() *time.Time { x := now(); return &x }(),
-				Name:        func() *string { x := "foo name"; return &x }(),
-				Description: func() *string { x := "foo description"; return &x }(),
+				Imported:    now(),
+				Name:        "foo name",
+				Description: "foo description",
 			},
 		},
 	}
@@ -198,14 +190,14 @@ func TestBundleSetRev(t *testing.T) {
 	bundle := &Bundle{}
 	rev := "1-xxx"
 	bundle.SetRev(rev)
-	if *bundle.Rev != rev {
+	if bundle.Rev != rev {
 		t.Errorf("failed to set rev")
 	}
 }
 
 func TestBundleID(t *testing.T) {
 	expected := "bundle-mzxw6"
-	bundle := &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}}
+	bundle := &Bundle{ID: "bundle-mzxw6"}
 	if id := bundle.DocID(); id != expected {
 		t.Errorf("unexpected id: %s", id)
 	}
@@ -215,7 +207,7 @@ func TestBundleImportedTime(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		bundle := &Bundle{}
 		ts := now()
-		bundle.Imported = &ts
+		bundle.Imported = ts
 		if it := bundle.ImportedTime(); it != ts {
 			t.Errorf("Unexpected result: %s", it)
 		}
@@ -249,94 +241,94 @@ func TestBundleMergeImport(t *testing.T) {
 	tests := []Test{
 		{
 			name:     "different ids",
-			new:      &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}},
-			existing: &Bundle{ID: DbID{docType: "bundle", id: []byte("bar")}},
+			new:      &Bundle{ID: "bundle-mzxw6"},
+			existing: &Bundle{ID: "bundle-mjqxecq"},
 			err:      "IDs don't match",
 		},
 		{
 			name:     "created timestamps don't match",
-			new:      &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Bundle{ID: "bundle-mzxw6", Created: parseTime("2017-02-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Created timestamps don't match",
 		},
 		{
 			name:     "owners don't match",
-			new:      &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: &User{uuid: []byte("bob")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: &User{uuid: []byte("alice")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-20T00:00:00Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Bundle{ID: "bundle-mzxw6", Owner: "mfwgsy3fbi", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-20T00:00:00Z")},
 			err:      "Cannot change bundle ownership",
 		},
 		{
 			name:     "new not an import",
-			new:      &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: &User{uuid: []byte("bob")}, Created: parseTime("2017-01-01T01:01:01Z")},
-			existing: &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: &User{uuid: []byte("bob")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z")},
+			existing: &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
 			err:      "not an import",
 		},
 		{
 			name:     "existing not an import",
-			new:      &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: &User{uuid: []byte("bob")}, Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTimePtr("2017-01-15T00:00:00Z")},
-			existing: &Bundle{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: &User{uuid: []byte("bob")}, Created: parseTime("2017-01-01T01:01:01Z")},
+			new:      &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z"), Imported: parseTime("2017-01-15T00:00:00Z")},
+			existing: &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: parseTime("2017-01-01T01:01:01Z")},
 			err:      "not an import",
 		},
 		{
 			name: "new is newer",
 			new: &Bundle{
-				ID:          DbID{docType: "bundle", id: []byte("foo")},
-				Owner:       &User{uuid: []byte("bob")},
-				Name:        func() *string { x := "foo"; return &x }(),
-				Description: func() *string { x := "FOO"; return &x }(),
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
+				Name:        "foo",
+				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 			},
 			existing: &Bundle{
-				ID:          DbID{docType: "bundle", id: []byte("foo")},
-				Owner:       &User{uuid: []byte("bob")},
-				Name:        func() *string { x := "bar"; return &x }(),
-				Description: func() *string { x := "BAR"; return &x }(),
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
+				Name:        "bar",
+				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 			},
 			expected: true,
 			expectedBundle: &Bundle{
-				ID:          DbID{docType: "bundle", id: []byte("foo")},
-				Owner:       &User{uuid: []byte("bob")},
-				Name:        func() *string { x := "foo"; return &x }(),
-				Description: func() *string { x := "FOO"; return &x }(),
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
+				Name:        "foo",
+				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 			},
 		},
 		{
 			name: "existing is newer",
 			new: &Bundle{
-				ID:          DbID{docType: "bundle", id: []byte("foo")},
-				Owner:       &User{uuid: []byte("bob")},
-				Name:        func() *string { x := "foo"; return &x }(),
-				Description: func() *string { x := "FOO"; return &x }(),
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
+				Name:        "foo",
+				Description: "FOO",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-01-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-15T00:00:00Z"),
+				Imported:    parseTime("2017-01-15T00:00:00Z"),
 			},
 			existing: &Bundle{
-				ID:          DbID{docType: "bundle", id: []byte("foo")},
-				Owner:       &User{uuid: []byte("bob")},
-				Name:        func() *string { x := "bar"; return &x }(),
-				Description: func() *string { x := "BAR"; return &x }(),
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
+				Name:        "bar",
+				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 			},
 			expected: false,
 			expectedBundle: &Bundle{
-				ID:          DbID{docType: "bundle", id: []byte("foo")},
-				Owner:       &User{uuid: []byte("bob")},
-				Name:        func() *string { x := "bar"; return &x }(),
-				Description: func() *string { x := "BAR"; return &x }(),
+				ID:          "bundle-mzxw6",
+				Owner:       "mjxwe",
+				Name:        "bar",
+				Description: "BAR",
 				Created:     parseTime("2017-01-01T01:01:01Z"),
 				Modified:    parseTime("2017-02-01T01:01:01Z"),
-				Imported:    parseTimePtr("2017-01-20T00:00:00Z"),
+				Imported:    parseTime("2017-01-20T00:00:00Z"),
 			},
 		},
 	}
@@ -361,37 +353,42 @@ func TestBundleValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "no ID",
-			v:    &bundleDoc{},
+			v:    &Bundle{},
 			err:  "id required",
 		},
 		{
 			name: "invalid doctype",
-			v:    &bundleDoc{ID: DbID{docType: "chicken", id: []byte("foo")}},
+			v:    &Bundle{ID: "chicken-mzxw6"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "wrong doctype",
-			v:    &bundleDoc{ID: DbID{docType: "deck", id: []byte("foo")}},
+			v:    &Bundle{ID: "deck-mzxw6"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "no created time",
-			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}},
+			v:    &Bundle{ID: "bundle-mzxw6"},
 			err:  "created time required",
 		},
 		{
 			name: "no modified time",
-			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}, Created: now()},
+			v:    &Bundle{ID: "bundle-mzxw6", Created: now()},
 			err:  "modified time required",
 		},
 		{
 			name: "no owner",
-			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}, Created: now(), Modified: now()},
+			v:    &Bundle{ID: "bundle-mzxw6", Created: now(), Modified: now()},
 			err:  "owner required",
 		},
 		{
+			name: "invalid user",
+			v:    &Bundle{ID: "bundle-mzxw6", Owner: "foo-bar", Created: now(), Modified: now()},
+			err:  "invalid DbID: illegal base32 data at input byte 3",
+		},
+		{
 			name: "valid",
-			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: "user-foo", Created: now(), Modified: now()},
+			v:    &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: now(), Modified: now()},
 		},
 	}
 	testValidation(t, tests)
