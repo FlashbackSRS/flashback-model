@@ -43,14 +43,17 @@ func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	b := &Bundle{}
 	bid, err := NewDbID("bundle", id)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create DbID")
+		return nil, err
+	}
+	if owner == nil {
+		return nil, errors.New("owner required")
 	}
 	b.ID = bid
 	b.Owner = owner
 	return b, nil
 }
 
-// MarshalJSON implements the json.Marshaler interface for the Bundle type.
+// MarshalJSON implements the json.Marshaler interface for urnthe Bundle type.
 func (b *Bundle) MarshalJSON() ([]byte, error) {
 	return json.Marshal(bundleDoc{
 		Type:        "bundle",
@@ -97,7 +100,12 @@ func (b *Bundle) SetRev(rev string) { b.Rev = &rev }
 func (b *Bundle) DocID() string { return b.ID.String() }
 
 // ImportedTime returns the time the Bundle was imported, or nil
-func (b *Bundle) ImportedTime() time.Time { return *b.Imported }
+func (b *Bundle) ImportedTime() time.Time {
+	if b.Imported == nil {
+		return time.Time{}
+	}
+	return *b.Imported
+}
 
 // ModifiedTime returns the time the Bundle was last modified
 func (b *Bundle) ModifiedTime() time.Time { return b.Modified }
@@ -115,6 +123,9 @@ func (b *Bundle) MergeImport(i interface{}) (bool, error) {
 	if !b.Owner.Equal(existing.Owner.uuid) {
 		return false, errors.New("Cannot change bundle ownership")
 	}
+	if b.Imported == nil || existing.Imported == nil {
+		return false, errors.New("not an import")
+	}
 	b.Rev = existing.Rev
 	if b.Modified.After(existing.Modified) {
 		// The new version is newer than the existing one, so update
@@ -123,5 +134,7 @@ func (b *Bundle) MergeImport(i interface{}) (bool, error) {
 	// The new version is older, so we need to use the version we just read
 	b.Name = existing.Name
 	b.Description = existing.Description
+	b.Modified = existing.Modified
+	b.Imported = existing.Imported
 	return false, nil
 }

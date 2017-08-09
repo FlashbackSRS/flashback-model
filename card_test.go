@@ -361,7 +361,7 @@ func TestMergeImport(t *testing.T) {
 	}
 }
 
-func TestBundleID(t *testing.T) {
+func TestCardBundleID(t *testing.T) {
 	card := &Card{ID: "card-foo.bar.1"}
 	expected := "bundle-foo"
 	if id := card.BundleID(); id != expected {
