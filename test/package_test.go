@@ -173,8 +173,7 @@ var frozenPackage = []byte(`
 
 func TestPackage(t *testing.T) {
 	require := require.New(t)
-	u, _ := testUser()
-	b, err := fb.NewBundle([]byte("Test Bundle"), u)
+	b, err := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "tui5ajfbabaeljnxt4om7fwmt4")
 	require.Nil(err, "Error creating bundle: %s", err)
 
 	b.Created = now
@@ -198,7 +197,7 @@ func TestPackage(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		c, e := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, fmt.Sprintf("card-%s.%s.%d", b.ID.Identity(), strings.TrimPrefix(n.ID, "note-"), i))
+		c, e := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, fmt.Sprintf("card-%s.%s.%d", strings.TrimPrefix(b.ID, "bundle-"), strings.TrimPrefix(n.ID, "note-"), i))
 		require.Nil(e, "Error creating new card: %s", err)
 		c.Created = now
 		c.Modified = now
@@ -213,6 +212,5 @@ func TestPackage(t *testing.T) {
 
 	// We have to set the username explicitly for the next test to pass, as a simple unmarshaling
 	// of a bundle doesn't know user details (nor should it)
-	p2.Bundle.Owner.Username = "mrsmith"
 	require.DeepEqual(p2, p, "Thawed vs Created Packages")
 }
