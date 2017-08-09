@@ -10,7 +10,6 @@ func TestNewUser(t *testing.T) {
 	tests := []struct {
 		name     string
 		id       string
-		username string
 		expected *User
 		err      string
 	}{
@@ -19,23 +18,16 @@ func TestNewUser(t *testing.T) {
 			err:  "id required",
 		},
 		{
-			name: "no username",
+			name: "valid",
 			id:   "user-mjxwe",
-			err:  "username required",
-		},
-		{
-			name:     "valid",
-			id:       "user-mjxwe",
-			username: "bob",
 			expected: &User{
-				ID:       "user-mjxwe",
-				Username: "bob",
+				ID: "user-mjxwe",
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewUser(test.id, test.username)
+			result, err := NewUser(test.id)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -50,8 +42,7 @@ func TestNewUser(t *testing.T) {
 func TestNilUser(t *testing.T) {
 	u := NilUser()
 	expected := &User{
-		ID:       "user-aaaaaaaaabaabaaaaaaaaaaaaa",
-		Username: "niluser",
+		ID: "user-aaaaaaaaabaabaaaaaaaaaaaaa",
 	}
 	if d := diff.Interface(expected, u); d != "" {
 		t.Error(d)
@@ -74,7 +65,6 @@ func TestUserMarshalJSON(t *testing.T) {
 			name: "null fields",
 			user: &User{
 				ID:       "user-mjxwe",
-				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
 			},
@@ -82,15 +72,13 @@ func TestUserMarshalJSON(t *testing.T) {
                 "_id":      "user-mjxwe",
                 "type":     "user",
                 "salt":     "salty",
-                "password": "abc123",
-                "username": "bob"
+                "password": "abc123"
             }`,
 		},
 		{
 			name: "all fields",
 			user: &User{
 				ID:       "user-mjxwe",
-				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
 				FullName: "Bob",
@@ -101,7 +89,6 @@ func TestUserMarshalJSON(t *testing.T) {
                 "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
-                "username": "bob",
                 "email":    "bob@bob.com",
                 "fullname": "Bob"
             }`,
@@ -149,12 +136,10 @@ func TestUserUnmarshalJSON(t *testing.T) {
                 "_id":      "user-mjxwe",
                 "type":     "user",
                 "salt":     "salty",
-                "password": "abc123",
-                "username": "bob"
+                "password": "abc123"
             }`,
 			expected: &User{
 				ID:       "user-mjxwe",
-				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
 			},
@@ -166,13 +151,11 @@ func TestUserUnmarshalJSON(t *testing.T) {
                 "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
-                "username": "bob",
                 "email":    "bob@bob.com",
                 "fullname": "Bob"
             }`,
 			expected: &User{
 				ID:       "user-mjxwe",
-				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
 				Email:    "bob@bob.com",

@@ -14,7 +14,6 @@ var nilUser = uuid.UUID([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0
 type User struct {
 	ID       string `json:"_id"`
 	Rev      string `json:"_rev,omitempty"`
-	Username string `json:"username"`
 	Password string `json:"password"`
 	Salt     string `json:"salt"`
 	FullName string `json:"fullname,omitempty"`
@@ -34,23 +33,20 @@ func (u *User) Validate() error {
 }
 
 // NewUser returns a new User object, based on the provided UUID and username.
-func NewUser(id, username string) (*User, error) {
-	if id == "" {
-		return nil, errors.New("id required")
+func NewUser(id string) (*User, error) {
+	u := &User{
+		ID: id,
 	}
-	if username == "" {
-		return nil, errors.New("username required")
+	if err := u.Validate(); err != nil {
+		return nil, err
 	}
-	return &User{
-		ID:       id,
-		Username: username,
-	}, nil
+	return u, nil
 }
 
 // NilUser returns a special user, whose UUID bits are all set to zero, to be
 // used as a placeholder when the actual user isn't known.
 func NilUser() *User {
-	u, _ := NewUser(EncodeDBID("user", nilUser), "niluser")
+	u, _ := NewUser(EncodeDBID("user", nilUser))
 	return u
 }
 
