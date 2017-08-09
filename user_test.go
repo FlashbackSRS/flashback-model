@@ -1,44 +1,41 @@
 package fb
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/flimzy/diff"
-	"github.com/pborman/uuid"
 )
 
 func TestNewUser(t *testing.T) {
 	tests := []struct {
 		name     string
-		uuid     uuid.UUID
+		id       string
 		username string
 		expected *User
 		err      string
 	}{
 		{
-			name: "no UUID",
-			err:  "invalid user id: id required",
+			name: "no id",
+			err:  "id required",
 		},
 		{
 			name: "no username",
-			uuid: []byte("bob"),
+			id:   "user-mjxwe",
 			err:  "username required",
 		},
 		{
 			name:     "valid",
-			uuid:     []byte("bob"),
+			id:       "user-mjxwe",
 			username: "bob",
 			expected: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				uuid:     []byte("bob"),
+				ID:       "user-mjxwe",
 				Username: "bob",
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := NewUser(test.uuid, test.username)
+			result, err := NewUser(test.id, test.username)
 			checkErr(t, test.err, err)
 			if err != nil {
 				return
@@ -53,20 +50,11 @@ func TestNewUser(t *testing.T) {
 func TestNilUser(t *testing.T) {
 	u := NilUser()
 	expected := &User{
-		ID:       DbID{docType: "user", id: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
-		uuid:     []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		ID:       "user-aaaaaaaaabaabaaaaaaaaaaaaa",
 		Username: "niluser",
 	}
 	if d := diff.Interface(expected, u); d != "" {
 		t.Error(d)
-	}
-}
-
-func TestUserUUID(t *testing.T) {
-	expected := []byte("foo")
-	u := &User{uuid: expected}
-	if id := u.UUID(); !bytes.Equal(id, expected) {
-		t.Errorf("Unexpected result: %v", id)
 	}
 }
 
@@ -80,7 +68,7 @@ func TestUserMarshalJSON(t *testing.T) {
 		{
 			name: "null fields",
 			user: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
+				ID:       "user-mjxwe",
 				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
@@ -96,12 +84,12 @@ func TestUserMarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			user: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
+				ID:       "user-mjxwe",
 				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
-				FullName: func() *string { x := "Bob"; return &x }(),
-				Email:    func() *string { x := "bob@bob.com"; return &x }(),
+				FullName: "Bob",
+				Email:    "bob@bob.com",
 			},
 			expected: `{
                 "_id":      "user-mjxwe",
@@ -155,8 +143,7 @@ func TestUserUnmarshalJSON(t *testing.T) {
                 "username": "bob"
             }`,
 			expected: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				uuid:     []byte("bob"),
+				ID:       "user-mjxwe",
 				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
@@ -174,13 +161,12 @@ func TestUserUnmarshalJSON(t *testing.T) {
                 "fullname": "Bob"
             }`,
 			expected: &User{
-				ID:       DbID{docType: "user", id: []byte("bob")},
-				uuid:     []byte("bob"),
+				ID:       "user-mjxwe",
 				Username: "bob",
 				Salt:     "salty",
 				Password: "abc123",
-				Email:    func() *string { x := "bob@bob.com"; return &x }(),
-				FullName: func() *string { x := "Bob"; return &x }(),
+				Email:    "bob@bob.com",
+				FullName: "Bob",
 			},
 		},
 	}
@@ -203,22 +189,22 @@ func TestUserValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "no ID",
-			v:    &userDoc{},
+			v:    &User{},
 			err:  "id required",
 		},
 		{
 			name: "invalid doctype",
-			v:    &userDoc{ID: DbID{docType: "chicken", id: []byte("a")}},
+			v:    &User{ID: "chicken-mjxwe"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "wrong doctype",
-			v:    &userDoc{ID: DbID{docType: "bundle", id: []byte("a")}},
+			v:    &User{ID: "bundle-mjxwe"},
 			err:  "incorrect doc type",
 		},
 		{
 			name: "valid",
-			v:    &userDoc{ID: DbID{docType: "user", id: []byte("a")}},
+			v:    &User{ID: "user-mjxwe"},
 		},
 	}
 	testValidation(t, tests)
