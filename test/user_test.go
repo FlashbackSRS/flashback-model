@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flimzy/testify/require"
-	"github.com/pborman/uuid"
 
 	"github.com/FlashbackSRS/flashback-model"
 )
@@ -22,10 +21,9 @@ var frozenUser = []byte(`
 
 func TestNewUser(t *testing.T) {
 	require := require.New(t)
-	u, err := fb.NewUser(uuid.Parse("9d11d024-a100-4045-a5b7-9f1ccf96cc9f"), "mrsmith")
+	u, err := fb.NewUser("user-tui5ajfbabaeljnxt4om7fwmt4", "mrsmith")
 	require.Nil(err, "Error creating user: %s", err)
-	require.Equal("user-tui5ajfbabaeljnxt4om7fwmt4", u.ID.String(), "User ID not as expected")
-	require.Equal("user", u.ID.Type(), "User type not as expected")
+	require.Equal("user-tui5ajfbabaeljnxt4om7fwmt4", u.ID, "User ID not as expected")
 	require.MarshalsToJSON(frozenUser, u, "New User")
 
 	u2, err := testUser()
