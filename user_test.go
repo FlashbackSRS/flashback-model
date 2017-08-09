@@ -127,3 +127,74 @@ func TestUserMarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestUserUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected *User
+		err      string
+	}{
+		{
+			name:  "invalid json",
+			input: "invalid json",
+			err:   "failed to unmarshal user: invalid character 'i' looking for beginning of value",
+		},
+		{
+			name:  "wrong type",
+			input: `{"type":"chicken"}`,
+			err:   "Invalid document type for user",
+		},
+		{
+			name: "null fields",
+			input: `{
+                "_id":      "user-mjxwe",
+                "type":     "user",
+                "salt":     "salty",
+                "password": "abc123",
+                "username": "bob"
+            }`,
+			expected: &User{
+				ID:       DbID{docType: "user", id: []byte("bob")},
+				uuid:     []byte("bob"),
+				Username: "bob",
+				Salt:     "salty",
+				Password: "abc123",
+			},
+		},
+		{
+			name: "all fields",
+			input: `{
+                "_id":      "user-mjxwe",
+                "type":     "user",
+                "salt":     "salty",
+                "password": "abc123",
+                "username": "bob",
+                "email":    "bob@bob.com",
+                "fullname": "Bob"
+            }`,
+			expected: &User{
+				ID:       DbID{docType: "user", id: []byte("bob")},
+				uuid:     []byte("bob"),
+				Username: "bob",
+				Salt:     "salty",
+				Password: "abc123",
+				Email:    func() *string { x := "bob@bob.com"; return &x }(),
+				FullName: func() *string { x := "Bob"; return &x }(),
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := &User{}
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != "" {
+				t.Error(d)
+			}
+		})
+	}
+}

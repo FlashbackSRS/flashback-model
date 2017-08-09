@@ -78,7 +78,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 func (u *User) UnmarshalJSON(data []byte) error {
 	doc := userDoc{}
 	if err := json.Unmarshal(data, &doc); err != nil {
-		return errors.Wrap(err, "failedto unmarshal user")
+		return errors.Wrap(err, "failed to unmarshal user")
 	}
 	if doc.Type != "user" {
 		return errors.New("Invalid document type for user")
@@ -87,6 +87,7 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	u.uuid = u.ID.RawID()
 	u.Rev = doc.Rev
 	u.Username = doc.Username
+	u.Password = doc.Password
 	u.Salt = doc.Salt
 	u.FullName = doc.FullName
 	u.Email = doc.Email
