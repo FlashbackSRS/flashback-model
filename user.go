@@ -50,6 +50,9 @@ func NewUser(id uuid.UUID, username string) (*User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid user id")
 	}
+	if username == "" {
+		return nil, errors.New("username required")
+	}
 	return &User{
 		ID:       uid,
 		uuid:     id,
