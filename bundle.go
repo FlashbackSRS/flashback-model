@@ -38,6 +38,27 @@ type bundleDoc struct {
 	Description *string    `json:"description,omitempty"`
 }
 
+// Validate validates that all of the data in the bundle appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (b *bundleDoc) Validate() error {
+	if len(b.ID.id) == 0 {
+		return errors.New("id required")
+	}
+	if b.ID.docType != "bundle" {
+		return errors.New("incorrect doc type")
+	}
+	if b.Created.IsZero() {
+		return errors.New("created time required")
+	}
+	if b.Modified.IsZero() {
+		return errors.New("modified time required")
+	}
+	if b.Owner == "" {
+		return errors.New("owner required")
+	}
+	return nil
+}
+
 // NewBundle creates a new Bundle with the provided id and owner.
 func NewBundle(id []byte, owner *User) (*Bundle, error) {
 	b := &Bundle{}

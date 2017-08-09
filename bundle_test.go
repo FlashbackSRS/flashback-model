@@ -356,3 +356,43 @@ func TestBundleMergeImport(t *testing.T) {
 		})
 	}
 }
+
+func TestBundleValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no ID",
+			v:    &bundleDoc{},
+			err:  "id required",
+		},
+		{
+			name: "invalid doctype",
+			v:    &bundleDoc{ID: DbID{docType: "chicken", id: []byte("foo")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "wrong doctype",
+			v:    &bundleDoc{ID: DbID{docType: "deck", id: []byte("foo")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "no created time",
+			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}},
+			err:  "created time required",
+		},
+		{
+			name: "no modified time",
+			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}, Created: now()},
+			err:  "modified time required",
+		},
+		{
+			name: "no owner",
+			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}, Created: now(), Modified: now()},
+			err:  "owner required",
+		},
+		{
+			name: "valid",
+			v:    &bundleDoc{ID: DbID{docType: "bundle", id: []byte("foo")}, Owner: "user-foo", Created: now(), Modified: now()},
+		},
+	}
+	testValidation(t, tests)
+}
