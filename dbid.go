@@ -3,6 +3,7 @@ package fb
 import (
 	"bytes"
 	"encoding/base32"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -142,4 +143,10 @@ func validateDBID(id string) error {
 		return errors.New("invalid DBID encoding")
 	}
 	return nil
+}
+
+// EncodeDBID generates a DBID by encoding the docType and Base32-encoding
+// the ID. No validation is done of the docType.
+func EncodeDBID(docType string, id []byte) string {
+	return fmt.Sprintf("%s-%s", docType, b32enc(id))
 }
