@@ -32,6 +32,18 @@ type userDoc struct {
 	Email    *string `json:"email,omitempty"`
 }
 
+// Validate validates that all of the data in the user appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (u *userDoc) Validate() error {
+	if len(u.ID.id) == 0 {
+		return errors.New("id required")
+	}
+	if u.ID.docType != "user" {
+		return errors.New("incorrect doc type")
+	}
+	return nil
+}
+
 // NewUser returns a new User object, based on the provided UUID and username.
 func NewUser(id uuid.UUID, username string) (*User, error) {
 	uid, err := NewDbID("user", id)

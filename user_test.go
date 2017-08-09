@@ -198,3 +198,28 @@ func TestUserUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestUserValidate(t *testing.T) {
+	tests := []validationTest{
+		{
+			name: "no ID",
+			v:    &userDoc{},
+			err:  "id required",
+		},
+		{
+			name: "invalid doctype",
+			v:    &userDoc{ID: DbID{docType: "chicken", id: []byte("a")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "wrong doctype",
+			v:    &userDoc{ID: DbID{docType: "bundle", id: []byte("a")}},
+			err:  "incorrect doc type",
+		},
+		{
+			name: "valid",
+			v:    &userDoc{ID: DbID{docType: "user", id: []byte("a")}},
+		},
+	}
+	testValidation(t, tests)
+}
