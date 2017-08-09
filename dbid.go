@@ -14,8 +14,6 @@ var validDBIDTypes = map[string]struct{}{
 	"bundle": {},
 }
 
-var validDbIDTypes map[string]struct{}
-
 // Same as standard Base32 encoding, only lowercase to work with CouchDB database
 // naming restrictions.
 var b32encoding = base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
@@ -32,15 +30,8 @@ func b32dec(s string) ([]byte, error) {
 	return b32encoding.DecodeString(s)
 }
 
-func init() {
-	validDbIDTypes = make(map[string]struct{})
-	for _, t := range []string{"bundle", "user"} {
-		validDbIDTypes[t] = struct{}{}
-	}
-}
-
 func isValidDbIDType(t string) bool {
-	_, ok := validDbIDTypes[t]
+	_, ok := validDBIDTypes[t]
 	return ok
 }
 
