@@ -3,7 +3,6 @@ package fb
 import (
 	"bytes"
 	"encoding/base32"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -29,12 +28,7 @@ func b32dec(s string) ([]byte, error) {
 	if padLen := len(s) % 8; padLen > 0 {
 		s = s + strings.Repeat("=", 8-padLen)
 	}
-	// fmt.Printf(" After: '%s'\n", s)
-	data, err := b32encoding.DecodeString(s)
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-	}
-	return data, err
+	return b32encoding.DecodeString(s)
 }
 
 func init() {
