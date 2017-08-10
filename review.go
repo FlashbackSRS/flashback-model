@@ -1,19 +1,35 @@
 package fb
 
 import (
+	"errors"
 	"time"
 )
 
 // Review represents a single card-review event.
 type Review struct {
-	CardID    string     `json:"cardID"`
-	Timestamp *time.Time `json:"timestamp"`
+	CardID    string    `json:"cardID"`
+	Timestamp time.Time `json:"timestamp"`
 	// Ease             ReviewEase     `json:"ease"`
 	// Interval         *time.Duration `json:"interval"`
 	// PreviousInterval *time.Duration `json:"previousInterval"`
 	// SRSFactor        float32        `json:"srsFactor"`
 	// ReviewTime       *time.Duration `json:"reviewTime"`
 	// Type             ReviewType     `json:"reviewType"`
+}
+
+// Validate validates that all of the data in the review appears valid and self
+// consistent. A nil return value means no errors were detected.
+func (r *Review) Validate() error {
+	if r.CardID == "" {
+		return errors.New("card id required")
+	}
+	if _, _, _, err := parseCardID(r.CardID); err != nil {
+		return err
+	}
+	if r.Timestamp.IsZero() {
+		return errors.New("timestamp required")
+	}
+	return nil
 }
 
 // type ReviewEase int
@@ -25,7 +41,7 @@ type Review struct {
 // 	ReviewEaseEasy  ReviewEase = 4
 // )
 //
-// type ReviewType int
+// type urReviewType int
 //
 // const (
 // 	ReviewTypeLearn ReviewType = iota
@@ -36,7 +52,9 @@ type Review struct {
 
 // NewReview returns a new, empty Review for the provided Card.
 func NewReview(cardID string) (*Review, error) {
-	return &Review{
-		CardID: cardID,
-	}, nil
+	r := &Review{
+		CardID:    cardID,
+		Timestamp: now(),
+	}
+	return r, r.Validate()
 }
