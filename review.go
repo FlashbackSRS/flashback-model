@@ -1,6 +1,7 @@
 package fb
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 )
@@ -30,6 +31,26 @@ func (r *Review) Validate() error {
 		return errors.New("timestamp required")
 	}
 	return nil
+}
+
+type reviewAlias Review
+
+// MarshalJSON satisfies the json.Marshaler interface.
+func (r *Review) MarshalJSON() ([]byte, error) {
+	if err := r.Validate(); err != nil {
+		return nil, err
+	}
+	return json.Marshal(reviewAlias(*r))
+}
+
+// UnmarshalJSON satisfies the json.Unmarshaler interface.
+func (r *Review) UnmarshalJSON(data []byte) error {
+	doc := &reviewAlias{}
+	if err := json.Unmarshal(data, &doc); err != nil {
+		return err
+	}
+	*r = Review(*doc)
+	return r.Validate()
 }
 
 // type ReviewEase int
