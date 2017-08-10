@@ -82,7 +82,7 @@ func TestThemeMarshalJSON(t *testing.T) {
 			err:   "json: error calling MarshalJSON for type *fb.Theme: id required",
 		},
 		{
-			name: "valid",
+			name: "null fields",
 			theme: func() *Theme {
 				theme, _ := NewTheme("theme-abcd")
 				theme.SetFile("file.txt", "text/plain", []byte("some text"))
@@ -91,19 +91,65 @@ func TestThemeMarshalJSON(t *testing.T) {
 				return theme
 			}(),
 			expected: `{
-                "_id":           "theme-abcd",
-                "type":          "theme",
-                "created":       "2017-01-01T00:00:00Z",
-                "modified":      "2017-01-01T00:00:00Z",
-                "modelSequence": 0,
-                "files":         ["file.txt"],
-                "_attachments":  {
-                    "file.txt": {
-                        "content_type": "text/plain",
-                        "data":         "c29tZSB0ZXh0"
-                    }
-                }
-            }`,
+				"_id":           "theme-abcd",
+				"type":          "theme",
+				"created":       "2017-01-01T00:00:00Z",
+				"modified":      "2017-01-01T00:00:00Z",
+				"modelSequence": 0,
+				"files":         ["file.txt"],
+				"_attachments":  {
+					"file.txt": {
+						"content_type": "text/plain",
+						"data":         "c29tZSB0ZXh0"
+					}
+				}
+			}`,
+		},
+		{
+			name: "full fields",
+			theme: func() *Theme {
+				theme, _ := NewTheme("theme-abcd")
+				theme.SetFile("file.txt", "text/plain", []byte("some text"))
+				theme.Created = now()
+				theme.Modified = now()
+				theme.Imported = now()
+				theme.Name = "Test Theme"
+				theme.Description = "Theme for testing"
+				theme.ModelSequence = 1
+				m := &Model{
+					Theme: theme,
+					Type:  "foo",
+					Files: theme.Attachments.NewView(),
+				}
+				theme.Models = []*Model{m}
+				return theme
+			}(),
+			expected: `{
+				"_id":           "theme-abcd",
+				"type":          "theme",
+				"name":          "Test Theme",
+				"description":   "Theme for testing",
+				"created":       "2017-01-01T00:00:00Z",
+				"modified":      "2017-01-01T00:00:00Z",
+				"imported":      "2017-01-01T00:00:00Z",
+				"modelSequence": 1,
+				"files":         ["file.txt"],
+				"_attachments":  {
+					"file.txt": {
+						"content_type": "text/plain",
+						"data":         "c29tZSB0ZXh0"
+					}
+				},
+				"models": [
+					{
+						"fields": null,
+						"files": [],
+						"id": 0,
+						"modelType": "foo",
+						"templates": null
+					}
+				]
+			}`,
 		},
 	}
 	for _, test := range tests {
@@ -124,7 +170,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 	type Test struct {
 		name     string
 		input    string
-		expected interface{}
+		expected *Theme
 		err      string
 	}
 	tests := []Test{
@@ -146,8 +192,8 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 		{
 			name: "with attachments",
 			input: `{"type":"theme", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments":{
-            "foo.txt": {"content_type":"text/plain", "content": "text"}
-            }}`,
+			"foo.txt": {"content_type":"text/plain", "content": "text"}
+			}}`,
 			err: "invalid theme: no file list",
 		},
 		{
@@ -161,61 +207,74 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 			err:   "foo.mp3 not found in collection",
 		},
 		{
-			name:  "null fields",
-			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "modelType":"test", "files": ["foo.txt"]}], "modelSequence": 1 }`,
-			expected: map[string]interface{}{
-				"type":     "theme",
-				"_id":      "theme-abcd",
-				"created":  "2017-01-01T01:01:01Z",
-				"modified": "2017-01-01T01:01:01Z",
-				"models": []map[string]interface{}{
-					{
-						"id":        0,
-						"modelType": "test",
-						"templates": nil,
-						"fields":    nil,
-						"files":     []string{"foo.txt"},
-					},
-				},
-				"_attachments": map[string]interface{}{
-					"foo.txt": map[string]string{
+			name: "null fields",
+			input: `{
+				"_id":           "theme-abcd",
+				"type":          "theme",
+				"created":       "2017-01-01T00:00:00Z",
+				"modified":      "2017-01-01T00:00:00Z",
+				"modelSequence": 0,
+				"files":         ["file.txt"],
+				"_attachments":  {
+					"file.txt": {
 						"content_type": "text/plain",
-						"data":         "text",
-					},
-				},
-				"files":         []string{},
-				"modelSequence": 1,
-			},
+						"data":         "c29tZSB0ZXh0"
+					}
+				}
+			}`,
+			expected: func() *Theme {
+				theme, _ := NewTheme("theme-abcd")
+				theme.SetFile("file.txt", "text/plain", []byte("some text"))
+				theme.Created = now()
+				theme.Modified = now()
+				return theme
+			}(),
 		},
 		{
-			name:  "full fields",
-			input: `{"type":"theme", "_id":"theme-abcd", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "imported":"2017-02-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "modelType": "test", "files": ["foo.txt"]}], "name":"Theme name", "description":"Theme description", "modelSequence": 1 }`,
-			expected: map[string]interface{}{
-				"type":        "theme",
-				"_id":         "theme-abcd",
-				"name":        "Theme name",
-				"description": "Theme description",
-				"created":     "2017-01-01T01:01:01Z",
-				"modified":    "2017-01-01T01:01:01Z",
-				"imported":    "2017-02-01T01:01:01Z",
-				"models": []map[string]interface{}{
-					{
-						"id":        0,
-						"modelType": "test",
-						"templates": nil,
-						"fields":    nil,
-						"files":     []string{"foo.txt"},
-					},
-				},
-				"_attachments": map[string]interface{}{
-					"foo.txt": map[string]string{
-						"content_type": "text/plain",
-						"data":         "text",
-					},
-				},
-				"files":         []string{},
+			name: "full fields",
+			input: `{
+				"_id":           "theme-abcd",
+				"type":          "theme",
+				"name":          "Test Theme",
+				"description":   "Theme for testing",
+				"created":       "2017-01-01T00:00:00Z",
+				"modified":      "2017-01-01T00:00:00Z",
+				"imported":      "2017-01-01T00:00:00Z",
 				"modelSequence": 1,
-			},
+				"files":         ["file.txt"],
+				"_attachments":  {
+					"file.txt": {
+						"content_type": "text/plain",
+						"data":         "c29tZSB0ZXh0"
+					}
+				},
+				"models": [
+					{
+						"fields": null,
+						"files": [],
+						"id": 0,
+						"modelType": "foo",
+						"templates": null
+					}
+				]
+			}`,
+			expected: func() *Theme {
+				theme, _ := NewTheme("theme-abcd")
+				theme.SetFile("file.txt", "text/plain", []byte("some text"))
+				theme.Created = now()
+				theme.Modified = now()
+				theme.Imported = now()
+				theme.Name = "Test Theme"
+				theme.Description = "Theme for testing"
+				theme.ModelSequence = 1
+				m := &Model{
+					Theme: theme,
+					Type:  "foo",
+					Files: theme.Attachments.NewView(),
+				}
+				theme.Models = []*Model{m}
+				return theme
+			}(),
 		},
 	}
 	for _, test := range tests {
