@@ -6,7 +6,7 @@ func TestPkgValidate(t *testing.T) {
 	tests := []validationTest{
 		{
 			name: "card without deck",
-			err:  "card 'abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0' found in package, but not in a deck",
+			err:  "card 'card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0' found in package, but not in a deck",
 			v: &Package{
 				Cards: []*Card{
 					&Card{
@@ -24,6 +24,23 @@ func TestPkgValidate(t *testing.T) {
 					&Deck{
 						ID:    "deck-AQID",
 						Cards: &CardCollection{map[string]struct{}{"card-12345": {}}},
+					},
+				},
+			},
+		},
+		{
+			name: "valid",
+			v: &Package{
+				Decks: []*Deck{
+					&Deck{
+						ID:    "deck-AQID",
+						Cards: &CardCollection{map[string]struct{}{"card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0": {}}},
+					},
+				},
+				Cards: []*Card{
+					&Card{
+						ID:      "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+						ModelID: "theme-VGVzdCBUaGVtZQ/0",
 					},
 				},
 			},

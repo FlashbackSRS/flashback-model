@@ -65,7 +65,7 @@ func (p *Package) UnmarshalJSON(data []byte) error {
 func (p *Package) Validate() error {
 	cardMap := map[string]*Card{}
 	for _, c := range p.Cards {
-		cardMap[c.Identity()] = c
+		cardMap[c.ID] = c
 	}
 
 	cards := make([]*Card, 0, len(cardMap))
