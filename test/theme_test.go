@@ -96,10 +96,8 @@ func TestCreateTheme(t *testing.T) {
 	m1.AddField(fb.TextField, "Definition")
 	m2.AddField(fb.TextField, "Word")
 	m2.AddField(fb.AudioField, "Audio")
-	name1 := "Model A"
-	name2 := "Model 2"
-	m1.Name = &name1
-	m2.Name = &name2
+	m1.Name = "Model A"
+	m2.Name = "Model 2"
 	m1.AddFile("m1.html", "text/html", []byte("<html></html>"))
 	m2.AddFile("m1.txt", "text/plain", []byte("Test text file"))
 	require.MarshalsToJSON(frozenTheme, th, "Create Theme")
