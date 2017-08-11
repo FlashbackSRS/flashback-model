@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/flimzy/diff"
 )
 
 func TestParseDue(t *testing.T) {
@@ -149,5 +151,221 @@ func TestToday(t *testing.T) {
 	expected := now().Truncate(time.Duration(Day))
 	if !expected.Equal(time.Time(today)) {
 		t.Errorf("Unepxected result: %v", today)
+	}
+}
+
+func TestDueSub(t *testing.T) {
+	d := Due(parseTime("2017-01-02T00:00:00Z"))
+	result := d.Sub(Due(parseTime("2017-01-01T00:00:00Z")))
+	expected := Interval(24 * time.Hour)
+	if result != expected {
+		t.Errorf("Unexpected result: %v", result)
+	}
+}
+
+func TestDueEqual(t *testing.T) {
+	d := Due(parseTime("2017-01-02T00:00:00Z"))
+	t.Run("equal", func(t *testing.T) {
+		d2 := Due(parseTime("2017-01-02T00:00:00Z"))
+		if !d.Equal(d2) {
+			t.Errorf("Expected equality")
+		}
+	})
+	t.Run("unequal", func(t *testing.T) {
+		d2 := Due(parseTime("2017-01-01T00:00:00Z"))
+		if d.Equal(d2) {
+			t.Errorf("Expected inequality")
+		}
+	})
+}
+
+func TestDueAfter(t *testing.T) {
+	d := Due(parseTime("2017-01-02T00:00:00Z"))
+	t.Run("after", func(t *testing.T) {
+		d2 := Due(parseTime("2017-01-01T00:00:00Z"))
+		if !d.After(d2) {
+			t.Error("Expected after")
+		}
+	})
+	t.Run("before", func(t *testing.T) {
+		d2 := Due(parseTime("2018-01-01T00:00:00Z"))
+		if d.After(d2) {
+			t.Error("Expected not after")
+		}
+	})
+	t.Run("equal", func(t *testing.T) {
+		d2 := Due(parseTime("2017-01-02T00:00:00Z"))
+		if d.After(d2) {
+			t.Error("Expected not after")
+		}
+	})
+}
+
+func TestMidnight(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    time.Time
+		expected time.Time
+	}{
+		{
+			name:     "noon local tz",
+			input:    parseTime("2017-06-06T12:00:00Z"),
+			expected: parseTime("2017-06-06T00:00:00+00:00"),
+		},
+		{
+			name:     "midnight utc",
+			input:    parseTime("2017-06-06T00:00:00+00:00"),
+			expected: parseTime("2017-06-06T00:00:00+00:00"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := midnight(test.input)
+			if !result.Equal(test.expected) {
+				t.Errorf("Unexpected result: %v", result)
+			}
+		})
+	}
+}
+
+func TestParseInterval(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected Interval
+		err      string
+	}{
+		{
+			name:  "completely bogus",
+			input: "completely bogus",
+			err:   `strconv.ParseInt: parsing "completely bogu": invalid syntax`,
+		},
+		{
+			name:  "invalid unit",
+			input: "89q",
+			err:   "Unknown unit in '89q'",
+		},
+		{
+			name:     "seconds",
+			input:    "15s",
+			expected: Interval(15 * time.Second),
+		},
+		{
+			name:     "minutes",
+			input:    "15m",
+			expected: Interval(15 * time.Minute),
+		},
+		{
+			name:     "hours",
+			input:    "15h",
+			expected: Interval(15 * time.Hour),
+		},
+		{
+			name:     "days",
+			input:    "15d",
+			expected: Interval(15 * 24 * time.Hour),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := ParseInterval(test.input)
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if !result.Equal(test.expected) {
+				t.Errorf("Unexpected result: %v", result)
+			}
+		})
+	}
+}
+
+func TestIntervalMarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    Interval
+		expected string
+		err      string
+	}{
+		{
+			name:     "seconds",
+			input:    Interval(15 * time.Second),
+			expected: `-15`,
+		},
+		{
+			name:     "minutes",
+			input:    Interval(15 * time.Minute),
+			expected: "-900",
+		},
+		{
+			name:     "hours",
+			input:    Interval(15 * time.Hour),
+			expected: "-54000",
+		},
+		{
+			name:     "days",
+			input:    Interval(15 * 24 * time.Hour),
+			expected: "15",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.input.MarshalJSON()
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestIntervalUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected Interval
+		err      string
+	}{
+		{
+			name:  "invalid json",
+			input: "invalid json",
+			err:   `strconv.Atoi: parsing "invalid json": invalid syntax`,
+		},
+		{
+			name:     "seconds",
+			input:    "-15",
+			expected: Interval(15 * time.Second),
+		},
+		{
+			name:     "minutes",
+			input:    "-900",
+			expected: Interval(15 * time.Minute),
+		},
+		{
+			name:     "hours",
+			input:    "-54000",
+			expected: Interval(15 * time.Hour),
+		},
+		{
+			name:     "days",
+			input:    "15",
+			expected: Interval(15 * 24 * time.Hour),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var result Interval
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != nil {
+				t.Error(d)
+			}
+		})
 	}
 }

@@ -183,12 +183,6 @@ func (i Interval) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (i *Interval) UnmarshalJSON(src []byte) error {
-	// Legacy support; just for testing
-	if bytes.ContainsAny(src, "dhms") {
-		ivl, err := ParseInterval(string(bytes.Trim(src, "\"")))
-		*i = ivl
-		return err
-	}
 	num, err := strconv.Atoi(string(src))
 	if err != nil {
 		return err
