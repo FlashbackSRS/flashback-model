@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/flimzy/diff"
 )
 
 func TestParseDue(t *testing.T) {
@@ -273,6 +275,96 @@ func TestParseInterval(t *testing.T) {
 			}
 			if !result.Equal(test.expected) {
 				t.Errorf("Unexpected result: %v", result)
+			}
+		})
+	}
+}
+
+func TestIntervalMarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    Interval
+		expected string
+		err      string
+	}{
+		{
+			name:     "seconds",
+			input:    Interval(15 * time.Second),
+			expected: `-15`,
+		},
+		{
+			name:     "minutes",
+			input:    Interval(15 * time.Minute),
+			expected: "-900",
+		},
+		{
+			name:     "hours",
+			input:    Interval(15 * time.Hour),
+			expected: "-54000",
+		},
+		{
+			name:     "days",
+			input:    Interval(15 * 24 * time.Hour),
+			expected: "15",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := test.input.MarshalJSON()
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
+				t.Error(d)
+			}
+		})
+	}
+}
+
+func TestIntervalUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected Interval
+		err      string
+	}{
+		{
+			name:  "invalid json",
+			input: "invalid json",
+			err:   `strconv.Atoi: parsing "invalid json": invalid syntax`,
+		},
+		{
+			name:     "seconds",
+			input:    "-15",
+			expected: Interval(15 * time.Second),
+		},
+		{
+			name:     "minutes",
+			input:    "-900",
+			expected: Interval(15 * time.Minute),
+		},
+		{
+			name:     "hours",
+			input:    "-54000",
+			expected: Interval(15 * time.Hour),
+		},
+		{
+			name:     "days",
+			input:    "15",
+			expected: Interval(15 * 24 * time.Hour),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var result Interval
+			err := result.UnmarshalJSON([]byte(test.input))
+			checkErr(t, test.err, err)
+			if err != nil {
+				return
+			}
+			if d := diff.Interface(test.expected, result); d != nil {
+				t.Error(d)
 			}
 		})
 	}
