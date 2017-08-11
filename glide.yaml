@@ -6,6 +6,7 @@ import:
   version: ^0.8.0
 testImport:
 - package: github.com/flimzy/diff
+  version: ^0.1.1
 - package: github.com/flimzy/testify
   subpackages:
   - require

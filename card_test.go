@@ -92,7 +92,7 @@ func TestNewCard(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -121,7 +121,7 @@ func TestMarshalJSON(t *testing.T) {
 		}`)
 		result, err := json.Marshal(card)
 		checkErr(t, nil, err)
-		if d := diff.JSON(expected, result); d != "" {
+		if d := diff.JSON(expected, result); d != nil {
 			t.Error(d)
 		}
 	})
@@ -151,7 +151,7 @@ func TestMarshalJSON(t *testing.T) {
 		}`)
 		result, err := json.Marshal(card)
 		checkErr(t, nil, err)
-		if d := diff.JSON(expected, result); d != "" {
+		if d := diff.JSON(expected, result); d != nil {
 			t.Error(d)
 		}
 	})
@@ -222,7 +222,7 @@ func TestUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -354,7 +354,7 @@ func TestMergeImport(t *testing.T) {
 			if result != test.expected {
 				t.Errorf("Unexpected result: %t", result)
 			}
-			if d := diff.Interface(test.expectedCard, test.card); d != "" {
+			if d := diff.Interface(test.expectedCard, test.card); d != nil {
 				t.Error(d)
 			}
 		})

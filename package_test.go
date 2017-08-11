@@ -164,7 +164,7 @@ func TestPkgMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -261,7 +261,7 @@ func TestPkgUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})

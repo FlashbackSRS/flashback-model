@@ -37,7 +37,7 @@ func TestCCMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -49,7 +49,7 @@ func TestNewCardCollection(t *testing.T) {
 	expected := &CardCollection{
 		col: map[string]struct{}{},
 	}
-	if d := diff.Interface(expected, cc); d != "" {
+	if d := diff.Interface(expected, cc); d != nil {
 		t.Error(d)
 	}
 }
@@ -84,7 +84,7 @@ func TestCCUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -98,7 +98,7 @@ func TestCCAll(t *testing.T) {
 	}}
 	expected := []string{"card-YmFy.bmlsCg.0", "card-Zm9v.bmlsCg.0"}
 	result := cc.All()
-	if d := diff.Interface(expected, result); d != "" {
+	if d := diff.Interface(expected, result); d != nil {
 		t.Error(d)
 	}
 }
@@ -133,7 +133,7 @@ func TestNewDeck(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -185,7 +185,7 @@ func TestDeckMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -208,7 +208,7 @@ func TestDeckAddCard(t *testing.T) {
 			"card-jill": {},
 		}},
 	}
-	if d := diff.Interface(expected, deck); d != "" {
+	if d := diff.Interface(expected, deck); d != nil {
 		t.Error(d)
 	}
 }
@@ -267,7 +267,7 @@ func TestDeckUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -423,7 +423,7 @@ func TestDeckMergeImport(t *testing.T) {
 			if test.expected != result {
 				t.Errorf("Unexpected result: %t", result)
 			}
-			if d := diff.Interface(test.expectedDeck, test.new); d != "" {
+			if d := diff.Interface(test.expectedDeck, test.new); d != nil {
 				t.Error(d)
 			}
 		})

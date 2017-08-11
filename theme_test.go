@@ -42,7 +42,7 @@ func TestNewTheme(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -63,7 +63,7 @@ func TestSetFile(t *testing.T) {
 		Attachments: att,
 		Files:       view,
 	}
-	if d := diff.Interface(expected, theme); d != "" {
+	if d := diff.Interface(expected, theme); d != nil {
 		t.Error(d)
 	}
 }
@@ -159,7 +159,7 @@ func TestThemeMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -285,7 +285,7 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.AsJSON(test.expected, result); d != "" {
+			if d := diff.AsJSON(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -335,7 +335,7 @@ func TestThemeNewModel(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -480,7 +480,7 @@ func TestThemeMergeImport(t *testing.T) {
 			if test.expected != result {
 				t.Errorf("Unexpected result: %t", result)
 			}
-			if d := diff.Interface(test.expectedTheme, test.new); d != "" {
+			if d := diff.Interface(test.expectedTheme, test.new); d != nil {
 				t.Error(d)
 			}
 		})

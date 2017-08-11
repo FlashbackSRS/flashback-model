@@ -54,7 +54,7 @@ func TestNewModel(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -164,7 +164,7 @@ func TestModelAddfile(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.AsJSON(test.expected, test.model.Theme); d != "" {
+			if d := diff.AsJSON(test.expected, test.model.Theme); d != nil {
 				t.Error(d)
 			}
 		})
@@ -236,7 +236,7 @@ func TestModelAddField(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.AsJSON(test.expected, test.model); d != "" {
+			if d := diff.AsJSON(test.expected, test.model); d != nil {
 				t.Error(d)
 			}
 		})

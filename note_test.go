@@ -56,7 +56,7 @@ func TestNewNote(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -154,7 +154,7 @@ func TestNoteSetModel(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, test.note); d != "" {
+			if d := diff.Interface(test.expected, test.note); d != nil {
 				t.Error(d)
 			}
 		})
@@ -219,7 +219,7 @@ func TestNoteMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -332,7 +332,7 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -397,7 +397,7 @@ func TestNoteGetFieldValue(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			result := test.note.GetFieldValue(test.ord)
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -451,7 +451,7 @@ func TestFieldValueUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -501,7 +501,7 @@ func TestFieldViewAddFile(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, test.fv); d != "" {
+			if d := diff.Interface(test.expected, test.fv); d != nil {
 				t.Error(d)
 			}
 		})
@@ -666,7 +666,7 @@ func TestNoteMergeImport(t *testing.T) {
 			if test.expected != result {
 				t.Errorf("Unexpected result: %t", result)
 			}
-			if d := diff.Interface(test.expectedNote, test.new); d != "" {
+			if d := diff.Interface(test.expectedNote, test.new); d != nil {
 				t.Error(d)
 			}
 		})

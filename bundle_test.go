@@ -43,7 +43,7 @@ func TestNewBundle(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -108,7 +108,7 @@ func TestBundleMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -190,7 +190,7 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -353,7 +353,7 @@ func TestBundleMergeImport(t *testing.T) {
 			if test.expected != result {
 				t.Errorf("Unexpected result: %t", result)
 			}
-			if d := diff.Interface(test.expectedBundle, test.new); d != "" {
+			if d := diff.Interface(test.expectedBundle, test.new); d != nil {
 				t.Error(d)
 			}
 		})
