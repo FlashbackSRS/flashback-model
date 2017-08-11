@@ -167,14 +167,13 @@ func TestDeckMarshalJSON(t *testing.T) {
 				}},
 			},
 			expected: `{
-            "type":        "deck",
-            "_id":         "deck-ZGVjaw",
-            "name":        "test name",
-            "description": "test description",
-            "created":     "2017-01-01T00:00:00Z",
-            "modified":    "2017-01-01T00:00:00Z",
-            "imported":    "2017-01-01T00:00:00Z",
-            "cards":       ["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]
+	            "_id":         "deck-ZGVjaw",
+	            "name":        "test name",
+	            "description": "test description",
+	            "created":     "2017-01-01T00:00:00Z",
+	            "modified":    "2017-01-01T00:00:00Z",
+	            "imported":    "2017-01-01T00:00:00Z",
+	            "cards":       ["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]
             }`,
 		},
 	}
@@ -227,19 +226,13 @@ func TestDeckUnmarshalJSON(t *testing.T) {
 			err:   "invalid character 'i' looking for beginning of value",
 		},
 		{
-			name:  "wrong type",
-			input: `{"type":"chicken"}`,
-			err:   "Invalid document type for deck: chicken",
-		},
-		{
 			name:  "invalid deck",
-			input: `{"type":"deck"}`,
+			input: `{}`,
 			err:   "id required",
 		},
 		{
 			name: "all fields",
 			input: `{
-                "type":        "deck",
                 "_id":         "deck-ZGVjaw",
                 "name":        "test name",
                 "description": "test description",

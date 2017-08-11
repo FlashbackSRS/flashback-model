@@ -161,24 +161,16 @@ func NewDeck(id string) (*Deck, error) {
 
 type deckAlias Deck
 
-type jsonDeck struct {
-	deckAlias
-	Type string `json:"type"`
-}
-
 // MarshalJSON implements the json.Marshaler interface for the Deck type.
 func (d *Deck) MarshalJSON() ([]byte, error) {
 	if err := d.Validate(); err != nil {
 		return nil, err
 	}
 	doc := struct {
-		jsonDeck
+		deckAlias
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
-		jsonDeck: jsonDeck{
-			Type:      "deck",
-			deckAlias: deckAlias(*d),
-		},
+		deckAlias: deckAlias(*d),
 	}
 	if !d.Imported.IsZero() {
 		doc.Imported = &d.Imported
@@ -193,14 +185,11 @@ func (d *Deck) AddCard(cardID string) {
 
 // UnmarshalJSON fulfills the json.Unmarshaler interface for the Deck type.
 func (d *Deck) UnmarshalJSON(data []byte) error {
-	doc := &jsonDeck{}
+	doc := &deckAlias{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return err
 	}
-	if doc.Type != "deck" {
-		return errors.New("Invalid document type for deck: " + doc.Type)
-	}
-	*d = Deck(doc.deckAlias)
+	*d = Deck(*doc)
 	return d.Validate()
 }
 
