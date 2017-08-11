@@ -90,7 +90,7 @@ func TestPkgMarshalJSON(t *testing.T) {
 				Created:  now(),
 				Modified: now(),
 			},
-			expected: `{"version":1, "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z"}`,
+			expected: `{"version":2, "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z"}`,
 		},
 		{
 			name: "invalid bundle",
@@ -146,7 +146,7 @@ func TestPkgMarshalJSON(t *testing.T) {
 				}
 			}(),
 			expected: `{
-				"version": 1,
+				"version": 2,
 				"created": "2017-01-01T00:00:00Z",
 				"modified": "2017-01-01T00:00:00Z",
 				"bundle": {"_id":"bundle-mzxw6", "owner":"user-mjxwe", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z"},

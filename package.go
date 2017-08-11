@@ -12,7 +12,7 @@ type version int
 
 const (
 	// CurrentVersion represents the package format.
-	CurrentVersion = 1
+	CurrentVersion = 2
 	// LowestVersion is the lowest version we can compatibly read.
 	LowestVersion = 1
 )
