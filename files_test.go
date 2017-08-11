@@ -2,6 +2,7 @@ package fb
 
 import (
 	"encoding/json"
+	"sort"
 	"testing"
 
 	"github.com/flimzy/diff"
@@ -241,4 +242,137 @@ func TestFileCollectionMarshalJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetFile(t *testing.T) {
+	fc := NewFileCollection()
+	view := fc.NewView()
+	_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+	t.Run("found", func(t *testing.T) {
+		att, found := fc.GetFile("abc.txt")
+		if !found {
+			t.Error("Expected to find file")
+		}
+		if att.ContentType != "text/plain" {
+			t.Errorf("Unexpected content type: %s", att.ContentType)
+		}
+	})
+	t.Run("not found", func(t *testing.T) {
+		_, found := fc.GetFile("abc.html")
+		if found {
+			t.Error("Expected not to find file")
+		}
+	})
+}
+
+func TestRemoveView(t *testing.T) {
+	t.Run("not found", func(t *testing.T) {
+		fc := NewFileCollection()
+		otherView := NewFileCollection().NewView()
+		err := fc.RemoveView(otherView)
+		checkErr(t, "view not found", err)
+	})
+	t.Run("found", func(t *testing.T) {
+		fc := NewFileCollection()
+		view := fc.NewView()
+		err := fc.RemoveView(view)
+		checkErr(t, nil, err)
+		expected := NewFileCollection()
+		if d := diff.Interface(expected, fc); d != nil {
+			t.Error(d)
+		}
+	})
+	t.Run("with files", func(t *testing.T) {
+		fc := NewFileCollection()
+		view := fc.NewView()
+		_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+		err := fc.RemoveView(view)
+		checkErr(t, nil, err)
+		expected := NewFileCollection()
+		if d := diff.Interface(expected, fc); d != nil {
+			t.Error(d)
+		}
+	})
+}
+
+func TestRemoveAll(t *testing.T) {
+	fc := NewFileCollection()
+	view := fc.NewView()
+	_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+	fc.RemoveFile("abc.txt")
+	expected := NewFileCollection()
+	_ = expected.NewView()
+	if d := diff.Interface(expected, fc); d != nil {
+		t.Error(d)
+	}
+}
+
+func TestRemoveFile(t *testing.T) {
+	t.Run("not found", func(t *testing.T) {
+		fc := NewFileCollection()
+		view := fc.NewView()
+		err := view.RemoveFile("foo.txt")
+		checkErr(t, "file not found in view", err)
+	})
+	t.Run("found", func(t *testing.T) {
+		fc := NewFileCollection()
+		view := fc.NewView()
+		_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+		err := view.RemoveFile("abc.txt")
+		checkErr(t, nil, err)
+		expected := NewFileCollection()
+		_ = expected.NewView()
+		if d := diff.Interface(expected, fc); d != nil {
+			t.Error(d)
+		}
+	})
+}
+
+func TestFileList(t *testing.T) {
+	t.Run("no files", func(t *testing.T) {
+		fc := NewFileCollection()
+		view := fc.NewView()
+		result := view.FileList()
+		expected := []string{}
+		if d := diff.Interface(expected, result); d != nil {
+			t.Error(d)
+		}
+	})
+	t.Run("with files", func(t *testing.T) {
+		fc := NewFileCollection()
+		view := fc.NewView()
+		_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+		_ = view.AddFile("foo.txt", "text/plain", []byte("abc"))
+		expected := []string{"abc.txt", "foo.txt"}
+		result := view.FileList()
+		sort.Strings(result)
+		if d := diff.Interface(expected, result); d != nil {
+			t.Error(d)
+		}
+	})
+}
+
+func TestFCVGetFile(t *testing.T) {
+	fc := NewFileCollection()
+	view := fc.NewView()
+	_ = view.AddFile("abc.txt", "text/plain", []byte("abc"))
+	t.Run("not found", func(t *testing.T) {
+		_, found := view.GetFile("foo.txt")
+		if found {
+			t.Errorf("expected not found")
+		}
+	})
+	t.Run("found", func(t *testing.T) {
+		result, found := view.GetFile("abc.txt")
+		if !found {
+			t.Errorf("expected found")
+		}
+		expected := &Attachment{
+			ContentType: "text/plain",
+			Content:     []byte("abc"),
+		}
+		if d := diff.Interface(expected, result); d != nil {
+			t.Error(d)
+		}
+	})
 }
