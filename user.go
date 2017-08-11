@@ -64,24 +64,16 @@ func NilUser() *User {
 
 type userAlias User
 
-type jsonUser struct {
-	userAlias
-	Type string `json:"type"`
-}
-
 // MarshalJSON implements the json.Marshaler interface for the User type.
 func (u *User) MarshalJSON() ([]byte, error) {
 	if err := u.Validate(); err != nil {
 		return nil, err
 	}
 	doc := struct {
-		jsonUser
+		userAlias
 		LastLogin *time.Time `json:"lastLogin,omitempty"`
 	}{
-		jsonUser: jsonUser{
-			Type:      "user",
-			userAlias: userAlias(*u),
-		},
+		userAlias: userAlias(*u),
 	}
 	if !u.LastLogin.IsZero() {
 		doc.LastLogin = &u.LastLogin
@@ -91,13 +83,10 @@ func (u *User) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the User type.
 func (u *User) UnmarshalJSON(data []byte) error {
-	doc := jsonUser{}
+	doc := &userAlias{}
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal user")
 	}
-	if doc.Type != "user" {
-		return errors.New("Invalid document type for user")
-	}
-	*u = User(doc.userAlias)
+	*u = User(*doc)
 	return u.Validate()
 }
