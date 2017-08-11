@@ -97,24 +97,16 @@ func (t *Theme) SetFile(name, ctype string, content []byte) {
 
 type themeAlias Theme
 
-type jsonTheme struct {
-	themeAlias
-	Type string `json:"type"`
-}
-
 // MarshalJSON implements the json.Marshaler interface for the Theme type.
 func (t *Theme) MarshalJSON() ([]byte, error) {
 	if err := t.Validate(); err != nil {
 		return nil, err
 	}
 	doc := struct {
-		jsonTheme
+		themeAlias
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
-		jsonTheme: jsonTheme{
-			Type:       "theme",
-			themeAlias: themeAlias(*t),
-		},
+		themeAlias: themeAlias(*t),
 	}
 	if !t.Imported.IsZero() {
 		doc.Imported = &t.Imported
@@ -134,14 +126,11 @@ func (t *Theme) NewModel(mType string) (*Model, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Theme type.
 func (t *Theme) UnmarshalJSON(data []byte) error {
-	doc := &jsonTheme{}
+	doc := &themeAlias{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal Theme")
 	}
-	if doc.Type != "theme" {
-		return errors.New("Invalid document type for theme: " + doc.Type)
-	}
-	*t = Theme(doc.themeAlias)
+	*t = Theme(*doc)
 
 	if t.Attachments == nil {
 		return errors.New("invalid theme: no attachments")

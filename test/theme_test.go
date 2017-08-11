@@ -11,7 +11,6 @@ import (
 
 var frozenTheme = []byte(`
 {
-    "type": "theme",
     "_id": "theme-VGVzdCBUaGVtZQ",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
@@ -112,7 +111,6 @@ func TestCreateTheme(t *testing.T) {
 
 var frozenExistingTheme = []byte(`
 {
-    "type": "theme",
     "_id": "theme-VGVzdCBUaGVtZQ",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
@@ -183,7 +181,6 @@ var frozenExistingTheme = []byte(`
 
 var frozenMergedTheme = []byte(`
 {
-    "type": "theme",
     "_id": "theme-VGVzdCBUaGVtZQ",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
