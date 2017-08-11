@@ -473,6 +473,11 @@ func TestDeckValidate(t *testing.T) {
 			err:  "modified time required",
 		},
 		{
+			name: "nil collection",
+			v:    &Deck{ID: "deck-YWJjZAo", Created: now(), Modified: now()},
+			err:  "collection is nil",
+		},
+		{
 			name: "invalid card",
 			v:    &Deck{ID: "deck-YWJjZAo", Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"foo": {}}}},
 			err:  "'foo': invalid ID type",

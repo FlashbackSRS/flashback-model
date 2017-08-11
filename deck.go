@@ -96,6 +96,9 @@ func (d *Deck) Validate() error {
 	if d.Modified.IsZero() {
 		return errors.New("modified time required")
 	}
+	if d.Cards == nil {
+		return errors.New("collection is nil")
+	}
 	if err := d.Cards.Validate(); err != nil {
 		return err
 	}
