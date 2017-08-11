@@ -93,7 +93,7 @@ func TestFilesUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -132,7 +132,7 @@ func TestFileCollectionViewUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -194,7 +194,7 @@ func TestAddFile(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.AsJSON(test.expected, test.view); d != "" {
+			if d := diff.AsJSON(test.expected, test.view); d != nil {
 				t.Error(d)
 			}
 		})
@@ -236,7 +236,7 @@ func TestFileCollectionMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})

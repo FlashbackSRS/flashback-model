@@ -46,7 +46,7 @@ func TestNilUser(t *testing.T) {
 		Created:  now(),
 		Modified: now(),
 	}
-	if d := diff.Interface(expected, u); d != "" {
+	if d := diff.Interface(expected, u); d != nil {
 		t.Error(d)
 	}
 }
@@ -113,7 +113,7 @@ func TestUserMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -193,7 +193,7 @@ func TestUserUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})

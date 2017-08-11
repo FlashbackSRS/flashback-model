@@ -33,7 +33,7 @@ func TestNewReview(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -65,7 +65,7 @@ func TestReviewMarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.JSON([]byte(test.expected), result); d != "" {
+			if d := diff.JSON([]byte(test.expected), result); d != nil {
 				t.Error(d)
 			}
 		})
@@ -103,7 +103,7 @@ func TestReviewUnmarshalJSON(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if d := diff.Interface(test.expected, result); d != "" {
+			if d := diff.Interface(test.expected, result); d != nil {
 				t.Error(d)
 			}
 		})
