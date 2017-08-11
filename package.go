@@ -3,6 +3,7 @@ package fb
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -20,22 +21,34 @@ const (
 // they can be easily transmitted or shared as a single file. It is intended to
 // be used via its json.Marshaler and json.Unmarshaler interfaces.
 type Package struct {
-	Version int       `json:"version"`
-	Bundle  *Bundle   `json:"bundle,omitempty"`
-	Cards   []*Card   `json:"cards,omitempty"`
-	Notes   []*Note   `json:"notes,omitempty"`
-	Decks   []*Deck   `json:"decks,omitempty"`
-	Themes  []*Theme  `json:"themes,omitempty"`
-	Reviews []*Review `json:"reviews,omitempty"`
+	Created  time.Time `json:"created"`
+	Modified time.Time `json:"modified"`
+	Bundle   *Bundle   `json:"bundle,omitempty"`
+	Cards    []*Card   `json:"cards,omitempty"`
+	Notes    []*Note   `json:"notes,omitempty"`
+	Decks    []*Deck   `json:"decks,omitempty"`
+	Themes   []*Theme  `json:"themes,omitempty"`
+	Reviews  []*Review `json:"reviews,omitempty"`
+}
+
+type packageAlias Package
+
+type jsonPackage struct {
+	packageAlias
+	Version int `json:"version"`
 }
 
 // MarshalJSON implements the json.Marshaler interface for the Package type.
 func (p *Package) MarshalJSON() ([]byte, error) {
-	p.Version = CurrentVersion
-	return json.Marshal(*p)
+	if err := p.Validate(); err != nil {
+		return nil, err
+	}
+	doc := jsonPackage{
+		Version:      CurrentVersion,
+		packageAlias: packageAlias(*p),
+	}
+	return json.Marshal(doc)
 }
-
-type packageAlias Package
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface.
 func (p *Package) UnmarshalJSON(data []byte) error {
@@ -65,12 +78,18 @@ func (p *Package) UnmarshalJSON(data []byte) error {
 func (p *Package) Validate() error {
 	cardMap := map[string]*Card{}
 	for _, c := range p.Cards {
+		if err := c.Validate(); err != nil {
+			return errors.Wrapf(err, "card '%s' validation'", c.ID)
+		}
 		cardMap[c.ID] = c
 	}
 
 	cards := make([]*Card, 0, len(cardMap))
 
 	for _, d := range p.Decks {
+		if err := d.Validate(); err != nil {
+			return errors.Wrapf(err, "deck '%s' validation", d.ID)
+		}
 		for _, id := range d.Cards.All() {
 			c, ok := cardMap[id]
 			if !ok {

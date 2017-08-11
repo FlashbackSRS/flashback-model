@@ -14,20 +14,24 @@ func TestPkgValidate(t *testing.T) {
 			v: &Package{
 				Cards: []*Card{
 					{
-						ID:      "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
-						ModelID: "theme-VGVzdCBUaGVtZQ/0",
+						ID:       "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+						ModelID:  "theme-VGVzdCBUaGVtZQ/0",
+						Created:  now(),
+						Modified: now(),
 					},
 				},
 			},
 		},
 		{
 			name: "card missing from package",
-			err:  "card 'card-12345' listed in deck, but not found in package",
+			err:  "card 'card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0' listed in deck, but not found in package",
 			v: &Package{
 				Decks: []*Deck{
 					{
-						ID:    "deck-AQID",
-						Cards: &CardCollection{map[string]struct{}{"card-12345": {}}},
+						ID:       "deck-AQID",
+						Cards:    &CardCollection{map[string]struct{}{"card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0": {}}},
+						Created:  now(),
+						Modified: now(),
 					},
 				},
 			},
@@ -37,14 +41,18 @@ func TestPkgValidate(t *testing.T) {
 			v: &Package{
 				Decks: []*Deck{
 					{
-						ID:    "deck-AQID",
-						Cards: &CardCollection{map[string]struct{}{"card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0": {}}},
+						ID:       "deck-AQID",
+						Cards:    &CardCollection{map[string]struct{}{"card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0": {}}},
+						Created:  now(),
+						Modified: now(),
 					},
 				},
 				Cards: []*Card{
 					{
-						ID:      "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
-						ModelID: "theme-VGVzdCBUaGVtZQ/0",
+						ID:       "card-abcde.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
+						ModelID:  "theme-VGVzdCBUaGVtZQ/0",
+						Created:  now(),
+						Modified: now(),
 					},
 				},
 			},
@@ -61,9 +69,12 @@ func TestPkgMarshalJSON(t *testing.T) {
 		err      string
 	}{
 		{
-			name:     "empty package",
-			pkg:      &Package{},
-			expected: `{"version":0}`,
+			name: "empty package",
+			pkg: &Package{
+				Created:  now(),
+				Modified: now(),
+			},
+			expected: `{"version":0, "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z"}`,
 		},
 		{
 			name: "invalid bundle",
@@ -73,7 +84,7 @@ func TestPkgMarshalJSON(t *testing.T) {
 		{
 			name: "invalid card",
 			pkg:  &Package{Cards: []*Card{{}}},
-			err:  "json: error calling MarshalJSON for type *fb.Card: validation error: id required",
+			err:  "card '' validation': id required",
 		},
 		{
 			name: "invalid note",
@@ -83,7 +94,7 @@ func TestPkgMarshalJSON(t *testing.T) {
 		{
 			name: "invalid deck",
 			pkg:  &Package{Decks: []*Deck{{}}},
-			err:  "json: error calling MarshalJSON for type *fb.Deck: id required",
+			err:  "deck '' validation: id required",
 		},
 		{
 			name: "invalid theme",
@@ -109,20 +120,24 @@ func TestPkgMarshalJSON(t *testing.T) {
 
 				noteAtt := NewFileCollection()
 				return &Package{
-					Bundle: &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: now(), Modified: now()},
-					Themes: []*Theme{theme},
-					Decks:  []*Deck{{ID: "deck-ZGVjaw", Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"card-YmFy.bmlsCg.0": {}}}}},
-					Notes:  []*Note{{ID: "note-Zm9v", ThemeID: "theme-abcd", Model: model, Created: now(), Modified: now(), Attachments: noteAtt}},
-					Cards:  []*Card{{ID: "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", ModelID: "theme-abcd/0", Created: now(), Modified: now()}},
+					Created:  now(),
+					Modified: now(),
+					Bundle:   &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: now(), Modified: now()},
+					Themes:   []*Theme{theme},
+					Decks:    []*Deck{{ID: "deck-ZGVjaw", Created: now(), Modified: now(), Cards: &CardCollection{col: map[string]struct{}{"card-YmFy.bmlsCg.0": {}}}}},
+					Notes:    []*Note{{ID: "note-Zm9v", ThemeID: "theme-abcd", Model: model, Created: now(), Modified: now(), Attachments: noteAtt}},
+					Cards:    []*Card{{ID: "card-YmFy.bmlsCg.0", ModelID: "theme-abcd/0", Created: now(), Modified: now()}},
 				}
 			}(),
 			expected: `{
 				"version": 0,
+				"created": "2017-01-01T00:00:00Z",
+				"modified": "2017-01-01T00:00:00Z",
 				"bundle": {"_id":"bundle-mzxw6", "type":"bundle", "owner":"user-mjxwe", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z"},
 				"themes": [{"_id":"theme-abcd", "type":"theme", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "modelSequence":1, "files":[], "_attachments":{}, "models":[{"fields":null, "files":[], "modelType":"foo", "templates":null, "id":0}]}],
 				"decks": [{"_id":"deck-ZGVjaw", "type":"deck", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "cards":["card-YmFy.bmlsCg.0"]}],
 				"notes": [{"_id":"note-Zm9v", "type":"note", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "_attachments":{}, "fieldValues":null, "theme":"theme-abcd", "model":0}],
-				"cards": [{"_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "type":"card", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "model": "theme-abcd/0"}]
+				"cards": [{"_id":"card-YmFy.bmlsCg.0", "type":"card", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "model": "theme-abcd/0"}]
 			}`,
 		},
 	}
