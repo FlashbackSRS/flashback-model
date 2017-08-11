@@ -12,9 +12,9 @@ type version int
 
 const (
 	// CurrentVersion represents the package format.
-	CurrentVersion = 0
+	CurrentVersion = 1
 	// LowestVersion is the lowest version we can compatibly read.
-	LowestVersion = 0
+	LowestVersion = 1
 )
 
 // Package represents a top-level collection of Flashback Documents, such that
@@ -52,26 +52,15 @@ func (p *Package) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON satisfies the json.Unmarshaler interface.
 func (p *Package) UnmarshalJSON(data []byte) error {
-	pa := &packageAlias{}
-	if err := json.Unmarshal(data, &pa); err != nil {
+	doc := &jsonPackage{}
+	if err := json.Unmarshal(data, &doc); err != nil {
 		return err
 	}
-	*p = Package(*pa)
-	modelMap := make(map[string]*Model)
-	for _, t := range p.Themes {
-		for _, m := range t.Models {
-			modelMap[fmt.Sprintf("%s/%d", t.ID, m.ID)] = m
-		}
+	if doc.Version < LowestVersion {
+		return errors.Errorf("package version %d < %d", doc.Version, LowestVersion)
 	}
-	for _, n := range p.Notes {
-		key := fmt.Sprintf("%s/%d", n.ThemeID, n.ModelID)
-		m, ok := modelMap[key]
-		if !ok {
-			return errors.Errorf("note %s has no matching model %s", n.ID, key)
-		}
-		n.Model = m
-	}
-	return nil
+	*p = Package(doc.packageAlias)
+	return p.Validate()
 }
 
 // Validate does some basic sanity checking on the package.
@@ -102,5 +91,29 @@ func (p *Package) Validate() error {
 	for id := range cardMap {
 		return fmt.Errorf("card '%s' found in package, but not in a deck", id)
 	}
+
+	modelMap := make(map[string]*Model)
+	for _, t := range p.Themes {
+		if err := t.Validate(); err != nil {
+			return errors.Wrapf(err, "theme '%s' validation", t.ID)
+		}
+		for _, m := range t.Models {
+			modelMap[fmt.Sprintf("%s/%d", t.ID, m.ID)] = m
+		}
+	}
+	for _, n := range p.Notes {
+		n.unmarshaling = true
+		if err := n.Validate(); err != nil {
+			return errors.Wrapf(err, "note '%s' validation", n.ID)
+		}
+		n.unmarshaling = false
+		key := fmt.Sprintf("%s/%d", n.ThemeID, n.ModelID)
+		m, ok := modelMap[key]
+		if !ok {
+			return errors.Errorf("note '%s' has no matching model (%s)", n.ID, key)
+		}
+		n.Model = m
+	}
+
 	return nil
 }
