@@ -70,24 +70,16 @@ func NewBundle(id, owner string) (*Bundle, error) {
 
 type bundleAlias Bundle
 
-type jsonBundle struct {
-	bundleAlias
-	Type string `json:"type"`
-}
-
 // MarshalJSON implements the json.Marshaler interface for urnthe Bundle type.
 func (b *Bundle) MarshalJSON() ([]byte, error) {
 	if err := b.Validate(); err != nil {
 		return nil, err
 	}
 	doc := struct {
-		jsonBundle
+		bundleAlias
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
-		jsonBundle: jsonBundle{
-			Type:        "bundle",
-			bundleAlias: bundleAlias(*b),
-		},
+		bundleAlias: bundleAlias(*b),
 	}
 	if !b.Imported.IsZero() {
 		doc.Imported = &b.Imported
@@ -97,14 +89,11 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON fulfills the json.Unmarshaler interface for the Bundle type.
 func (b *Bundle) UnmarshalJSON(data []byte) error {
-	doc := &jsonBundle{}
+	doc := &bundleAlias{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal Bundle")
 	}
-	if doc.Type != "bundle" {
-		return errors.New("Invalid document type for bundle: " + doc.Type)
-	}
-	*b = Bundle(doc.bundleAlias)
+	*b = Bundle(*doc)
 	return b.Validate()
 }
 

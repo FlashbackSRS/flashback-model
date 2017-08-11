@@ -72,7 +72,6 @@ func TestBundleMarshalJSON(t *testing.T) {
 			},
 			expected: `{
                 "_id":      "bundle-mzxw6",
-                "type":     "bundle",
                 "owner":    "user-mjxwe",
                 "created":  "2017-01-01T00:00:00Z",
                 "modified": "2017-01-01T00:00:00Z"
@@ -91,7 +90,6 @@ func TestBundleMarshalJSON(t *testing.T) {
 			},
 			expected: `{
                 "_id":         "bundle-mzxw6",
-                "type":        "bundle",
                 "owner":       "user-mjxwe",
                 "name":        "foo name",
                 "description": "foo description",
@@ -128,15 +126,9 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			err:   "failed to unmarshal Bundle: invalid character 'i' looking for beginning of value",
 		},
 		{
-			name:  "wrong doc type",
-			input: `{"type":"chicken"}`,
-			err:   "Invalid document type for bundle: chicken",
-		},
-		{
 			name: "invalid user",
 			input: `{
                 "_id":      "bundle-mzxw6",
-                "type":     "bundle",
                 "owner":    "unf",
                 "created":  "2017-01-01T00:00:00Z",
                 "modified": "2017-01-01T00:00:00Z"
@@ -147,7 +139,6 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			name: "null fiels",
 			input: `{
                 "_id":      "bundle-mzxw6",
-                "type":     "bundle",
                 "owner":    "user-mjxwe",
                 "created":  "2017-01-01T00:00:00Z",
                 "modified": "2017-01-01T00:00:00Z"
@@ -163,7 +154,6 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			name: "all fields",
 			input: `{
                 "_id":         "bundle-mzxw6",
-                "type":        "bundle",
                 "owner":       "user-mjxwe",
                 "name":        "foo name",
                 "description": "foo description",
