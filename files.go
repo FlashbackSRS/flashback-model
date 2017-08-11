@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"sort"
 	"strings"
-	"sync/atomic"
 
 	"github.com/pkg/errors"
 )
 
 // Attachment represents a Couch/PouchDB attachment.
 type Attachment struct {
-	refcount    int32
 	ContentType string `json:"content_type"`
 	Content     []byte `json:"data"`
 }
@@ -53,7 +51,6 @@ func (fc *FileCollection) AddView(v *FileCollectionView) error {
 			return errors.New(filename + " not found in collection")
 		}
 		v.members[filename] = att
-		atomic.AddInt32(&att.refcount, 1)
 	}
 	v.col = fc
 	fc.views = append(fc.views, v)
@@ -63,11 +60,7 @@ func (fc *FileCollection) AddView(v *FileCollectionView) error {
 // RemoveView removes a FileCollectionView from a FileCollection
 func (fc *FileCollection) RemoveView(v *FileCollectionView) error {
 	for filename := range v.members {
-		att, _ := fc.files[filename]
-		atomic.AddInt32(&att.refcount, 1)
-		if att.refcount == 0 {
-			delete(fc.files, filename)
-		}
+		delete(fc.files, filename)
 	}
 	for i, view := range fc.views {
 		if view == v {
@@ -75,7 +68,7 @@ func (fc *FileCollection) RemoveView(v *FileCollectionView) error {
 			return nil
 		}
 	}
-	return errors.New("Didn't find the view")
+	return errors.New("view not found")
 }
 
 // NewView returns a new FileCollectionView from the existing FileCollection.
@@ -88,8 +81,8 @@ func (fc *FileCollection) NewView() *FileCollectionView {
 	return v
 }
 
-// RemoveAll removes all references to the named Attachment.
-func (fc *FileCollection) RemoveAll(name string) {
+// RemoveFile removes all references to the named Attachment.
+func (fc *FileCollection) RemoveFile(name string) {
 	delete(fc.files, name)
 	for _, view := range fc.views {
 		delete(view.members, name)
@@ -159,7 +152,6 @@ func (fc *FileCollection) hasMemberView(view *FileCollectionView) bool {
 // SetFile sets the requested attachment, replacing it if it already exists.
 func (v *FileCollectionView) SetFile(name, ctype string, content []byte) {
 	att := &Attachment{
-		refcount:    1,
 		ContentType: ctype,
 		Content:     content,
 	}
@@ -178,15 +170,11 @@ func (v *FileCollectionView) AddFile(name, ctype string, content []byte) error {
 
 // RemoveFile removes the named attachment from the collection.
 func (v *FileCollectionView) RemoveFile(name string) error {
-	att, ok := v.members[name]
-	if !ok {
-		return errors.New("File does not exist in view")
+	if _, ok := v.members[name]; !ok {
+		return errors.New("file not found in view")
 	}
 	delete(v.members, name)
-	atomic.AddInt32(&att.refcount, -1)
-	if att.refcount == 0 {
-		v.col.RemoveAll(name)
-	}
+	v.col.RemoveFile(name)
 	return nil
 }
 
