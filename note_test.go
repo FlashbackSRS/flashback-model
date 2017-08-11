@@ -199,7 +199,6 @@ func TestNoteMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
                 "_id":          "note-Zm9v",
-                "type":         "note",
                 "created":      "2017-01-01T00:00:00Z",
                 "modified":     "2017-01-01T00:00:00Z",
                 "imported":     "2017-01-01T00:00:00Z",
@@ -240,25 +239,14 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 			err:   "failed to unmarshal Note: invalid character 'i' looking for beginning of value",
 		},
 		{
-			name:  "invalid type",
-			input: `{"type":"chicken"}`,
-			err:   "Invalid document type for note: chicken",
-		},
-		{
-			name:  "wrong type",
-			input: `{"type":"theme"}`,
-			err:   "Invalid document type for note: theme",
-		},
-		{
 			name:  "invalid note",
-			input: `{"type":"note","_id":"chicken"}`,
+			input: `{"_id":"chicken"}`,
 			err:   "incorrect doc type",
 		},
 		{
 			name: "null fields",
 			input: `{
                 "_id":          "note-Zm9v",
-                "type":         "note",
                 "created":      "2017-01-01T00:00:00Z",
                 "modified":     "2017-01-01T00:00:00Z",
                 "model":        3,
@@ -277,7 +265,6 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 			name: "all fields",
 			input: `{
                 "_id":          "note-Zm9v",
-                "type":         "note",
                 "created":      "2017-01-01T00:00:00Z",
                 "modified":     "2017-01-01T00:00:00Z",
                 "imported":     "2017-01-01T00:00:00Z",
@@ -310,7 +297,6 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 			name: "invalid file view",
 			input: `{
                 "_id":          "note-Zm9v",
-                "type":         "note",
                 "created":      "2017-01-01T00:00:00Z",
                 "modified":     "2017-01-01T00:00:00Z",
                 "imported":     "2017-01-01T00:00:00Z",
