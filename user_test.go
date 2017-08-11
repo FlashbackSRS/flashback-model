@@ -74,7 +74,6 @@ func TestUserMarshalJSON(t *testing.T) {
 			},
 			expected: `{
                 "_id":      "user-mjxwe",
-                "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
                 "created":  "2017-01-01T00:00:00Z",
@@ -95,7 +94,6 @@ func TestUserMarshalJSON(t *testing.T) {
 			},
 			expected: `{
                 "_id":       "user-mjxwe",
-                "type":      "user",
                 "salt":      "salty",
                 "password":  "abc123",
                 "email":     "bob@bob.com",
@@ -133,20 +131,14 @@ func TestUserUnmarshalJSON(t *testing.T) {
 			err:   "failed to unmarshal user: invalid character 'i' looking for beginning of value",
 		},
 		{
-			name:  "wrong type",
-			input: `{"type":"chicken"}`,
-			err:   "Invalid document type for user",
-		},
-		{
 			name:  "fails validation",
-			input: `{"_id":"deck-mjxwe", "type":"user"}`,
+			input: `{"_id":"deck-mjxwe"}`,
 			err:   "incorrect doc type",
 		},
 		{
 			name: "null fields",
 			input: `{
                 "_id":      "user-mjxwe",
-                "type":     "user",
                 "salt":     "salty",
                 "password": "abc123",
                 "created":  "2017-01-01T00:00:00Z",
@@ -164,7 +156,6 @@ func TestUserUnmarshalJSON(t *testing.T) {
 			name: "all fields",
 			input: `{
                 "_id":       "user-mjxwe",
-                "type":      "user",
                 "salt":      "salty",
                 "password":  "abc123",
                 "email":     "bob@bob.com",

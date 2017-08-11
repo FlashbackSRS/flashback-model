@@ -92,7 +92,6 @@ func TestThemeMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
 				"_id":           "theme-abcd",
-				"type":          "theme",
 				"created":       "2017-01-01T00:00:00Z",
 				"modified":      "2017-01-01T00:00:00Z",
 				"modelSequence": 0,
@@ -126,7 +125,6 @@ func TestThemeMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
 				"_id":           "theme-abcd",
-				"type":          "theme",
 				"name":          "Test Theme",
 				"description":   "Theme for testing",
 				"created":       "2017-01-01T00:00:00Z",
@@ -180,37 +178,31 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 			err:   "failed to unmarshal Theme: invalid character 'x' looking for beginning of value",
 		},
 		{
-			name:  "wrong type",
-			input: `{"type":"chicken", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "data": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.txt"]}] }`,
-			err:   "Invalid document type for theme: chicken",
-		},
-		{
 			name:  "no attachments",
-			input: `{"type":"theme", "_id":"theme-120","created":"2017-01-01T01:01:01Z","modified":"2017-01-01T01:01:01Z"}`,
+			input: `{"_id":"theme-120","created":"2017-01-01T01:01:01Z","modified":"2017-01-01T01:01:01Z"}`,
 			err:   "invalid theme: no attachments",
 		},
 		{
 			name: "with attachments",
-			input: `{"type":"theme", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments":{
+			input: `{"_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments":{
 			"foo.txt": {"content_type":"text/plain", "content": "text"}
 			}}`,
 			err: "invalid theme: no file list",
 		},
 		{
 			name:  "mismatched file list",
-			input: `{"type":"theme", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "content": "text"}}, "files": ["foo.html"] }`,
+			input: `{"_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "content": "text"}}, "files": ["foo.html"] }`,
 			err:   "foo.html not found in collection",
 		},
 		{
 			name:  "mismatched model file list",
-			input: `{"type":"theme", "_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "content": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.mp3"]}] }`,
+			input: `{"_id":"theme-120", "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z", "_attachments": {"foo.txt": {"content_type":"text/plain", "content": "text"}}, "files":[], "models": [{"id":0, "files": ["foo.mp3"]}] }`,
 			err:   "foo.mp3 not found in collection",
 		},
 		{
 			name: "null fields",
 			input: `{
 				"_id":           "theme-abcd",
-				"type":          "theme",
 				"created":       "2017-01-01T00:00:00Z",
 				"modified":      "2017-01-01T00:00:00Z",
 				"modelSequence": 0,
@@ -234,7 +226,6 @@ func TestThemeUnmarshalJSON(t *testing.T) {
 			name: "full fields",
 			input: `{
 				"_id":           "theme-abcd",
-				"type":          "theme",
 				"name":          "Test Theme",
 				"description":   "Theme for testing",
 				"created":       "2017-01-01T00:00:00Z",

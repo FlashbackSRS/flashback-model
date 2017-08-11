@@ -131,24 +131,16 @@ func NewNote(id string, model *Model) (*Note, error) {
 
 type noteAlias Note
 
-type jsonNote struct {
-	noteAlias
-	Type string `json:"type"`
-}
-
 // MarshalJSON implements the json.Marshaler interface for the Note type.
 func (n *Note) MarshalJSON() ([]byte, error) {
 	if err := n.Validate(); err != nil {
 		return nil, err
 	}
 	doc := struct {
-		jsonNote
+		noteAlias
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
-		jsonNote: jsonNote{
-			Type:      "note",
-			noteAlias: noteAlias(*n),
-		},
+		noteAlias: noteAlias(*n),
 	}
 	if !n.Imported.IsZero() {
 		doc.Imported = &n.Imported
@@ -158,14 +150,11 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Note type.
 func (n *Note) UnmarshalJSON(data []byte) error {
-	doc := &jsonNote{}
+	doc := &noteAlias{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal Note")
 	}
-	if doc.Type != "note" {
-		return errors.New("Invalid document type for note: " + doc.Type)
-	}
-	*n = Note(doc.noteAlias)
+	*n = Note(*doc)
 	if n.Attachments == nil {
 		n.Attachments = NewFileCollection()
 	}

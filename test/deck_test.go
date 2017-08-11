@@ -11,7 +11,6 @@ import (
 
 var frozenDeck = []byte(`
 {
-    "type": "deck",
     "_id": "deck-VGVzdCBEZWNr",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
@@ -44,7 +43,6 @@ func TestDecks(t *testing.T) {
 
 var frozenExistingDeck = []byte(`
 {
-    "type": "deck",
     "_id": "deck-VGVzdCBEZWNr",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
@@ -58,7 +56,6 @@ var frozenExistingDeck = []byte(`
 
 var frozenMergedDeck = []byte(`
 {
-    "type": "deck",
     "_id": "deck-VGVzdCBEZWNr",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",

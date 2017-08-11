@@ -11,7 +11,6 @@ import (
 
 var frozenBundle = []byte(`
 {
-    "type": "bundle",
     "_id": "bundle-krsxg5baij2w4zdmmu",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",

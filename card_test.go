@@ -114,7 +114,6 @@ func TestMarshalJSON(t *testing.T) {
 		}
 		expected := []byte(`{
 			"_id":      "card-foo.bar.1",
-			"type":     "card",
 			"created":  "2017-01-01T01:01:01Z",
 			"model":    "theme-baz/2",
 			"modified": "2017-01-01T01:01:01Z"
@@ -139,7 +138,6 @@ func TestMarshalJSON(t *testing.T) {
 		}
 		expected := []byte(`{
 			"_id":         "card-foo.bar.1",
-			"type":        "card",
 			"model":       "theme-baz/2",
 			"created":     "2017-01-01T01:01:01Z",
 			"modified":    "2017-01-01T01:01:01Z",
@@ -170,18 +168,13 @@ func TestUnmarshalJSON(t *testing.T) {
 			err:  "unexpected end of JSON input",
 		},
 		{
-			name:  "wrong type",
-			input: `{"type":"chicken"}`,
-			err:   "invalid document type for card: chicken",
-		},
-		{
 			name:  "validation failure",
-			input: `{"type":"card","_id":"oink"}`,
+			input: `{"_id":"oink"}`,
 			err:   "validation error: invalid ID type",
 		},
 		{
 			name:  "valid",
-			input: `{"type":"card", "_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "theme-foo/2", "suspended":true, "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z"}`,
+			input: `{"_id":"card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1", "model": "theme-foo/2", "suspended":true, "created":"2017-01-01T01:01:01Z", "modified":"2017-01-01T01:01:01Z"}`,
 			expected: &Card{
 				ID:        "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.1",
 				ModelID:   "theme-foo/2",
@@ -194,7 +187,6 @@ func TestUnmarshalJSON(t *testing.T) {
 			name: "test frozen card",
 			input: `
 		{
-			"type": "card",
 			"_id": "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
 			"created": "2016-07-31T15:08:24.730156517Z",
 			"modified": "2016-07-31T15:08:24.730156517Z",

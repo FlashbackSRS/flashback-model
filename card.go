@@ -108,28 +108,20 @@ func NewCard(theme string, model uint32, id string) (*Card, error) {
 // To avoid loops when (un)marshaling
 type cardAlias Card
 
-type jsonCard struct {
-	cardAlias
-	Type string `json:"type"`
-}
-
 // MarshalJSON implements the json.Marshaler interface for the Card type.
 func (c *Card) MarshalJSON() ([]byte, error) {
 	if err := c.Validate(); err != nil {
 		return nil, errors.Wrap(err, "validation error")
 	}
 	doc := struct {
-		jsonCard
+		cardAlias
 		Suspended   *bool      `json:"suspended,omitempty"`
 		Imported    *time.Time `json:"imported,omitempty"`
 		LastReview  *time.Time `json:"lastReview,omitempty"`
 		Due         *Due       `json:"due,omitempty"`
 		BuriedUntil *Due       `json:"buriedUntil,omitempty"`
 	}{
-		jsonCard: jsonCard{
-			Type:      "card",
-			cardAlias: cardAlias(*c),
-		},
+		cardAlias: cardAlias(*c),
 	}
 	if c.Suspended {
 		doc.Suspended = &c.Suspended
@@ -152,14 +144,11 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the Card type.
 func (c *Card) UnmarshalJSON(data []byte) error {
-	doc := &jsonCard{}
+	doc := &cardAlias{}
 	if err := json.Unmarshal(data, doc); err != nil {
 		return err
 	}
-	if doc.Type != "card" {
-		return errors.New("invalid document type for card: " + doc.Type)
-	}
-	*c = Card(doc.cardAlias)
+	*c = Card(*doc)
 	return errors.Wrap(c.Validate(), "validation error")
 }
 

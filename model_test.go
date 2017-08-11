@@ -133,7 +133,6 @@ func TestModelAddfile(t *testing.T) {
 			}(),
 			filename: "foo.txt",
 			expected: map[string]interface{}{
-				"type":     "theme",
 				"_id":      "theme-Zm9v",
 				"created":  now(),
 				"modified": now(),
