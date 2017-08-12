@@ -525,7 +525,7 @@ func TestThemeValidate(t *testing.T) {
 		{
 			name: "invalid model sequence",
 			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 0, Models: []*Model{{ID: 0}}},
-			err:  "modelSequence must larger than existing model IDs",
+			err:  "modelSequence must be larger than existing model IDs",
 		},
 		{
 			name: "invalid model file list",
