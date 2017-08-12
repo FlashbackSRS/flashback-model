@@ -71,8 +71,10 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		userAlias
+		Type      string     `json:"type"`
 		LastLogin *time.Time `json:"lastLogin,omitempty"`
 	}{
+		Type:      "user",
 		userAlias: userAlias(*u),
 	}
 	if !u.LastLogin.IsZero() {

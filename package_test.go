@@ -153,7 +153,7 @@ func TestPkgMarshalJSON(t *testing.T) {
 				"themes": [{"_id":"theme-abcd", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "modelSequence":1, "files":[], "_attachments":{}, "models":[{"fields":null, "files":[], "modelType":"foo", "templates":null, "id":0}]}],
 				"decks": [{"_id":"deck-ZGVjaw", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "cards":["card-YmFy.bmlsCg.0"]}],
 				"notes": [{"_id":"note-Zm9v", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "_attachments":{}, "fieldValues":null, "theme":"theme-abcd", "model":0}],
-				"cards": [{"_id":"card-YmFy.bmlsCg.0", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "model": "theme-abcd/0"}]
+				"cards": [{"_id":"card-YmFy.bmlsCg.0", "type":"card", "created":"2017-01-01T00:00:00Z", "modified":"2017-01-01T00:00:00Z", "model": "theme-abcd/0"}]
 			}`,
 		},
 	}
