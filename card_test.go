@@ -99,7 +99,7 @@ func TestNewCard(t *testing.T) {
 	}
 }
 
-func TestMarshalJSON(t *testing.T) {
+func TestCardMarshalJSON(t *testing.T) {
 	t.Run("invalid", func(t *testing.T) {
 		card := &Card{}
 		_, err := json.Marshal(card)
@@ -113,6 +113,7 @@ func TestMarshalJSON(t *testing.T) {
 			Modified: parseTime("2017-01-01T01:01:01Z"),
 		}
 		expected := []byte(`{
+			"type":     "card",
 			"_id":      "card-foo.bar.1",
 			"created":  "2017-01-01T01:01:01Z",
 			"model":    "theme-baz/2",
@@ -137,6 +138,7 @@ func TestMarshalJSON(t *testing.T) {
 			Suspended:   true,
 		}
 		expected := []byte(`{
+			"type":        "card",
 			"_id":         "card-foo.bar.1",
 			"model":       "theme-baz/2",
 			"created":     "2017-01-01T01:01:01Z",

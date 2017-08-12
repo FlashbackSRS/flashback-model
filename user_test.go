@@ -73,11 +73,12 @@ func TestUserMarshalJSON(t *testing.T) {
 				Modified: now(),
 			},
 			expected: `{
-                "_id":      "user-mjxwe",
-                "salt":     "salty",
-                "password": "abc123",
-                "created":  "2017-01-01T00:00:00Z",
-                "modified": "2017-01-01T00:00:00Z"
+			    "type":     "user",
+				"_id":      "user-mjxwe",
+				"salt":     "salty",
+				"password": "abc123",
+				"created":  "2017-01-01T00:00:00Z",
+				"modified": "2017-01-01T00:00:00Z"
             }`,
 		},
 		{
@@ -93,14 +94,15 @@ func TestUserMarshalJSON(t *testing.T) {
 				LastLogin: now(),
 			},
 			expected: `{
-                "_id":       "user-mjxwe",
-                "salt":      "salty",
-                "password":  "abc123",
-                "email":     "bob@bob.com",
-                "fullname":  "Bob",
-                "created":   "2017-01-01T00:00:00Z",
-                "modified":  "2017-01-01T00:00:00Z",
-                "lastLogin": "2017-01-01T00:00:00Z"
+				"type":     "user",
+				"_id":       "user-mjxwe",
+				"salt":      "salty",
+				"password":  "abc123",
+				"email":     "bob@bob.com",
+				"fullname":  "Bob",
+				"created":   "2017-01-01T00:00:00Z",
+				"modified":  "2017-01-01T00:00:00Z",
+				"lastLogin": "2017-01-01T00:00:00Z"
             }`,
 		},
 	}
@@ -138,11 +140,11 @@ func TestUserUnmarshalJSON(t *testing.T) {
 		{
 			name: "null fields",
 			input: `{
-                "_id":      "user-mjxwe",
-                "salt":     "salty",
-                "password": "abc123",
-                "created":  "2017-01-01T00:00:00Z",
-                "modified": "2017-01-01T00:00:00Z"
+				"_id":      "user-mjxwe",
+				"salt":     "salty",
+				"password": "abc123",
+				"created":  "2017-01-01T00:00:00Z",
+				"modified": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
 				ID:       "user-mjxwe",
@@ -155,14 +157,14 @@ func TestUserUnmarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			input: `{
-                "_id":       "user-mjxwe",
-                "salt":      "salty",
-                "password":  "abc123",
-                "email":     "bob@bob.com",
-                "fullname":  "Bob",
-                "created":   "2017-01-01T00:00:00Z",
-                "modified":  "2017-01-01T00:00:00Z",
-                "lastLogin": "2017-01-01T00:00:00Z"
+				"_id":       "user-mjxwe",
+				"salt":      "salty",
+				"password":  "abc123",
+				"email":     "bob@bob.com",
+				"fullname":  "Bob",
+				"created":   "2017-01-01T00:00:00Z",
+				"modified":  "2017-01-01T00:00:00Z",
+				"lastLogin": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
 				ID:        "user-mjxwe",

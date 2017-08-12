@@ -115,12 +115,14 @@ func (c *Card) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		cardAlias
+		Type        string     `json:"type"`
 		Suspended   *bool      `json:"suspended,omitempty"`
 		Imported    *time.Time `json:"imported,omitempty"`
 		LastReview  *time.Time `json:"lastReview,omitempty"`
 		Due         *Due       `json:"due,omitempty"`
 		BuriedUntil *Due       `json:"buriedUntil,omitempty"`
 	}{
+		Type:      "card",
 		cardAlias: cardAlias(*c),
 	}
 	if c.Suspended {
