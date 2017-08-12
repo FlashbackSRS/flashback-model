@@ -48,3 +48,12 @@ func validateDBID(id string) error {
 func EncodeDBID(docType string, id []byte) string {
 	return fmt.Sprintf("%s-%s", docType, b32enc(id))
 }
+
+// DBIDToBytes decodes the DBID into its underlying byte representation.
+func DBIDToBytes(id string) ([]byte, error) {
+	if err := validateDBID(id); err != nil {
+		return nil, err
+	}
+	parts := strings.SplitN(id, "-", 2)
+	return b32dec(parts[1])
+}
