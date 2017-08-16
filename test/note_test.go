@@ -12,6 +12,7 @@ import (
 var frozenNote = []byte(`
 {
     "_id": "note-VGVzdCBOb3Rl",
+	"type": "note",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",
     "imported": "2016-08-02T15:08:24.730156517Z",
@@ -77,6 +78,7 @@ var frozenExistingNote = []byte(`
 var frozenMergedNote = []byte(`
 {
     "_id": "note-VGVzdCBOb3Rl",
+	"type": "note",
     "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
     "created": "2016-07-31T15:08:24.730156517Z",
     "modified": "2016-07-31T15:08:24.730156517Z",

@@ -167,14 +167,15 @@ func TestDeckMarshalJSON(t *testing.T) {
 				}},
 			},
 			expected: `{
-	            "_id":         "deck-ZGVjaw",
-	            "name":        "test name",
-	            "description": "test description",
-	            "created":     "2017-01-01T00:00:00Z",
-	            "modified":    "2017-01-01T00:00:00Z",
-	            "imported":    "2017-01-01T00:00:00Z",
-	            "cards":       ["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]
-            }`,
+				"_id":         "deck-ZGVjaw",
+				"type":        "deck",
+				"name":        "test name",
+				"description": "test description",
+				"created":     "2017-01-01T00:00:00Z",
+				"modified":    "2017-01-01T00:00:00Z",
+				"imported":    "2017-01-01T00:00:00Z",
+				"cards":       ["card-YmFy.bmlsCg.0","card-Zm9v.bmlsCg.0"]
+			}`,
 		},
 	}
 	for _, test := range tests {

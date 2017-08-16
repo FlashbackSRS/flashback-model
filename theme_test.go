@@ -92,6 +92,7 @@ func TestThemeMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
 				"_id":           "theme-abcd",
+				"type":          "theme",
 				"created":       "2017-01-01T00:00:00Z",
 				"modified":      "2017-01-01T00:00:00Z",
 				"modelSequence": 0,
@@ -125,6 +126,7 @@ func TestThemeMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
 				"_id":           "theme-abcd",
+				"type":          "theme",
 				"name":          "Test Theme",
 				"description":   "Theme for testing",
 				"created":       "2017-01-01T00:00:00Z",

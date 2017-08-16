@@ -168,8 +168,10 @@ func (d *Deck) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		deckAlias
+		Type     string     `json:"type"`
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
+		Type:      "deck",
 		deckAlias: deckAlias(*d),
 	}
 	if !d.Imported.IsZero() {

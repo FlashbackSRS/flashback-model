@@ -198,17 +198,18 @@ func TestNoteMarshalJSON(t *testing.T) {
 				}
 			}(),
 			expected: `{
-                "_id":          "note-Zm9v",
-                "created":      "2017-01-01T00:00:00Z",
-                "modified":     "2017-01-01T00:00:00Z",
-                "imported":     "2017-01-01T00:00:00Z",
-                "fieldValues":  [{"text":"foo", "files":["foo.txt"]}],
-                "model":        3,
-                "theme":        "theme-Zm9v",
-                "_attachments": {
-                    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
-                }
-            }`,
+				"_id":          "note-Zm9v",
+				"type":         "note",
+				"created":      "2017-01-01T00:00:00Z",
+				"modified":     "2017-01-01T00:00:00Z",
+				"imported":     "2017-01-01T00:00:00Z",
+				"fieldValues":  [{"text":"foo", "files":["foo.txt"]}],
+				"model":        3,
+				"theme":        "theme-Zm9v",
+				"_attachments": {
+					"foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
+				}
+			}`,
 		},
 	}
 	for _, test := range tests {
@@ -246,11 +247,11 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 		{
 			name: "null fields",
 			input: `{
-                "_id":          "note-Zm9v",
-                "created":      "2017-01-01T00:00:00Z",
-                "modified":     "2017-01-01T00:00:00Z",
-                "model":        3,
-                "theme":        "theme-Zm9v"
+				"_id":          "note-Zm9v",
+				"created":      "2017-01-01T00:00:00Z",
+				"modified":     "2017-01-01T00:00:00Z",
+				"model":        3,
+				"theme":        "theme-Zm9v"
             }`,
 			expected: &Note{
 				ID:          "note-Zm9v",
@@ -264,16 +265,16 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			input: `{
-                "_id":          "note-Zm9v",
-                "created":      "2017-01-01T00:00:00Z",
-                "modified":     "2017-01-01T00:00:00Z",
-                "imported":     "2017-01-01T00:00:00Z",
-                "fieldValues":  [{"text":"foo", "files":["foo.txt"]}],
-                "model":        3,
-                "theme":        "theme-Zm9v",
-                "_attachments": {
-                    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
-                }
+				"_id":          "note-Zm9v",
+				"created":      "2017-01-01T00:00:00Z",
+				"modified":     "2017-01-01T00:00:00Z",
+				"imported":     "2017-01-01T00:00:00Z",
+				"fieldValues":  [{"text":"foo", "files":["foo.txt"]}],
+				"model":        3,
+				"theme":        "theme-Zm9v",
+				"_attachments": {
+				    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
+				}
             }`,
 			expected: func() *Note {
 				att := NewFileCollection()
@@ -296,16 +297,16 @@ func TestNoteUnmarshalJSON(t *testing.T) {
 		{
 			name: "invalid file view",
 			input: `{
-                "_id":          "note-Zm9v",
-                "created":      "2017-01-01T00:00:00Z",
-                "modified":     "2017-01-01T00:00:00Z",
-                "imported":     "2017-01-01T00:00:00Z",
-                "fieldValues":  [{"text":"foo", "files":["foo.html"]}],
-                "model":        3,
-                "theme":        "theme-Zm9v",
-                "_attachments": {
-                    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
-                }
+				"_id":          "note-Zm9v",
+				"created":      "2017-01-01T00:00:00Z",
+				"modified":     "2017-01-01T00:00:00Z",
+				"imported":     "2017-01-01T00:00:00Z",
+				"fieldValues":  [{"text":"foo", "files":["foo.html"]}],
+				"model":        3,
+				"theme":        "theme-Zm9v",
+				"_attachments": {
+				    "foo.txt": {"content_type":"text/plain", "data":"c29tZSB0ZXh0"}
+				}
             }`,
 			err: "foo.html not found in collection",
 		},

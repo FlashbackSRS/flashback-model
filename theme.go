@@ -104,8 +104,10 @@ func (t *Theme) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		themeAlias
+		Type     string     `json:"type"`
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
+		Type:       "theme",
 		themeAlias: themeAlias(*t),
 	}
 	if !t.Imported.IsZero() {

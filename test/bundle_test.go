@@ -11,13 +11,14 @@ import (
 
 var frozenBundle = []byte(`
 {
-    "_id": "bundle-krsxg5baij2w4zdmmu",
-    "created": "2016-07-31T15:08:24.730156517Z",
-    "modified": "2016-07-31T15:08:24.730156517Z",
-    "imported": "2016-08-02T15:08:24.730156517Z",
-    "owner": "user-tui5ajfbabaeljnxt4om7fwmt4",
-    "name": "Test Bundle",
-    "description": "A bundle for testing"
+	"_id": "bundle-krsxg5baij2w4zdmmu",
+	"type": "bundle",
+	"created": "2016-07-31T15:08:24.730156517Z",
+	"modified": "2016-07-31T15:08:24.730156517Z",
+	"imported": "2016-08-02T15:08:24.730156517Z",
+	"owner": "user-tui5ajfbabaeljnxt4om7fwmt4",
+	"name": "Test Bundle",
+	"description": "A bundle for testing"
 }
 `)
 
