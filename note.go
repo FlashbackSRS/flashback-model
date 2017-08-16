@@ -138,8 +138,10 @@ func (n *Note) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		noteAlias
+		Type     string     `json:"type"`
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
+		Type:      "note",
 		noteAlias: noteAlias(*n),
 	}
 	if !n.Imported.IsZero() {

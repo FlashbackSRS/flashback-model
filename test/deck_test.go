@@ -11,13 +11,14 @@ import (
 
 var frozenDeck = []byte(`
 {
-    "_id": "deck-VGVzdCBEZWNr",
-    "created": "2016-07-31T15:08:24.730156517Z",
-    "modified": "2016-07-31T15:08:24.730156517Z",
-    "imported": "2016-08-02T15:08:24.730156517Z",
-    "name": "Test Deck",
-    "description": "Deck for testing",
-    "cards": []
+	"_id": "deck-VGVzdCBEZWNr",
+	"type": "deck",
+	"created": "2016-07-31T15:08:24.730156517Z",
+	"modified": "2016-07-31T15:08:24.730156517Z",
+	"imported": "2016-08-02T15:08:24.730156517Z",
+	"name": "Test Deck",
+	"description": "Deck for testing",
+	"cards": []
 }
 `)
 
@@ -43,27 +44,29 @@ func TestDecks(t *testing.T) {
 
 var frozenExistingDeck = []byte(`
 {
-    "_id": "deck-VGVzdCBEZWNr",
-    "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
-    "created": "2016-07-31T15:08:24.730156517Z",
-    "modified": "2016-07-15T15:07:24.730156517Z",
-    "imported": "2016-08-01T15:08:24.730156517Z",
-    "name": "Test deck",
-    "description": "Deck for testing",
-    "cards": []
+	"_id": "deck-VGVzdCBEZWNr",
+	"type": "deck",
+	"_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
+	"created": "2016-07-31T15:08:24.730156517Z",
+	"modified": "2016-07-15T15:07:24.730156517Z",
+	"imported": "2016-08-01T15:08:24.730156517Z",
+	"name": "Test deck",
+	"description": "Deck for testing",
+	"cards": []
 }
 `)
 
 var frozenMergedDeck = []byte(`
 {
-    "_id": "deck-VGVzdCBEZWNr",
-    "_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
-    "created": "2016-07-31T15:08:24.730156517Z",
-    "modified": "2016-07-31T15:08:24.730156517Z",
-    "imported": "2016-08-02T15:08:24.730156517Z",
-    "name": "Test Deck",
-    "description": "Deck for testing",
-    "cards": []
+	"_id": "deck-VGVzdCBEZWNr",
+	"type": "deck",
+	"_rev": "1-6e1b6fb5352429cf3013eab5d692aac8",
+	"created": "2016-07-31T15:08:24.730156517Z",
+	"modified": "2016-07-31T15:08:24.730156517Z",
+	"imported": "2016-08-02T15:08:24.730156517Z",
+	"name": "Test Deck",
+	"description": "Deck for testing",
+	"cards": []
 }
 `)
 

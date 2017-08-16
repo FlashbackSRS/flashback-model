@@ -60,7 +60,7 @@ func (t *Theme) Validate() error {
 	}
 	for _, m := range t.Models {
 		if t.ModelSequence <= m.ID {
-			return errors.New("modelSequence must larger than existing model IDs")
+			return errors.New("modelSequence must be larger than existing model IDs")
 		}
 		if !t.Attachments.hasMemberView(m.Files) {
 			return errors.Errorf("model %d file list must be a member of attachments collection", m.ID)
@@ -104,8 +104,10 @@ func (t *Theme) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		themeAlias
+		Type     string     `json:"type"`
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
+		Type:       "theme",
 		themeAlias: themeAlias(*t),
 	}
 	if !t.Imported.IsZero() {

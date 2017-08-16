@@ -12,14 +12,14 @@ import (
 
 var frozenCard = []byte(`
 {
+	"_id": "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
 	"type": "card",
-    "_id": "card-krsxg5baij2w4zdmmu.mViuXQThMLoh1G1Nlc4d_E8kR8o.0",
-    "created": "2016-07-31T15:08:24.730156517Z",
-    "modified": "2016-07-31T15:08:24.730156517Z",
-    "imported": "2016-08-02T15:08:24.730156517Z",
-    "model": "theme-VGVzdCBUaGVtZQ/0",
-    "due": "2017-01-01",
-    "interval": 50
+	"created": "2016-07-31T15:08:24.730156517Z",
+	"modified": "2016-07-31T15:08:24.730156517Z",
+	"imported": "2016-08-02T15:08:24.730156517Z",
+	"model": "theme-VGVzdCBUaGVtZQ/0",
+	"due": "2017-01-01",
+	"interval": 50
 }
 `)
 

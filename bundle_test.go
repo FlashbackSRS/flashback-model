@@ -71,11 +71,12 @@ func TestBundleMarshalJSON(t *testing.T) {
 				Modified: now(),
 			},
 			expected: `{
-                "_id":      "bundle-mzxw6",
-                "owner":    "user-mjxwe",
-                "created":  "2017-01-01T00:00:00Z",
-                "modified": "2017-01-01T00:00:00Z"
-            }`,
+				"_id":      "bundle-mzxw6",
+				"type":     "bundle",
+				"owner":    "user-mjxwe",
+				"created":  "2017-01-01T00:00:00Z",
+				"modified": "2017-01-01T00:00:00Z"
+			}`,
 		},
 		{
 			name: "all fields",
@@ -89,14 +90,15 @@ func TestBundleMarshalJSON(t *testing.T) {
 				Description: "foo description",
 			},
 			expected: `{
-                "_id":         "bundle-mzxw6",
-                "owner":       "user-mjxwe",
-                "name":        "foo name",
-                "description": "foo description",
-                "created":     "2017-01-01T00:00:00Z",
-                "modified":    "2017-01-01T00:00:00Z",
-                "imported":    "2017-01-01T00:00:00Z"
-            }`,
+				"_id":         "bundle-mzxw6",
+				"type":        "bundle",
+				"owner":       "user-mjxwe",
+				"name":        "foo name",
+				"description": "foo description",
+				"created":     "2017-01-01T00:00:00Z",
+				"modified":    "2017-01-01T00:00:00Z",
+				"imported":    "2017-01-01T00:00:00Z"
+			}`,
 		},
 	}
 	for _, test := range tests {

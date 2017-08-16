@@ -77,8 +77,10 @@ func (b *Bundle) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		bundleAlias
+		Type     string     `json:"type"`
 		Imported *time.Time `json:"imported,omitempty"`
 	}{
+		Type:        "bundle",
 		bundleAlias: bundleAlias(*b),
 	}
 	if !b.Imported.IsZero() {

@@ -92,6 +92,7 @@ func TestThemeMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
 				"_id":           "theme-abcd",
+				"type":          "theme",
 				"created":       "2017-01-01T00:00:00Z",
 				"modified":      "2017-01-01T00:00:00Z",
 				"modelSequence": 0,
@@ -125,6 +126,7 @@ func TestThemeMarshalJSON(t *testing.T) {
 			}(),
 			expected: `{
 				"_id":           "theme-abcd",
+				"type":          "theme",
 				"name":          "Test Theme",
 				"description":   "Theme for testing",
 				"created":       "2017-01-01T00:00:00Z",
@@ -525,7 +527,7 @@ func TestThemeValidate(t *testing.T) {
 		{
 			name: "invalid model sequence",
 			v:    &Theme{ID: "theme-abcd", Created: now(), Modified: now(), Attachments: att, Files: view, ModelSequence: 0, Models: []*Model{{ID: 0}}},
-			err:  "modelSequence must larger than existing model IDs",
+			err:  "modelSequence must be larger than existing model IDs",
 		},
 		{
 			name: "invalid model file list",
