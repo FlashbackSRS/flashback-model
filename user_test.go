@@ -87,6 +87,7 @@ func TestUserMarshalJSON(t *testing.T) {
 			name: "all fields",
 			user: &User{
 				Name:      "mjxwe",
+				Roles:     []string{"foo", "bar"},
 				Salt:      "salty",
 				Password:  "abc123",
 				FullName:  "Bob",
@@ -99,7 +100,7 @@ func TestUserMarshalJSON(t *testing.T) {
 				"type":     "user",
 				"_id":       "org.couchdb.user:mjxwe",
 				"name":      "mjxwe",
-				"roles":     [],
+				"roles":     ["foo","bar"],
 				"salt":      "salty",
 				"password":  "abc123",
 				"email":     "bob@bob.com",
@@ -238,5 +239,12 @@ func TestGenerateSalt(t *testing.T) {
 	salt := generateSalt()
 	if len(salt) != 32 {
 		t.Errorf("Generated salt is %d chars long, expected 32", len(salt))
+	}
+}
+
+func TestGenerateUser(t *testing.T) {
+	u := GenerateUser()
+	if err := u.Validate(); err != nil {
+		t.Fatal(err)
 	}
 }
