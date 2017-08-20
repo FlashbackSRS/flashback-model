@@ -25,12 +25,18 @@ func TestNewBundle(t *testing.T) {
 			err:  "owner required",
 		},
 		{
+			name:  "invalid owner name",
+			id:    "bundle-mzxw6",
+			owner: "user-foo",
+			err:   "invalid owner name: illegal base32 data at input byte 4",
+		},
+		{
 			name:  "valid",
 			id:    "bundle-mzxw6",
-			owner: "user-mjxwe",
+			owner: "mjxwe",
 			expected: &Bundle{
 				ID:       "bundle-mzxw6",
-				Owner:    "user-mjxwe",
+				Owner:    "mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
@@ -66,14 +72,14 @@ func TestBundleMarshalJSON(t *testing.T) {
 			name: "null fields",
 			bundle: &Bundle{
 				ID:       "bundle-mzxw6",
-				Owner:    "user-mjxwe",
+				Owner:    "mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
 			expected: `{
 				"_id":      "bundle-mzxw6",
 				"type":     "bundle",
-				"owner":    "user-mjxwe",
+				"owner":    "mjxwe",
 				"created":  "2017-01-01T00:00:00Z",
 				"modified": "2017-01-01T00:00:00Z"
 			}`,
@@ -82,7 +88,7 @@ func TestBundleMarshalJSON(t *testing.T) {
 			name: "all fields",
 			bundle: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "user-mjxwe",
+				Owner:       "mjxwe",
 				Created:     now(),
 				Modified:    now(),
 				Imported:    now(),
@@ -92,7 +98,7 @@ func TestBundleMarshalJSON(t *testing.T) {
 			expected: `{
 				"_id":         "bundle-mzxw6",
 				"type":        "bundle",
-				"owner":       "user-mjxwe",
+				"owner":       "mjxwe",
 				"name":        "foo name",
 				"description": "foo description",
 				"created":     "2017-01-01T00:00:00Z",
@@ -130,24 +136,24 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 		{
 			name: "invalid user",
 			input: `{
-                "_id":      "bundle-mzxw6",
-                "owner":    "unf",
-                "created":  "2017-01-01T00:00:00Z",
-                "modified": "2017-01-01T00:00:00Z"
-            }`,
-			err: "invalid owner: invalid DBID format",
+				"_id":      "bundle-mzxw6",
+				"owner":    "unf",
+				"created":  "2017-01-01T00:00:00Z",
+				"modified": "2017-01-01T00:00:00Z"
+			}`,
+			err: "invalid owner name: illegal base32 data at input byte 3",
 		},
 		{
-			name: "null fiels",
+			name: "null fields",
 			input: `{
-                "_id":      "bundle-mzxw6",
-                "owner":    "user-mjxwe",
-                "created":  "2017-01-01T00:00:00Z",
-                "modified": "2017-01-01T00:00:00Z"
-            }`,
+				"_id":      "bundle-mzxw6",
+				"owner":    "mjxwe",
+				"created":  "2017-01-01T00:00:00Z",
+				"modified": "2017-01-01T00:00:00Z"
+			}`,
 			expected: &Bundle{
 				ID:       "bundle-mzxw6",
-				Owner:    "user-mjxwe",
+				Owner:    "mjxwe",
 				Created:  now(),
 				Modified: now(),
 			},
@@ -156,7 +162,7 @@ func TestBundleUnmarshalJSON(t *testing.T) {
 			name: "all fields",
 			input: `{
                 "_id":         "bundle-mzxw6",
-                "owner":       "user-mjxwe",
+                "owner":       "mjxwe",
                 "name":        "foo name",
                 "description": "foo description",
                 "created":     "2017-01-01T00:00:00Z",
@@ -165,7 +171,7 @@ func TestBundleUnmarshalJSON(t *testing.T) {
             }`,
 			expected: &Bundle{
 				ID:          "bundle-mzxw6",
-				Owner:       "user-mjxwe",
+				Owner:       "mjxwe",
 				Created:     now(),
 				Modified:    now(),
 				Imported:    now(),
@@ -387,11 +393,11 @@ func TestBundleValidate(t *testing.T) {
 		{
 			name: "invalid user",
 			v:    &Bundle{ID: "bundle-mzxw6", Owner: "foo-bar", Created: now(), Modified: now()},
-			err:  "invalid owner: unsupported DBID type 'foo'",
+			err:  "invalid owner name: illegal base32 data at input byte 3",
 		},
 		{
 			name: "valid",
-			v:    &Bundle{ID: "bundle-mzxw6", Owner: "user-mjxwe", Created: now(), Modified: now()},
+			v:    &Bundle{ID: "bundle-mzxw6", Owner: "mjxwe", Created: now(), Modified: now()},
 		},
 	}
 	testValidation(t, tests)
