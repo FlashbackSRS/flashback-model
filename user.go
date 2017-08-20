@@ -57,6 +57,11 @@ func (u *User) Validate() error {
 	return nil
 }
 
+// ID returns the document ID for the user record.
+func (u *User) ID() string {
+	return kivik.UserPrefix + u.Name
+}
+
 // NewUser returns a new User object, based on the provided UUID and username.
 func NewUser(name string) (*User, error) {
 	u := &User{
@@ -94,7 +99,7 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		Roles     []string   `json:"roles"`
 		LastLogin *time.Time `json:"lastLogin,omitempty"`
 	}{
-		ID:        kivik.UserPrefix + u.Name,
+		ID:        u.ID(),
 		Type:      "user",
 		userAlias: userAlias(*u),
 	}
