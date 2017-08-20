@@ -74,11 +74,10 @@ func (t *Theme) Validate() error {
 
 // NewTheme returns a new, bare-bones theme, with the specified ID.
 func NewTheme(id string) (*Theme, error) {
-	nowTime := now()
 	t := &Theme{
 		ID:       id,
-		Created:  nowTime,
-		Modified: nowTime,
+		Created:  now().UTC(),
+		Modified: now().UTC(),
 	}
 	t.Attachments = NewFileCollection()
 	t.Files = t.Attachments.NewView()

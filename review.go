@@ -75,7 +75,7 @@ func (r *Review) UnmarshalJSON(data []byte) error {
 func NewReview(cardID string) (*Review, error) {
 	r := &Review{
 		CardID:    cardID,
-		Timestamp: now(),
+		Timestamp: now().UTC(),
 	}
 	return r, r.Validate()
 }

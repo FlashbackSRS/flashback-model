@@ -149,8 +149,8 @@ type DeckConfig struct {
 func NewDeck(id string) (*Deck, error) {
 	d := &Deck{
 		ID:       id,
-		Created:  now(),
-		Modified: now(),
+		Created:  now().UTC(),
+		Modified: now().UTC(),
 		Cards:    NewCardCollection(),
 	}
 	if err := d.Validate(); err != nil {

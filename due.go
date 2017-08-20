@@ -56,7 +56,7 @@ func ParseDue(src string) (Due, error) {
 // DueIn returns a new Due time i interval into the future. Durations greater
 // than 24 hours into the future are rounded to the day.
 func DueIn(i Interval) Due {
-	return Due(now()).Add(i)
+	return Due(now().UTC()).Add(i)
 }
 
 // IsZero returns true if the value is zero

@@ -66,8 +66,8 @@ func (u *User) ID() string {
 func NewUser(name string) (*User, error) {
 	u := &User{
 		Name:     name,
-		Created:  now(),
-		Modified: now(),
+		Created:  now().UTC(),
+		Modified: now().UTC(),
 	}
 	if err := u.Validate(); err != nil {
 		return nil, err
