@@ -248,3 +248,11 @@ func TestGenerateUser(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUserID(t *testing.T) {
+	u, _ := NewUser("foo")
+	expected := "org.couchdb.user:foo"
+	if id := u.ID(); id != expected {
+		t.Errorf("Unexpected id: %s", id)
+	}
+}
