@@ -48,7 +48,7 @@ func (b *Bundle) Validate() error {
 	if b.Owner == "" {
 		return errors.New("owner required")
 	}
-	if _, err := b32dec(b.Owner); err != nil {
+	if _, err := B32dec(b.Owner); err != nil {
 		return errors.Wrap(err, "invalid owner name")
 	}
 	return nil

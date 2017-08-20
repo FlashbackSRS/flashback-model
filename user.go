@@ -30,7 +30,7 @@ type User struct {
 
 // GenerateUser creates a new user account, with a random ID.
 func GenerateUser() *User {
-	user, _ := NewUser(b32enc(uuid.NewUUID()))
+	user, _ := NewUser(B32enc(uuid.NewUUID()))
 	return user
 }
 
@@ -73,7 +73,7 @@ func NewUser(name string) (*User, error) {
 // NilUser returns a special user, whose UUID bits are all set to zero, to be
 // used as a placeholder when the actual user isn't known.
 func NilUser() *User {
-	u, e := NewUser(b32enc(nilUser))
+	u, e := NewUser(B32enc(nilUser))
 	if e != nil {
 		panic(e)
 	}

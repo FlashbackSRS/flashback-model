@@ -1,7 +1,6 @@
 package fb
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -45,38 +44,5 @@ func TestEncodeDBID(t *testing.T) {
 	result := EncodeDBID("foo", []byte("test id"))
 	if result != expected {
 		t.Errorf("Unexpected result: %s", result)
-	}
-}
-
-func TestDBIDToBytes(t *testing.T) {
-	tests :=
-		[]struct {
-			name     string
-			input    string
-			expected []byte
-			err      string
-		}{
-			{
-				name:  "invalid id",
-				input: "foo bar baz",
-				err:   "invalid DBID format",
-			},
-			{
-				name:     "valid id",
-				input:    EncodeDBID("user", []byte{1, 2, 3, 4, 5, 6, 7, 8}),
-				expected: []byte{1, 2, 3, 4, 5, 6, 7, 8},
-			},
-		}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			result, err := DBIDToBytes(test.input)
-			checkErr(t, test.err, err)
-			if err != nil {
-				return
-			}
-			if !bytes.Equal(test.expected, result) {
-				t.Errorf("Unexpected result: %v (%s)", result, string(result))
-			}
-		})
 	}
 }
