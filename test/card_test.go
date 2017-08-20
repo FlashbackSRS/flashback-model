@@ -25,7 +25,7 @@ var frozenCard = []byte(`
 
 func TestCard(t *testing.T) {
 	require := require.New(t)
-	b, _ := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "user-tui5ajfbabaeljnxt4om7fwmt4")
+	b, _ := fb.NewBundle("bundle-krsxg5baij2w4zdmmu", "tui5ajfbabaeljnxt4om7fwmt4")
 	c, err := fb.NewCard("theme-VGVzdCBUaGVtZQ", 0, "card-"+strings.TrimPrefix(b.ID, "bundle-")+".mViuXQThMLoh1G1Nlc4d_E8kR8o.0")
 	require.Nil(err, "Error creating card: %s", err)
 

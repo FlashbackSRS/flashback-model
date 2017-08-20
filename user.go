@@ -1,10 +1,13 @@
 package fb
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"strings"
 	"time"
 
+	"github.com/flimzy/kivik"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 )
@@ -13,8 +16,9 @@ var nilUser = uuid.UUID([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0
 
 // User repressents a user of Flashback
 type User struct {
-	ID        string    `json:"_id"`
 	Rev       string    `json:"_rev,omitempty"`
+	Name      string    `json:"name"`
+	Roles     []string  `json:"roles"`
 	Password  string    `json:"password"`
 	Salt      string    `json:"salt"`
 	FullName  string    `json:"fullname,omitempty"`
@@ -24,14 +28,25 @@ type User struct {
 	LastLogin time.Time `json:"lastLogin,omitempty"`
 }
 
+// GenerateUser creates a new user account, with a random ID.
+func GenerateUser() *User {
+	user, _ := NewUser(B32enc(uuid.NewUUID()))
+	return user
+}
+
+func generateSalt() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(b)
+}
+
 // Validate validates that all of the data in the user appears valid and self
 // consistent. A nil return value means no errors were detected.
 func (u *User) Validate() error {
-	if u.ID == "" {
-		return errors.New("id required")
-	}
-	if !strings.HasPrefix(u.ID, "user-") {
-		return errors.New("incorrect doc type")
+	if u.Name == "" {
+		return errors.New("name required")
 	}
 	if u.Created.IsZero() {
 		return errors.New("created time required")
@@ -43,9 +58,9 @@ func (u *User) Validate() error {
 }
 
 // NewUser returns a new User object, based on the provided UUID and username.
-func NewUser(id string) (*User, error) {
+func NewUser(name string) (*User, error) {
 	u := &User{
-		ID:       id,
+		Name:     name,
 		Created:  now(),
 		Modified: now(),
 	}
@@ -58,7 +73,10 @@ func NewUser(id string) (*User, error) {
 // NilUser returns a special user, whose UUID bits are all set to zero, to be
 // used as a placeholder when the actual user isn't known.
 func NilUser() *User {
-	u, _ := NewUser(EncodeDBID("user", nilUser))
+	u, e := NewUser(B32enc(nilUser))
+	if e != nil {
+		panic(e)
+	}
 	return u
 }
 
@@ -71,24 +89,42 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	}
 	doc := struct {
 		userAlias
+		ID        string     `json:"_id"`
 		Type      string     `json:"type"`
+		Roles     []string   `json:"roles"`
 		LastLogin *time.Time `json:"lastLogin,omitempty"`
 	}{
+		ID:        kivik.UserPrefix + u.Name,
 		Type:      "user",
 		userAlias: userAlias(*u),
 	}
 	if !u.LastLogin.IsZero() {
 		doc.LastLogin = &u.LastLogin
 	}
+	if len(u.Roles) == 0 {
+		// To ensure non-`null` value
+		doc.Roles = []string{}
+	} else {
+		doc.Roles = u.Roles
+	}
 	return json.Marshal(doc)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for the User type.
 func (u *User) UnmarshalJSON(data []byte) error {
-	doc := &userAlias{}
+	doc := &struct {
+		userAlias
+		ID string `json:"_id"`
+	}{}
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return errors.Wrap(err, "failed to unmarshal user")
 	}
-	*u = User(*doc)
+	if !strings.HasPrefix(doc.ID, kivik.UserPrefix) {
+		return errors.New("id must have '" + kivik.UserPrefix + "' prefix")
+	}
+	if doc.Name != strings.TrimPrefix(doc.ID, kivik.UserPrefix) {
+		return errors.New("user name and id must match")
+	}
+	*u = User(doc.userAlias)
 	return u.Validate()
 }

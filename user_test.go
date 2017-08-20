@@ -14,14 +14,14 @@ func TestNewUser(t *testing.T) {
 		err      string
 	}{
 		{
-			name: "no id",
-			err:  "id required",
+			name: "no name",
+			err:  "name required",
 		},
 		{
 			name: "valid",
-			id:   "user-mjxwe",
+			id:   "mjxwe",
 			expected: &User{
-				ID: "user-mjxwe",
+				Name: "mjxwe",
 			},
 		},
 	}
@@ -42,7 +42,7 @@ func TestNewUser(t *testing.T) {
 func TestNilUser(t *testing.T) {
 	u := NilUser()
 	expected := &User{
-		ID:       "user-aaaaaaaaabaabaaaaaaaaaaaaa",
+		Name:     "aaaaaaaaabaabaaaaaaaaaaaaa",
 		Created:  now(),
 		Modified: now(),
 	}
@@ -59,14 +59,14 @@ func TestUserMarshalJSON(t *testing.T) {
 		err      string
 	}{
 		{
-			name: "no id",
+			name: "no name",
 			user: &User{},
-			err:  "id required",
+			err:  "name required",
 		},
 		{
 			name: "null fields",
 			user: &User{
-				ID:       "user-mjxwe",
+				Name:     "mjxwe",
 				Salt:     "salty",
 				Password: "abc123",
 				Created:  now(),
@@ -74,7 +74,9 @@ func TestUserMarshalJSON(t *testing.T) {
 			},
 			expected: `{
 			    "type":     "user",
-				"_id":      "user-mjxwe",
+				"_id":      "org.couchdb.user:mjxwe",
+				"name":     "mjxwe",
+				"roles":    [],
 				"salt":     "salty",
 				"password": "abc123",
 				"created":  "2017-01-01T00:00:00Z",
@@ -84,7 +86,8 @@ func TestUserMarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			user: &User{
-				ID:        "user-mjxwe",
+				Name:      "mjxwe",
+				Roles:     []string{"foo", "bar"},
 				Salt:      "salty",
 				Password:  "abc123",
 				FullName:  "Bob",
@@ -95,7 +98,9 @@ func TestUserMarshalJSON(t *testing.T) {
 			},
 			expected: `{
 				"type":     "user",
-				"_id":       "user-mjxwe",
+				"_id":       "org.couchdb.user:mjxwe",
+				"name":      "mjxwe",
+				"roles":     ["foo","bar"],
 				"salt":      "salty",
 				"password":  "abc123",
 				"email":     "bob@bob.com",
@@ -133,21 +138,32 @@ func TestUserUnmarshalJSON(t *testing.T) {
 			err:   "failed to unmarshal user: invalid character 'i' looking for beginning of value",
 		},
 		{
+			name:  "wrong doc id format",
+			input: `{"_id":"foo"}`,
+			err:   "id must have 'org.couchdb.user:' prefix",
+		},
+		{
+			name:  "name-id mismatch",
+			input: `{"_id":"org.couchdb.user:foo", "name":"bar"}`,
+			err:   "user name and id must match",
+		},
+		{
 			name:  "fails validation",
-			input: `{"_id":"deck-mjxwe"}`,
-			err:   "incorrect doc type",
+			input: `{"_id":"org.couchdb.user:foo", "name":"foo"}`,
+			err:   "created time required",
 		},
 		{
 			name: "null fields",
 			input: `{
-				"_id":      "user-mjxwe",
+				"_id":      "org.couchdb.user:mjxwe",
+				"name":     "mjxwe",
 				"salt":     "salty",
 				"password": "abc123",
 				"created":  "2017-01-01T00:00:00Z",
 				"modified": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
-				ID:       "user-mjxwe",
+				Name:     "mjxwe",
 				Salt:     "salty",
 				Password: "abc123",
 				Created:  now(),
@@ -157,7 +173,8 @@ func TestUserUnmarshalJSON(t *testing.T) {
 		{
 			name: "all fields",
 			input: `{
-				"_id":       "user-mjxwe",
+				"_id":       "org.couchdb.user:mjxwe",
+				"name":      "mjxwe",
 				"salt":      "salty",
 				"password":  "abc123",
 				"email":     "bob@bob.com",
@@ -167,7 +184,7 @@ func TestUserUnmarshalJSON(t *testing.T) {
 				"lastLogin": "2017-01-01T00:00:00Z"
             }`,
 			expected: &User{
-				ID:        "user-mjxwe",
+				Name:      "mjxwe",
 				Salt:      "salty",
 				Password:  "abc123",
 				Email:     "bob@bob.com",
@@ -196,34 +213,38 @@ func TestUserUnmarshalJSON(t *testing.T) {
 func TestUserValidate(t *testing.T) {
 	tests := []validationTest{
 		{
-			name: "no ID",
+			name: "no name",
 			v:    &User{},
-			err:  "id required",
-		},
-		{
-			name: "invalid doctype",
-			v:    &User{ID: "chicken-mjxwe"},
-			err:  "incorrect doc type",
-		},
-		{
-			name: "wrong doctype",
-			v:    &User{ID: "bundle-mjxwe"},
-			err:  "incorrect doc type",
+			err:  "name required",
 		},
 		{
 			name: "no created time",
-			v:    &User{ID: "user-mzxw6"},
+			v:    &User{Name: "mzxw6"},
 			err:  "created time required",
 		},
 		{
 			name: "no modified time",
-			v:    &User{ID: "user-mzxw6", Created: now()},
+			v:    &User{Name: "mzxw6", Created: now()},
 			err:  "modified time required",
 		},
 		{
 			name: "valid",
-			v:    &User{ID: "user-mjxwe", Created: now(), Modified: now()},
+			v:    &User{Name: "mjxwe", Created: now(), Modified: now()},
 		},
 	}
 	testValidation(t, tests)
+}
+
+func TestGenerateSalt(t *testing.T) {
+	salt := generateSalt()
+	if len(salt) != 32 {
+		t.Errorf("Generated salt is %d chars long, expected 32", len(salt))
+	}
+}
+
+func TestGenerateUser(t *testing.T) {
+	u := GenerateUser()
+	if err := u.Validate(); err != nil {
+		t.Fatal(err)
+	}
 }
