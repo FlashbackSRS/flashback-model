@@ -184,6 +184,9 @@ func (n *Note) GetFieldValue(ord int) *FieldValue {
 		}
 		n.FieldValues[ord] = fv
 	}
+	if fv.field == nil {
+		panic("nil field? Did you set the note's model after load?")
+	}
 	if fv.field.Type != TextField {
 		fv.files = n.Attachments.NewView()
 	}
@@ -192,6 +195,9 @@ func (n *Note) GetFieldValue(ord int) *FieldValue {
 
 // Type returns the FieldType of the FieldValue.
 func (fv *FieldValue) Type() FieldType {
+	if fv.field == nil {
+		panic("nil field? Did you set the note's model after load?")
+	}
 	return fv.field.Type
 }
 
@@ -232,6 +238,9 @@ func (fv *FieldValue) UnmarshalJSON(data []byte) error {
 // AddFile adds a file of the specified name, type, and content, as an attachment
 // to be used by the FieldValue.
 func (fv *FieldValue) AddFile(name, ctype string, content []byte) error {
+	if fv.field == nil {
+		panic("nil field? Did you set the note's model after load?")
+	}
 	if fv.field.Type == TextField {
 		return errors.New("Text fields do not support attachments")
 	}
