@@ -54,6 +54,9 @@ func (u *User) Validate() error {
 	if u.Modified.IsZero() {
 		return errors.New("modified time required")
 	}
+	if u.Salt == "" {
+		return errors.New("salt required")
+	}
 	return nil
 }
 
@@ -68,6 +71,7 @@ func NewUser(name string) (*User, error) {
 		Name:     name,
 		Created:  now().UTC(),
 		Modified: now().UTC(),
+		Salt:     generateSalt(),
 	}
 	if err := u.Validate(); err != nil {
 		return nil, err

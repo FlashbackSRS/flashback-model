@@ -46,6 +46,7 @@ func TestNilUser(t *testing.T) {
 		Created:  now(),
 		Modified: now(),
 	}
+	u.Salt = "" // Non-deterministic
 	if d := diff.Interface(expected, u); d != nil {
 		t.Error(d)
 	}
@@ -228,8 +229,13 @@ func TestUserValidate(t *testing.T) {
 			err:  "modified time required",
 		},
 		{
+			name: "no salt",
+			v:    &User{Name: "mzxw6", Created: now(), Modified: now()},
+			err:  "salt required",
+		},
+		{
 			name: "valid",
-			v:    &User{Name: "mjxwe", Created: now(), Modified: now()},
+			v:    &User{Name: "mjxwe", Created: now(), Modified: now(), Salt: "sea salt is the best"},
 		},
 	}
 	testValidation(t, tests)
