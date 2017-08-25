@@ -92,11 +92,10 @@ func parseCardID(id string) (bundleID, noteID string, templateID uint32, err err
 
 // NewCard returns a new Card instance, with the requested id
 func NewCard(theme string, model uint32, id string) (*Card, error) {
-	nowTime := now()
 	c := &Card{
 		ID:       id,
-		Created:  nowTime,
-		Modified: nowTime,
+		Created:  now().UTC(),
+		Modified: now().UTC(),
 		ModelID:  fmt.Sprintf("%s/%d", theme, model),
 	}
 	if err := c.Validate(); err != nil {

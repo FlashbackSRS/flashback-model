@@ -59,8 +59,8 @@ func NewBundle(id, owner string) (*Bundle, error) {
 	b := &Bundle{
 		ID:       id,
 		Owner:    owner,
-		Created:  now(),
-		Modified: now(),
+		Created:  now().UTC(),
+		Modified: now().UTC(),
 	}
 	if err := b.Validate(); err != nil {
 		return nil, err

@@ -21,6 +21,15 @@ type FileCollection struct {
 	views []*FileCollectionView
 }
 
+// FileList returns a list of filenames contained within the collection.
+func (fc *FileCollection) FileList() []string {
+	files := make([]string, 0, len(fc.files))
+	for name := range fc.files {
+		files = append(files, name)
+	}
+	return files
+}
+
 // GetFile returns an Attachment based on the file name. If the file does not
 // the second return value will be false.
 func (fc *FileCollection) GetFile(name string) (*Attachment, bool) {
