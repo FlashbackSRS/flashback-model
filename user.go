@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flimzy/kivik"
+	"github.com/go-kivik/kivik"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 )
